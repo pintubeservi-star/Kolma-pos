@@ -17,29 +17,26 @@ const Icons = {
 };
 
 export default function KolmaPOSPremium() {
-  // Autenticación Principal
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState(false);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
 
-  // Autenticación Secundaria (Corte y Reinicio)
-  const [authModal, setAuthModal] = useState({ isOpen: false, action: null }); // action: 'cierre' | 'reinicio'
+  // action: 'cierre' | 'reinicio' | 'historial'
+  const [authModal, setAuthModal] = useState({ isOpen: false, action: null }); 
   const [modalPassInput, setModalPassInput] = useState("");
   const [modalPassError, setModalPassError] = useState(false);
 
-  // Estados del POS
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [ticket, setTicket] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("pos"); // 'pos' o 'historial'
+  const [activeTab, setActiveTab] = useState("pos");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isTicketOpen, setIsTicketOpen] = useState(false);
   const [showShiftModal, setShowShiftModal] = useState(false);
   
-  // Historial de Ventas (Fuente de verdad)
   const [salesHistory, setSalesHistory] = useState([]);
 
   useEffect(() => {
@@ -69,7 +66,6 @@ export default function KolmaPOSPremium() {
     if (typeof window !== "undefined" && window.innerWidth > 1024) setIsSidebarOpen(true);
   }, []);
 
-  // Cálculos Automáticos de la Caja (Basado en el historial de ventas)
   const shiftTotalSales = salesHistory.reduce((acc, sale) => acc + sale.total, 0);
   const shiftTotalItems = salesHistory.reduce((acc, sale) => acc + sale.qty, 0);
   
@@ -85,7 +81,6 @@ export default function KolmaPOSPremium() {
     });
   });
 
-  // Login Inicial
   const handleLogin = (e) => {
     e.preventDefault();
     if (passwordInput === "1221") {
@@ -103,7 +98,6 @@ export default function KolmaPOSPremium() {
     sessionStorage.removeItem("kolma_auth");
   };
 
-  // Login Modal (Corte / Reinicio)
   const handleModalAuth = (e) => {
     e.preventDefault();
     if (modalPassInput === "1221") {
@@ -114,6 +108,8 @@ export default function KolmaPOSPremium() {
         setShowShiftModal(true);
       } else if (authModal.action === "reinicio") {
         resetShift();
+      } else if (authModal.action === "historial") {
+        setActiveTab("historial");
       }
       setAuthModal({ isOpen: false, action: null });
     } else {
@@ -122,7 +118,6 @@ export default function KolmaPOSPremium() {
     }
   };
 
-  // Carrito y Checkout
   const addToTicket = (p) => {
     setTicket(prev => {
       const exists = prev.find(i => i.id === p.id);
@@ -172,10 +167,10 @@ export default function KolmaPOSPremium() {
     setSalesHistory([]);
     localStorage.removeItem("kolma_sales_history");
     setShowShiftModal(false);
+    setActiveTab("pos");
     alert("Caja reiniciada a cero con éxito.");
   };
 
-  // Reportes
   const generateReportText = () => {
     const sortedProducts = Object.values(shiftSoldProducts).sort((a, b) => b.qty - a.qty);
     let report = `🧾 CIERRE DE CAJA - KOLMA POS\n📅 Fecha: ${new Date().toLocaleString()}\n--------------------------------\n💰 Venta Total: RD$${shiftTotalSales.toLocaleString()}\n📦 Piezas Vendidas: ${shiftTotalItems}\n--------------------------------\n📊 DETALLE DE VENTAS:\n\n`;
@@ -200,7 +195,6 @@ export default function KolmaPOSPremium() {
     window.open(`https://wa.me/?text=${encodeURIComponent(generateReportText())}`, '_blank');
   };
 
-  // PANTALLAS DE CARGA Y LOGIN MAIN
   if (!isAuthChecked || loading) return (
     <div className="h-screen flex items-center justify-center bg-[#F6F6F7]">
       <div className="text-center">
@@ -236,7 +230,6 @@ export default function KolmaPOSPremium() {
       
       {isSidebarOpen && <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[50] lg:hidden" onClick={() => setIsSidebarOpen(false)} />}
 
-      {/* SIDEBAR */}
       <aside className={`fixed lg:static inset-y-0 left-0 bg-[#1A1C1D] text-white z-[60] flex flex-col transition-transform duration-300 transform ${isSidebarOpen ? "w-64 translate-x-0" : "w-0 lg:w-20 -translate-x-full lg:translate-x-0 overflow-hidden"}`}>
         <div className="p-6 flex items-center justify-between border-b border-gray-800 shrink-0">
           <div className="flex items-center gap-3">
@@ -247,7 +240,12 @@ export default function KolmaPOSPremium() {
         
         <nav className="flex-1 py-6 px-3 space-y-2 overflow-y-auto custom-scrollbar">
           <MenuBtn active={activeTab === "pos"} onClick={() => { setActiveTab("pos"); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} label="Ventas POS" open={isSidebarOpen} icon={<Icons.Home />} />
-          <MenuBtn active={activeTab === "historial"} onClick={() => { setActiveTab("historial"); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} label="Historial" open={isSidebarOpen} icon={<Icons.History />} />
+          <MenuBtn active={activeTab === "historial"} onClick={() => { 
+            if(activeTab !== "historial"){
+              setAuthModal({ isOpen: true, action: 'historial' });
+              if (window.innerWidth < 1024) setIsSidebarOpen(false);
+            }
+          }} label="Historial" open={isSidebarOpen} icon={<Icons.History />} />
           <MenuBtn active={activeTab === "clientes"} onClick={() => { setActiveTab("clientes"); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} label="Clientes" open={isSidebarOpen} icon={<Icons.Customers />} />
           <MenuBtn active={activeTab === "config"} onClick={() => { setActiveTab("config"); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} label="Ajustes" open={isSidebarOpen} icon={<Icons.Settings />} />
         </nav>
@@ -262,7 +260,6 @@ export default function KolmaPOSPremium() {
         </div>
       </aside>
 
-      {/* ÁREA CENTRAL */}
       <main className="flex-1 flex flex-col min-w-0">
         <header className="h-16 bg-white border-b border-[#E1E3E5] flex items-center px-4 md:px-6 gap-3 md:gap-4 shadow-sm sticky top-0 z-40 shrink-0">
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"><Icons.Menu /></button>
@@ -296,13 +293,14 @@ export default function KolmaPOSPremium() {
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl md:text-2xl font-black text-gray-800 uppercase italic tracking-tighter">Panel POS</h2>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-5 pb-20 xl:pb-0">
+              {/* Ajuste de columnas para que los productos se vean más pequeños */}
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-2 md:gap-3 pb-20 xl:pb-0">
                 {filteredProducts.map(p => (
-                  <button key={p.id} onClick={() => addToTicket(p)} className="flex flex-col bg-white border border-[#E1E3E5] rounded-2xl overflow-hidden hover:shadow-xl hover:border-[#008060] transition-all group active:scale-[0.97]">
-                    <div className="aspect-square w-full bg-[#F9FAFB] p-3 md:p-4 flex items-center justify-center relative"><img src={p.image} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform" alt="" /></div>
-                    <div className="p-3 md:p-4 border-t border-[#F1F2F3] text-left w-full">
-                      <h3 className="font-bold text-[10px] md:text-xs text-gray-500 uppercase truncate mb-1">{p.name}</h3>
-                      <p className="text-base md:text-lg font-black text-gray-900">RD${p.price.toLocaleString()}</p>
+                  <button key={p.id} onClick={() => addToTicket(p)} className="flex flex-col bg-white border border-[#E1E3E5] rounded-xl overflow-hidden hover:shadow-lg hover:border-[#008060] transition-all group active:scale-[0.97]">
+                    <div className="aspect-square w-full bg-[#F9FAFB] p-2 flex items-center justify-center relative"><img src={p.image} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform" alt="" /></div>
+                    <div className="p-2 md:p-3 border-t border-[#F1F2F3] text-left w-full">
+                      <h3 className="font-bold text-[9px] md:text-[10px] text-gray-500 uppercase tracking-tight truncate mb-0.5">{p.name}</h3>
+                      <p className="text-sm md:text-base font-black text-gray-900">RD${p.price.toLocaleString()}</p>
                     </div>
                   </button>
                 ))}
@@ -378,15 +376,15 @@ export default function KolmaPOSPremium() {
         </>
       )}
 
-      {/* MODAL DE CONTRASEÑA (Para Corte y Reinicio) */}
+      {/* MODAL DE CONTRASEÑA */}
       {authModal.isOpen && (
         <div className="fixed inset-0 bg-[#1A1C1D]/90 backdrop-blur-md z-[110] flex items-center justify-center p-4">
           <div className="bg-[#202223] w-full max-w-sm rounded-[2rem] p-8 shadow-2xl border border-gray-800 animate-in zoom-in-95">
             <h2 className="text-xl font-black text-white uppercase italic text-center mb-6">
-              {authModal.action === "cierre" ? "Autorizar Cierre" : "Autorizar Reinicio"}
+              {authModal.action === "cierre" ? "Autorizar Cierre" : authModal.action === "historial" ? "Autorizar Historial" : "Autorizar Reinicio"}
             </h2>
             <form onSubmit={handleModalAuth} className="space-y-4">
-              <input type="password" autoFocus placeholder="Contraseña (1221)" value={modalPassInput} onChange={(e) => setModalPassInput(e.target.value)} className={`w-full bg-[#1A1C1D] border ${modalPassError ? 'border-red-500 text-red-500' : 'border-gray-700 text-white'} rounded-xl py-4 text-center font-black tracking-[0.5em] focus:outline-none focus:border-[#008060]`} />
+              <input type="password" autoFocus placeholder="Contraseña" value={modalPassInput} onChange={(e) => setModalPassInput(e.target.value)} className={`w-full bg-[#1A1C1D] border ${modalPassError ? 'border-red-500 text-red-500' : 'border-gray-700 text-white'} rounded-xl py-4 text-center font-black tracking-[0.5em] focus:outline-none focus:border-[#008060]`} />
               {modalPassError && <p className="text-red-500 text-center text-xs font-bold uppercase">Clave Inválida</p>}
               <div className="flex gap-2">
                 <button type="button" onClick={() => setAuthModal({isOpen:false, action:null})} className="w-1/3 py-4 bg-gray-800 text-gray-400 rounded-xl font-black uppercase text-xs">Cancelar</button>
