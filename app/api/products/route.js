@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const domain = process.env.SHOPIFY_STORE_DOMAIN;
-  const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
+  // Usando tu token público directamente
+  const publicToken = "A171ee1eaf68d9b7ca5234b4c45a9b0c"; 
 
   const query = `{
-    products(first: 50) {
+    products(first: 100) {
       edges {
         node {
           title
@@ -15,7 +16,7 @@ export async function GET() {
               node {
                 id
                 title
-                price
+                price { amount }
               }
             }
           }
@@ -25,32 +26,29 @@ export async function GET() {
   }`;
 
   try {
-    const res = await fetch(`https://${domain}/admin/api/2024-01/graphql.json`, {
+    const res = await fetch(`https://${domain}/api/2024-04/graphql.json`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Shopify-Access-Token": token,
+        "X-Shopify-Storefront-Access-Token": publicToken,
       },
       body: JSON.stringify({ query }),
     });
 
-    const json = await res.json();
-
-    if (json.errors) {
-      return NextResponse.json({ error: "Error de Shopify", details: json.errors }, { status: 401 });
-    }
-
-    const products = json.data.products.edges.flatMap(({ node }) => 
+    const { data } = await res.json();
+    
+    // Desglose de variantes para vender por unidad
+    const products = data.products.edges.flatMap(({ node }) => 
       node.variants.edges.map(({ node: v }) => ({
         id: v.id,
         name: v.title === "Default Title" ? node.title : `${node.title} (${v.title})`,
-        price: parseFloat(v.price),
+        price: parseFloat(v.price.amount),
         image: node.featuredImage?.url || "https://via.placeholder.com/150"
       }))
     );
 
     return NextResponse.json(products);
   } catch (e) {
-    return NextResponse.json({ error: "Fallo de conexión al servidor" }, { status: 500 });
+    return NextResponse.json({ error: "Fallo de conexión" }, { status: 500 });
   }
 }
