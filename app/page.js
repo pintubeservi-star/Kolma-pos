@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 
-// Iconos SVG de alta resolución para un acabado premium
+// Iconos SVG Premium restaurados
 const Icons = {
   Home: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>,
   Inventory: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>,
@@ -19,23 +19,28 @@ export default function KolmaPOSPremium() {
   const [search, setSearch] = useState("");
   const [ticket, setTicket] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("ventas");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isTicketOpen, setIsTicketOpen] = useState(false);
-  
   const [shiftStats, setShiftStats] = useState({ totalSales: 0, ordersCount: 0 });
   const [showShiftModal, setShowShiftModal] = useState(false);
 
   useEffect(() => {
-    fetch('/api/products')
-      .then(res => res.json())
-      .then(data => {
-        setProducts(Array.isArray(data) ? data : []);
+    async function fetchShopifyProducts() {
+      try {
+        const res = await fetch('/api/products');
+        if (!res.ok) throw new Error(`Error ${res.status}: Verifica tus credenciales de Shopify`);
+        const data = await res.json();
+        setProducts(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
-    
-    if (typeof window !== "undefined" && window.innerWidth > 1024) setIsSidebarOpen(true);
+      }
+    }
+    fetchShopifyProducts();
+    if (window.innerWidth > 1024) setIsSidebarOpen(true);
   }, []);
 
   const addToTicket = (p) => {
@@ -53,7 +58,7 @@ export default function KolmaPOSPremium() {
   };
 
   const total = ticket.reduce((acc, item) => acc + (item.price * item.qty), 0);
-  const filteredProducts = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+  const filteredProducts = products.filter(p => p.name?.toLowerCase().includes(search.toLowerCase()));
 
   const handleCheckout = () => {
     setShiftStats(prev => ({
@@ -67,7 +72,7 @@ export default function KolmaPOSPremium() {
   const resetShift = () => {
     setShiftStats({ totalSales: 0, ordersCount: 0 });
     setShowShiftModal(false);
-    alert("Turno cerrado con éxito. Terminal reiniciada.");
+    alert("Turno cerrado con éxito.");
   };
 
   if (loading) return (
@@ -83,123 +88,100 @@ export default function KolmaPOSPremium() {
     <div className="flex h-screen bg-[#F6F6F7] text-[#202223] font-sans overflow-hidden">
       <style dangerouslySetInnerHTML={{ __html: `
         .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #E1E3E5; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #C9CCCF; }
       `}} />
       
-      {/* SIDEBAR */}
-      <aside className={`fixed inset-y-0 left-0 bg-[#1A1C1D] text-white z-[60] flex flex-col transition-all duration-300 ${isSidebarOpen ? "w-64 translate-x-0" : "w-20 -translate-x-full lg:translate-x-0"}`}>
-        <div className="p-6 flex items-center justify-between border-b border-gray-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#008060] rounded-xl flex items-center justify-center font-black italic text-lg shadow-lg">K</div>
-            {isSidebarOpen && <span className="font-black tracking-tighter text-xl uppercase italic">Kolma<span className="text-[#008060]">POS</span></span>}
-          </div>
-          <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-gray-500"><Icons.Close /></button>
+      {/* SIDEBAR PREMIUM */}
+      <aside className={`fixed lg:static inset-y-0 left-0 bg-[#1A1C1D] text-white z-[60] flex flex-col transition-all duration-300 ${isSidebarOpen ? "w-64" : "w-0 lg:w-20 overflow-hidden"}`}>
+        <div className="p-6 flex items-center gap-3 border-b border-gray-800">
+          <div className="w-10 h-10 bg-[#008060] rounded-xl flex items-center justify-center font-black italic shadow-lg">K</div>
+          {isSidebarOpen && <span className="font-black tracking-tighter text-xl uppercase italic">Kolma<span className="text-[#008060]">POS</span></span>}
         </div>
         
         <nav className="flex-1 py-6 px-3 space-y-2">
-          <MenuBtn active={activeTab === "ventas"} onClick={() => {setActiveTab("ventas"); if(window.innerWidth < 1024) setIsSidebarOpen(false)}} label="Ventas" open={isSidebarOpen} icon={<Icons.Home />} />
-          <MenuBtn active={activeTab === "inventario"} onClick={() => {setActiveTab("inventario"); if(window.innerWidth < 1024) setIsSidebarOpen(false)}} label="Inventario" open={isSidebarOpen} icon={<Icons.Inventory />} />
-          <MenuBtn active={activeTab === "clientes"} onClick={() => {setActiveTab("clientes"); if(window.innerWidth < 1024) setIsSidebarOpen(false)}} label="Clientes" open={isSidebarOpen} icon={<Icons.Customers />} />
-          <MenuBtn active={activeTab === "config"} onClick={() => {setActiveTab("config"); if(window.innerWidth < 1024) setIsSidebarOpen(false)}} label="Ajustes" open={isSidebarOpen} icon={<Icons.Settings />} />
+          <MenuBtn active={activeTab === "ventas"} onClick={() => setActiveTab("ventas")} label="Ventas" open={isSidebarOpen} icon={<Icons.Home />} />
+          <MenuBtn active={activeTab === "inventario"} onClick={() => setActiveTab("inventario")} label="Inventario" open={isSidebarOpen} icon={<Icons.Inventory />} />
+          <MenuBtn active={activeTab === "clientes"} onClick={() => setActiveTab("clientes")} label="Clientes" open={isSidebarOpen} icon={<Icons.Customers />} />
         </nav>
 
         <div className="p-4 border-t border-gray-800">
-          <button 
-            onClick={() => setShowShiftModal(true)}
-            className={`flex items-center gap-4 w-full p-3 rounded-xl transition-all font-bold text-xs uppercase tracking-widest ${isSidebarOpen ? "bg-orange-600/10 text-orange-500 hover:bg-orange-600 hover:text-white" : "text-orange-500 hover:bg-orange-600/20"}`}
-          >
-            <Icons.Power />
-            {isSidebarOpen && <span>Cierre de Turno</span>}
+          <button onClick={() => setShowShiftModal(true)} className={`flex items-center gap-4 w-full p-3 rounded-xl transition-all font-bold text-xs uppercase tracking-widest text-orange-500 hover:bg-orange-600 hover:text-white`}>
+            <Icons.Power /> {isSidebarOpen && <span>Cierre de Turno</span>}
           </button>
         </div>
       </aside>
 
       {/* ÁREA PRINCIPAL */}
-      <main className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isSidebarOpen ? "lg:ml-64" : "lg:ml-20"}`}>
-        <header className="h-16 bg-white border-b border-[#E1E3E5] flex items-center px-4 md:px-6 gap-4 shadow-sm sticky top-0 z-40">
-          <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 text-gray-600">
-            <Icons.Menu />
-          </button>
-          
+      <main className="flex-1 flex flex-col min-w-0">
+        <header className="h-16 bg-white border-b flex items-center px-6 gap-4 shadow-sm sticky top-0 z-40">
+          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-gray-600"><Icons.Menu /></button>
           <div className="flex-1 relative">
-            <span className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400 scale-75 md:scale-100"><Icons.Search /></span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><Icons.Search /></span>
             <input 
-              type="text" 
-              placeholder="Buscar productos..." 
-              className="w-full h-10 md:h-11 pl-10 md:pl-12 pr-4 bg-[#F1F2F3] border-none rounded-lg focus:ring-2 focus:ring-[#008060] font-medium transition-all outline-none text-sm"
+              type="text" placeholder="Buscar productos de Shopify..." 
+              className="w-full h-11 pl-12 pr-4 bg-[#F1F2F3] border-none rounded-lg focus:ring-2 focus:ring-[#008060] font-medium outline-none text-sm"
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          
-          <button 
-            onClick={() => setIsTicketOpen(true)}
-            className="lg:hidden relative p-2.5 bg-[#008060] text-white rounded-xl shadow-md active:scale-90 transition-transform"
-          >
-            🛒 {ticket.length > 0 && <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] w-5 h-5 flex items-center justify-center rounded-full font-bold ring-2 ring-white">{ticket.length}</span>}
-          </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl md:text-2xl font-black text-gray-800 uppercase italic tracking-tighter">Panel de Ventas</h2>
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-emerald-100 text-[#008060] rounded-full border border-emerald-200">
-               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-               <span className="text-[10px] font-black uppercase tracking-widest">Terminal Activa</span>
+        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+          {error ? (
+            <div className="bg-red-50 text-red-600 p-8 rounded-3xl text-center border border-red-100">
+              <h2 className="font-black text-xl mb-2">Error de Sincronización</h2>
+              <p className="text-sm opacity-80">{error}</p>
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-black text-gray-800 uppercase italic tracking-tighter">Panel de Ventas</h2>
+                <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-emerald-100 text-[#008060] rounded-full border border-emerald-200">
+                   <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                   <span className="text-[10px] font-black uppercase tracking-widest">Shopify Conectado</span>
+                </div>
+              </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-5 pb-20 lg:pb-0">
-            {filteredProducts.map(p => (
-              <button 
-                key={p.id} 
-                onClick={() => addToTicket(p)}
-                className="flex flex-col bg-white border border-[#E1E3E5] rounded-2xl overflow-hidden hover:shadow-xl hover:border-[#008060] transition-all group active:scale-[0.97]"
-              >
-                <div className="aspect-square w-full bg-[#F9FAFB] p-3 md:p-4 flex items-center justify-center relative">
-                  <img src={p.image || "https://via.placeholder.com/150"} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500" alt={p.name} />
-                </div>
-                <div className="p-3 md:p-4 border-t border-[#F1F2F3] text-left">
-                  <h3 className="font-bold text-[10px] md:text-xs text-gray-500 uppercase tracking-tight truncate mb-1">{p.name}</h3>
-                  <p className="text-base md:text-lg font-black text-gray-900">RD${p.price.toLocaleString()}</p>
-                </div>
-              </button>
-            ))}
-          </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+                {filteredProducts.map(p => (
+                  <button key={p.id} onClick={() => addToTicket(p)} className="flex flex-col bg-white border border-[#E1E3E5] rounded-2xl overflow-hidden hover:shadow-xl hover:border-[#008060] transition-all group active:scale-[0.97]">
+                    <div className="aspect-square w-full bg-[#F9FAFB] p-4 flex items-center justify-center">
+                      <img src={p.image} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500" alt={p.name} />
+                    </div>
+                    <div className="p-4 border-t border-[#F1F2F3] text-left">
+                      <h3 className="font-bold text-[10px] text-gray-500 uppercase tracking-tight truncate mb-1">{p.name}</h3>
+                      <p className="text-lg font-black text-gray-900">RD${p.price.toLocaleString()}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </main>
 
-      {/* PANEL DE TICKET */}
-      {isTicketOpen && <div onClick={() => setIsTicketOpen(false)} className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 lg:hidden"></div>}
-      
-      <aside className={`fixed inset-y-0 right-0 w-full sm:w-[400px] lg:w-[420px] bg-white border-l border-[#E1E3E5] flex flex-col z-[70] lg:z-10 transition-transform duration-500 ease-in-out lg:translate-x-0 ${isTicketOpen ? "translate-x-0" : "translate-x-full"}`}>
-        <div className="h-16 px-6 border-b border-[#E1E3E5] flex items-center justify-between bg-white sticky top-0 z-10">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-black uppercase tracking-tighter italic">Venta Actual</h2>
-            <span className="bg-gray-100 text-gray-600 text-[10px] px-2.5 py-1 rounded-md font-bold">{ticket.length}</span>
-          </div>
-          <button onClick={() => setIsTicketOpen(false)} className="p-2 text-gray-400 hover:text-black transition-colors"><Icons.Close /></button>
+      {/* PANEL DE TICKET (SIDEBAR DERECHO) */}
+      <aside className="hidden xl:flex w-[400px] bg-white border-l border-[#E1E3E5] flex-col">
+        <div className="h-16 px-6 border-b flex items-center justify-between">
+          <h2 className="text-lg font-black uppercase tracking-tighter italic">Venta Actual</h2>
+          <span className="bg-gray-100 text-gray-600 text-[10px] px-2.5 py-1 rounded-md font-bold">{ticket.length}</span>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-3 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-6 space-y-3 custom-scrollbar">
           {ticket.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center opacity-30 text-center scale-90">
-              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-4xl shadow-inner">🧾</div>
-              <p className="font-black text-[10px] uppercase tracking-widest text-gray-500 leading-relaxed">Selecciona productos<br/>para empezar la venta</p>
+              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-4xl">🧾</div>
+              <p className="font-black text-[10px] uppercase tracking-widest">Selecciona productos</p>
             </div>
           ) : ticket.map(item => (
-            <div key={item.id} className="flex items-center gap-3 md:gap-4 bg-white border border-gray-100 p-3 rounded-2xl shadow-sm hover:border-[#008060] transition-all">
-              <div className="w-12 h-12 bg-gray-50 rounded-xl p-1 shrink-0">
-                <img src={item.image || "https://via.placeholder.com/150"} className="w-full h-full object-contain" alt={item.name} />
-              </div>
+            <div key={item.id} className="flex items-center gap-4 bg-white border border-gray-100 p-3 rounded-2xl shadow-sm hover:border-[#008060] transition-all">
+              <div className="w-12 h-12 bg-gray-50 rounded-xl p-1 shrink-0"><img src={item.image} className="w-full h-full object-contain" alt="" /></div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-[11px] truncate uppercase text-gray-800 mb-1.5">{item.name}</h4>
+                <h4 className="font-bold text-[11px] truncate uppercase mb-1.5">{item.name}</h4>
                 <div className="flex items-center justify-between">
-                   <div className="flex items-center bg-[#F1F2F3] rounded-lg overflow-hidden border border-gray-200">
-                    <button onClick={() => updateQty(item.id, -1)} className="w-7 h-7 flex items-center justify-center hover:bg-gray-200 text-gray-600 font-bold">-</button>
-                    <span className="w-7 text-center text-xs font-black text-gray-900">{item.qty}</span>
-                    <button onClick={() => updateQty(item.id, 1)} className="w-7 h-7 flex items-center justify-center hover:bg-gray-200 text-gray-600 font-bold">+</button>
+                  <div className="flex items-center bg-[#F1F2F3] rounded-lg border">
+                    <button onClick={() => updateQty(item.id, -1)} className="w-7 h-7 font-bold hover:bg-gray-200">-</button>
+                    <span className="w-7 text-center text-xs font-black">{item.qty}</span>
+                    <button onClick={() => updateQty(item.id, 1)} className="w-7 h-7 font-bold hover:bg-gray-200">+</button>
                   </div>
                   <span className="font-black text-sm text-[#008060]">RD${(item.price * item.qty).toLocaleString()}</span>
                 </div>
@@ -209,44 +191,26 @@ export default function KolmaPOSPremium() {
           ))}
         </div>
 
-        <div className="p-6 bg-[#F9FAFB] border-t border-[#E1E3E5] shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <p className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-1">Total a Cobrar</p>
-              <h3 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tighter italic">RD${total.toLocaleString()}</h3>
-            </div>
+        <div className="p-6 bg-[#F9FAFB] border-t">
+          <div className="mb-6 text-left">
+            <p className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-1">Total a Cobrar</p>
+            <h3 className="text-4xl font-black text-gray-900 tracking-tighter italic">RD${total.toLocaleString()}</h3>
           </div>
-          
           <button 
-            disabled={total === 0}
-            onClick={handleCheckout}
-            className={`w-full py-5 rounded-2xl font-black text-xl uppercase tracking-[0.2em] transition-all shadow-xl active:scale-95 ${
-              total > 0 
-              ? "bg-[#008060] text-white hover:bg-[#006e52] shadow-emerald-200/50" 
-              : "bg-gray-200 text-gray-400 cursor-not-allowed"
-            }`}
+            disabled={total === 0} onClick={handleCheckout}
+            className={`w-full py-5 rounded-2xl font-black text-xl uppercase tracking-widest transition-all shadow-xl active:scale-95 ${total > 0 ? "bg-[#008060] text-white shadow-emerald-200" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
           >
             Cobrar Ahora
           </button>
-          
-          <div className="mt-4 grid grid-cols-2 gap-3">
-             <button className="py-3 px-4 bg-white border border-[#C9CCCF] rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-gray-50 transition-colors">Descuento</button>
-             <button className="py-3 px-4 bg-white border border-[#C9CCCF] rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-gray-50 transition-colors">Notas</button>
-          </div>
         </div>
       </aside>
 
       {/* MODAL CIERRE DE TURNO */}
       {showShiftModal && (
         <div className="fixed inset-0 bg-[#1A1C1D]/90 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-8 text-center">
-              <div className="w-20 h-20 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">
-                <Icons.Power />
-              </div>
-              <h2 className="text-2xl font-black uppercase italic tracking-tighter text-gray-900 mb-2">Resumen de Turno</h2>
-              <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-8">Información de la terminal activa</p>
-              
+          <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 text-center animate-in zoom-in-95 duration-200">
+              <div className="w-20 h-20 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl"><Icons.Power /></div>
+              <h2 className="text-2xl font-black uppercase italic tracking-tighter text-gray-900 mb-8">Resumen de Turno</h2>
               <div className="grid grid-cols-2 gap-4 mb-8">
                 <div className="bg-[#F9FAFB] p-6 rounded-3xl border border-gray-100">
                   <p className="text-[10px] font-black text-gray-400 uppercase mb-1">Ventas Totales</p>
@@ -257,22 +221,10 @@ export default function KolmaPOSPremium() {
                   <p className="text-xl font-black text-gray-900">{shiftStats.ordersCount}</p>
                 </div>
               </div>
-
               <div className="space-y-3">
-                <button 
-                  onClick={resetShift}
-                  className="w-full py-4 bg-orange-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-orange-700 transition-all shadow-lg shadow-orange-200 active:scale-95"
-                >
-                  Confirmar y Cerrar
-                </button>
-                <button 
-                  onClick={() => setShowShiftModal(false)}
-                  className="w-full py-4 bg-gray-100 text-gray-500 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95"
-                >
-                  Seguir Vendiendo
-                </button>
+                <button onClick={resetShift} className="w-full py-4 bg-orange-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-orange-200">Confirmar y Cerrar</button>
+                <button onClick={() => setShowShiftModal(false)} className="w-full py-4 bg-gray-100 text-gray-500 rounded-2xl font-black uppercase tracking-widest">Seguir Vendiendo</button>
               </div>
-            </div>
           </div>
         </div>
       )}
@@ -282,18 +234,10 @@ export default function KolmaPOSPremium() {
 
 function MenuBtn({ active, onClick, label, open, icon }) {
   return (
-    <button 
-      onClick={onClick}
-      className={`w-full flex items-center gap-4 px-3.5 py-3 rounded-xl transition-all ${
-        active 
-        ? "bg-[#008060] text-white shadow-lg shadow-emerald-950/20 translate-x-1" 
-        : "text-gray-400 hover:bg-gray-800 hover:text-white"
-      }`}
-    >
+    <button onClick={onClick} className={`w-full flex items-center gap-4 px-3.5 py-3 rounded-xl transition-all ${active ? "bg-[#008060] text-white shadow-lg translate-x-1" : "text-gray-400 hover:bg-gray-800 hover:text-white"}`}>
       <div className="flex-shrink-0">{icon}</div>
       {open && <span className="font-bold text-sm tracking-tight">{label}</span>}
     </button>
   );
 }
 
-    
