@@ -24,7 +24,6 @@ export default function KolmaPOSPremium() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isTicketOpen, setIsTicketOpen] = useState(false);
   
-  // Estado para el Cierre de Turno
   const [shiftStats, setShiftStats] = useState({ totalSales: 0, ordersCount: 0 });
   const [showShiftModal, setShowShiftModal] = useState(false);
 
@@ -43,7 +42,7 @@ export default function KolmaPOSPremium() {
   const addToTicket = (p) => {
     setTicket(prev => {
       const exists = prev.find(i => i.id === p.id);
-      if (exists) return prev.map(i => i.id === p.id ? { ...i, qty: item.qty + 1 } : i);
+      if (exists) return prev.map(i => i.id === p.id ? { ...i, qty: i.qty + 1 } : i);
       return [...prev, { ...p, qty: 1 }];
     });
   };
@@ -57,7 +56,6 @@ export default function KolmaPOSPremium() {
   const total = ticket.reduce((acc, item) => acc + (item.price * item.qty), 0);
   const filteredProducts = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
-  // Función para registrar la venta en las estadísticas del turno
   const handleCheckout = () => {
     setShiftStats(prev => ({
       totalSales: prev.totalSales + total,
@@ -65,7 +63,6 @@ export default function KolmaPOSPremium() {
     }));
     setTicket([]);
     setIsTicketOpen(false);
-    // Podrías añadir un toast de éxito aquí
   };
 
   const resetShift = () => {
@@ -87,10 +84,7 @@ export default function KolmaPOSPremium() {
     <div className="flex h-screen bg-[#F6F6F7] text-[#202223] font-sans overflow-hidden">
       
       {/* SIDEBAR */}
-      <aside className={`
-        fixed inset-y-0 left-0 bg-[#1A1C1D] text-white z-[60] flex flex-col transition-all duration-300
-        ${isSidebarOpen ? "w-64 translate-x-0" : "w-20 -translate-x-full lg:translate-x-0"}
-      `}>
+      <aside className={`fixed inset-y-0 left-0 bg-[#1A1C1D] text-white z-[60] flex flex-col transition-all duration-300 ${isSidebarOpen ? "w-64 translate-x-0" : "w-20 -translate-x-full lg:translate-x-0"}`}>
         <div className="p-6 flex items-center justify-between border-b border-gray-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#008060] rounded-xl flex items-center justify-center font-black italic text-lg shadow-lg">K</div>
@@ -106,7 +100,6 @@ export default function KolmaPOSPremium() {
           <MenuBtn active={activeTab === "config"} onClick={() => {setActiveTab("config"); if(window.innerWidth < 1024) setIsSidebarOpen(false)}} label="Ajustes" open={isSidebarOpen} icon={<Icons.Settings />} />
         </nav>
 
-        {/* BOTÓN CIERRE DE TURNO EN SIDEBAR */}
         <div className="p-4 border-t border-gray-800">
           <button 
             onClick={() => setShowShiftModal(true)}
@@ -175,10 +168,7 @@ export default function KolmaPOSPremium() {
       {/* PANEL DE TICKET */}
       {isTicketOpen && <div onClick={() => setIsTicketOpen(false)} className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 lg:hidden"></div>}
       
-      <aside className={`
-        fixed inset-y-0 right-0 w-full sm:w-[400px] lg:w-[420px] bg-white border-l border-[#E1E3E5] flex flex-col z-[70] lg:z-10 transition-transform duration-500 ease-in-out lg:translate-x-0
-        ${isTicketOpen ? "translate-x-0" : "translate-x-full"}
-      `}>
+      <aside className={`fixed inset-y-0 right-0 w-full sm:w-[400px] lg:w-[420px] bg-white border-l border-[#E1E3E5] flex flex-col z-[70] lg:z-10 transition-transform duration-500 ease-in-out lg:translate-x-0 ${isTicketOpen ? "translate-x-0" : "translate-x-full"}`}>
         <div className="h-16 px-6 border-b border-[#E1E3E5] flex items-center justify-between bg-white sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-black uppercase tracking-tighter italic">Venta Actual</h2>
@@ -278,9 +268,6 @@ export default function KolmaPOSPremium() {
                 </button>
               </div>
             </div>
-            <div className="bg-gray-50 p-4 text-center">
-              <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em]">Kolma POS Secure System</p>
-            </div>
           </div>
         </div>
       )}
@@ -312,4 +299,4 @@ function MenuBtn({ active, onClick, label, open, icon }) {
 }
 
 ```
-                                                    
+  
