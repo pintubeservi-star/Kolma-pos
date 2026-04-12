@@ -1,20 +1,20 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 export async function GET() {
-  // Estos leerán los valores secretos que pusiste en Vercel
-  const SHOPIFY_DOMAIN = process.env.SHOPIFY_DOMAIN;
-  const SHOPIFY_TOKEN = process.env.SHOPIFY_TOKEN;
+  const domain = process.env.SHOPIFY_STORE_DOMAIN;
+  const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 
   const query = `{
     products(first: 50) {
       edges {
         node {
-          id
           title
           featuredImage { url }
-          variants(first: 1) {
+          variants(first: 10) {
             edges {
               node {
+                id
+                title
                 price
               }
             }
@@ -25,25 +25,30 @@ export async function GET() {
   }`;
 
   try {
-    const response = await fetch(`https://${SHOPIFY_DOMAIN}/admin/api/2024-04/graphql.json`, {
-      method: 'POST',
+    const res = await fetch(`https://${domain}/admin/api/2024-01/graphql.json`, {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': SHOPIFY_TOKEN,
+        "Content-Type": "application/json",
+        "X-Shopify-Access-Token": token,
       },
       body: JSON.stringify({ query }),
     });
 
-    const { data } = await response.json();
-    const products = data.products.edges.map(edge => ({
-      id: edge.node.id,
-      name: edge.node.title,
-      price: parseFloat(edge.node.variants.edges[0].node.price),
-      image: edge.node.featuredImage?.url || 'https://via.placeholder.com/150',
-    }));
+    const { data } = await res.json();
+    
+    // Esto separa cada variante como un ítem individual
+    const products = data.products.edges.flatMap(({ node }) => 
+      node.variants.edges.map(({ node: variant }) => ({
+        id: variant.id,
+        // Si la variante no tiene nombre especial, usa el del producto
+        name: variant.title === "Default Title" ? node.title : `${node.title} (${variant.title})`,
+        price: parseFloat(variant.price),
+        image: node.featuredImage?.url || "https://via.placeholder.com/150",
+      }))
+    );
 
     return NextResponse.json(products);
-  } catch (error) {
-    return NextResponse.json({ error: 'Error cargando productos' }, { status: 500 });
+  } catch (e) {
+    return NextResponse.json({ error: "Error en Shopify" }, { status: 500 });
   }
 }
