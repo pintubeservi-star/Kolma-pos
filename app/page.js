@@ -12,8 +12,6 @@ const Icons = {
   Menu: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>,
   Power: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>,
   Lock: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>,
-  Download: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>,
-  Whatsapp: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 2C6.48 2 2 6.48 2 12c0 1.74.45 3.37 1.22 4.8L2 22l5.37-1.14A9.97 9.97 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm4.38 14.16c-.23.65-1.34 1.25-1.93 1.34-.54.08-1.2-.02-3.87-1.12-3.21-1.33-5.28-4.66-5.44-4.87-.16-.21-1.3-1.73-1.3-3.3 0-1.57.82-2.35 1.11-2.65.29-.31.64-.38.85-.38.22 0 .44 0 .63.01.21.01.5-.08.77.58.29.7.99 2.42 1.08 2.6.09.18.15.4.02.66-.12.26-.18.42-.36.63-.18.21-.38.45-.55.62-.19.18-.39.37-.18.73.21.36.95 1.56 2.03 2.53 1.39 1.25 2.56 1.63 2.92 1.81.36.18.57.15.79-.11.21-.26.92-1.07 1.17-1.44.25-.37.5-.31.83-.18.33.13 2.1.99 2.46 1.17.36.18.6.27.69.42.09.15.09.87-.14 1.52z"/></svg>,
   Wallet: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>,
   Scale: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M21 6l-3 9m-3-9l-6-2m0-2v2m-2 4h4" /></svg>
 };
@@ -24,6 +22,7 @@ export default function KolmaPOSPremium() {
   const [passwordError, setPasswordError] = useState(false);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
 
+  // action: 'cierre' | 'historial'
   const [authModal, setAuthModal] = useState({ isOpen: false, action: null }); 
   const [modalPassInput, setModalPassInput] = useState("");
   const [modalPassError, setModalPassError] = useState(false);
@@ -36,12 +35,10 @@ export default function KolmaPOSPremium() {
   const [activeTab, setActiveTab] = useState("pos");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isTicketOpen, setIsTicketOpen] = useState(false);
-  const [showShiftModal, setShowShiftModal] = useState(false);
   
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [cashReceived, setCashReceived] = useState("");
 
-  // Modal para Productos por Peso
   const [weightModal, setWeightModal] = useState({ isOpen: false, product: null, currentWeight: "" });
 
   const [salesHistory, setSalesHistory] = useState([]);
@@ -111,9 +108,11 @@ export default function KolmaPOSPremium() {
       setModalPassError(false);
       setModalPassInput("");
       
-      if (authModal.action === "cierre") setShowShiftModal(true);
-      else if (authModal.action === "reinicio") resetShift();
-      else if (authModal.action === "historial") setActiveTab("historial");
+      if (authModal.action === "cierre") {
+        performShiftClose();
+      } else if (authModal.action === "historial") {
+        setActiveTab("historial");
+      }
       
       setAuthModal({ isOpen: false, action: null });
     } else {
@@ -122,13 +121,11 @@ export default function KolmaPOSPremium() {
     }
   };
 
-  // Función para identificar si el producto se vende por libra
   const isWeightProduct = (name) => {
     return /\b(libra|libras|lb|lbs)\b/i.test(name || "");
   };
 
   const addToTicket = (p) => {
-    // Si el producto se vende por peso, abrimos el modal de peso
     if (isWeightProduct(p.name)) {
       const existingItem = ticket.find(i => i.id === p.id);
       setWeightModal({ isOpen: true, product: p, currentWeight: existingItem ? existingItem.qty : "" });
@@ -197,13 +194,6 @@ export default function KolmaPOSPremium() {
     }
   };
 
-  const resetShift = () => {
-    setSalesHistory([]);
-    localStorage.removeItem("kolma_sales_history");
-    setShowShiftModal(false);
-    setActiveTab("pos");
-  };
-
   const generateReportText = () => {
     const sortedProducts = Object.values(shiftSoldProducts).sort((a, b) => b.qty - a.qty);
     let report = `🧾 CIERRE DE CAJA - KOLMA POS\n📅 Fecha: ${new Date().toLocaleString()}\n--------------------------------\n💰 Venta Total: RD$${shiftTotalSales.toLocaleString()}\n📦 Piezas/Lbs Vendidas: ${shiftTotalItems.toFixed(2)}\n--------------------------------\n📊 DETALLE DE VENTAS:\n\n`;
@@ -212,7 +202,9 @@ export default function KolmaPOSPremium() {
     return report;
   };
 
-  const handleDownloadReport = () => {
+  // Novedad: Cierre Automático + Descarga
+  const performShiftClose = () => {
+    // 1. Descargar Reporte
     const blob = new Blob([generateReportText()], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -222,10 +214,12 @@ export default function KolmaPOSPremium() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  };
 
-  const handleSendWhatsapp = () => {
-    window.open(`https://wa.me/?text=${encodeURIComponent(generateReportText())}`, '_blank');
+    // 2. Reiniciar Historial
+    setSalesHistory([]);
+    localStorage.removeItem("kolma_sales_history");
+    setActiveTab("pos");
+    alert("Corte de caja completado. El reporte ha sido descargado y la caja reiniciada a cero.");
   };
 
   const numericCash = Number(cashReceived) || 0;
@@ -252,7 +246,14 @@ export default function KolmaPOSPremium() {
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"><Icons.Lock /></span>
-            <input type="password" autoFocus placeholder="Código de acceso" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className={`w-full bg-[#1A1C1D] border ${passwordError ? 'border-red-500 text-red-500' : 'border-gray-700 text-white'} rounded-xl py-4 pl-12 pr-4 text-center font-black tracking-[0.5em] focus:outline-none focus:border-[#008060]`} />
+            <input 
+              type="password" 
+              autoFocus 
+              placeholder="Código de acceso" 
+              value={passwordInput} 
+              onChange={(e) => setPasswordInput(e.target.value)} 
+              className={`w-full bg-[#1A1C1D] border ${passwordError ? 'border-red-500 text-red-500' : 'border-gray-700 text-white'} rounded-xl py-4 pl-12 pr-4 text-center font-black tracking-[0.5em] focus:outline-none focus:border-[#008060]`} 
+            />
           </div>
           {passwordError && <p className="text-red-500 text-center text-xs font-bold uppercase tracking-widest animate-pulse">Incorrecto</p>}
           <button type="submit" className="w-full py-4 bg-[#008060] text-white rounded-xl font-black uppercase tracking-widest active:scale-95">Desbloquear</button>
@@ -289,7 +290,7 @@ export default function KolmaPOSPremium() {
 
         <div className="p-4 border-t border-gray-800 shrink-0 space-y-2">
           <button onClick={() => { setAuthModal({ isOpen: true, action: 'cierre' }); if (window.innerWidth < 1024) setIsSidebarOpen(false); }} className="flex items-center gap-4 w-full p-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest text-orange-500 hover:bg-orange-600 hover:text-white">
-            <Icons.Power />{isSidebarOpen && <span>Corte de Caja</span>}
+            <Icons.Power />{isSidebarOpen && <span>Corte y Descarga</span>}
           </button>
           <button onClick={handleLogout} className="flex items-center gap-4 w-full p-3 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest text-gray-500 hover:bg-gray-800 hover:text-white">
             <Icons.Lock />{isSidebarOpen && <span>Bloquear</span>}
@@ -302,7 +303,7 @@ export default function KolmaPOSPremium() {
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"><Icons.Menu /></button>
           
           <div className="flex flex-col md:flex-row md:items-center bg-emerald-50 text-[#008060] px-3 md:px-4 py-1.5 md:py-2 rounded-xl border border-emerald-100 whitespace-nowrap shadow-sm">
-            <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest md:mr-2">Ventas de Hoy</span>
+            <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest md:mr-2">Ventas Hoy</span>
             <span className="text-xs md:text-sm font-black tracking-tight">RD${shiftTotalSales.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
           </div>
           
@@ -371,7 +372,6 @@ export default function KolmaPOSPremium() {
         </div>
       </main>
 
-      {/* CARRITO POS DERECHO */}
       {activeTab === "pos" && (
         <>
           {isTicketOpen && <div onClick={() => setIsTicketOpen(false)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] xl:hidden" />}
@@ -421,7 +421,7 @@ export default function KolmaPOSPremium() {
         </>
       )}
 
-      {/* MODAL INGRESAR PESO (BÁSCULA) */}
+      {/* MODAL INGRESAR PESO */}
       {weightModal.isOpen && (
         <div className="fixed inset-0 bg-[#1A1C1D]/90 backdrop-blur-md z-[130] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm rounded-[2rem] p-8 shadow-2xl animate-in zoom-in-95 text-center">
@@ -452,7 +452,7 @@ export default function KolmaPOSPremium() {
         </div>
       )}
 
-      {/* MODAL DE PAGO / DEVUELTA */}
+      {/* MODAL PAGO Y DEVUELTA */}
       {showPaymentModal && (
         <div className="fixed inset-0 bg-[#1A1C1D]/90 backdrop-blur-md z-[110] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-[2rem] p-8 shadow-2xl animate-in zoom-in-95">
@@ -511,10 +511,17 @@ export default function KolmaPOSPremium() {
         <div className="fixed inset-0 bg-[#1A1C1D]/90 backdrop-blur-md z-[120] flex items-center justify-center p-4">
           <div className="bg-[#202223] w-full max-w-sm rounded-[2rem] p-8 shadow-2xl border border-gray-800 animate-in zoom-in-95">
             <h2 className="text-xl font-black text-white uppercase italic text-center mb-6">
-              {authModal.action === "cierre" ? "Autorizar Cierre" : authModal.action === "historial" ? "Autorizar Historial" : "Autorizar Reinicio"}
+              {authModal.action === "cierre" ? "Autorizar Cierre" : "Autorizar Historial"}
             </h2>
             <form onSubmit={handleModalAuth} className="space-y-4">
-              <input type="password" autoFocus placeholder="Contraseña (1221)" value={modalPassInput} onChange={(e) => setModalPassInput(e.target.value)} className={`w-full bg-[#1A1C1D] border ${modalPassError ? 'border-red-500 text-red-500' : 'border-gray-700 text-white'} rounded-xl py-4 text-center font-black tracking-[0.5em] focus:outline-none focus:border-[#008060]`} />
+              <input 
+                type="password" 
+                autoFocus 
+                placeholder="Contraseña" 
+                value={modalPassInput} 
+                onChange={(e) => setModalPassInput(e.target.value)} 
+                className={`w-full bg-[#1A1C1D] border ${modalPassError ? 'border-red-500 text-red-500' : 'border-gray-700 text-white'} rounded-xl py-4 text-center font-black tracking-[0.5em] focus:outline-none focus:border-[#008060]`} 
+              />
               {modalPassError && <p className="text-red-500 text-center text-xs font-bold uppercase">Clave Inválida</p>}
               <div className="flex gap-2">
                 <button type="button" onClick={() => setAuthModal({isOpen:false, action:null})} className="w-1/3 py-4 bg-gray-800 text-gray-400 rounded-xl font-black uppercase text-xs">Cancelar</button>
@@ -525,48 +532,6 @@ export default function KolmaPOSPremium() {
         </div>
       )}
 
-      {/* MODAL CORTE DE CAJA DETALLADO */}
-      {showShiftModal && (
-        <div className="fixed inset-0 bg-[#1A1C1D]/95 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 flex flex-col max-h-[90vh]">
-            <div className="p-6 md:p-8 pb-4 text-center border-b shrink-0">
-              <h2 className="text-2xl font-black uppercase italic mb-1">Corte de Caja</h2>
-            </div>
-            <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar flex-1">
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-[#F9FAFB] p-5 rounded-3xl border relative overflow-hidden">
-                  <p className="text-[10px] font-black text-gray-400 uppercase mb-1">Venta Total</p>
-                  <p className="text-2xl font-black text-[#008060] tracking-tighter">RD${shiftTotalSales.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-                </div>
-                <div className="bg-[#F9FAFB] p-5 rounded-3xl border relative overflow-hidden">
-                  <p className="text-[10px] font-black text-gray-400 uppercase mb-1">Total Piezas / Lbs</p>
-                  <p className="text-2xl font-black tracking-tighter">{shiftTotalItems % 1 === 0 ? shiftTotalItems : shiftTotalItems.toFixed(2)}</p>
-                </div>
-              </div>
-              <div className="mb-6">
-                <h3 className="text-xs font-black uppercase text-gray-500 border-b pb-2 mb-3">Top Productos Vendidos</h3>
-                <div className="space-y-2">
-                  {Object.values(shiftSoldProducts).length === 0 ? <p className="text-sm text-gray-400">Sin ventas.</p> : 
-                    Object.values(shiftSoldProducts).sort((a,b) => b.qty - a.qty).map((p, i) => (
-                      <div key={i} className="flex justify-between items-center bg-gray-50 p-3 rounded-xl border">
-                        <div><p className="font-bold text-xs uppercase">{p.name}</p><p className="text-[10px] text-gray-500 uppercase">{p.qty % 1 === 0 ? p.qty : p.qty.toFixed(2)} {p.qty % 1 === 0 ? 'piezas' : 'Lbs'}</p></div>
-                        <p className="font-black text-[#008060] text-sm">RD${p.total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-                      </div>
-                  ))}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                <button onClick={handleDownloadReport} disabled={shiftTotalSales === 0} className="p-4 bg-gray-100 hover:bg-gray-200 rounded-2xl font-black text-[10px] uppercase flex flex-col items-center gap-2"><Icons.Download />Descargar</button>
-                <button onClick={handleSendWhatsapp} disabled={shiftTotalSales === 0} className="p-4 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-2xl font-black text-[10px] uppercase flex flex-col items-center gap-2"><Icons.Whatsapp />WhatsApp</button>
-              </div>
-              <div className="space-y-2">
-                <button onClick={() => setAuthModal({ isOpen: true, action: 'reinicio' })} className="w-full py-4 bg-orange-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest active:scale-95">Reiniciar Caja a Cero</button>
-                <button onClick={() => setShowShiftModal(false)} className="w-full py-4 bg-white border-2 text-gray-600 rounded-2xl font-black text-sm uppercase tracking-widest active:scale-95">Volver al POS</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
