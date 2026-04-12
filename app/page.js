@@ -240,4 +240,3 @@ function MenuBtn({ active, onClick, label, open, icon }) {
     </button>
   );
 }
-
