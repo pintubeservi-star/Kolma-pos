@@ -16,7 +16,6 @@ export async function GET() {
                 id
                 title
                 price
-                inventoryQuantity # Solo disponible con Admin API
               }
             }
           }
@@ -35,19 +34,23 @@ export async function GET() {
       body: JSON.stringify({ query }),
     });
 
-    const { data } = await res.json();
-    const products = data.products.edges.flatMap(({ node }) => 
+    const json = await res.json();
+
+    if (json.errors) {
+      return NextResponse.json({ error: "Error de Shopify", details: json.errors }, { status: 401 });
+    }
+
+    const products = json.data.products.edges.flatMap(({ node }) => 
       node.variants.edges.map(({ node: v }) => ({
         id: v.id,
-        name: v.title === "Default Title" ? node.title : `${node.title} - ${v.title}`,
+        name: v.title === "Default Title" ? node.title : `${node.title} (${v.title})`,
         price: parseFloat(v.price),
-        image: node.featuredImage?.url || "https://via.placeholder.com/150",
-        stock: v.inventoryQuantity // Útil para el POS
+        image: node.featuredImage?.url || "https://via.placeholder.com/150"
       }))
     );
 
     return NextResponse.json(products);
   } catch (e) {
-    return NextResponse.json({ error: "Error de conexión" }, { status: 500 });
+    return NextResponse.json({ error: "Fallo de conexión al servidor" }, { status: 500 });
   }
-        }
+}
