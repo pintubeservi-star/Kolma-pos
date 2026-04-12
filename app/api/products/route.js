@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const domain = process.env.SHOPIFY_STORE_DOMAIN;
-  // Usando tu token público directamente
   const publicToken = "A171ee1eaf68d9b7ca5234b4c45a9b0c"; 
 
   const query = `{
@@ -37,7 +36,7 @@ export async function GET() {
 
     const { data } = await res.json();
     
-    // Desglose de variantes para vender por unidad
+    // Desglosar cada variante como un producto individual
     const products = data.products.edges.flatMap(({ node }) => 
       node.variants.edges.map(({ node: v }) => ({
         id: v.id,
