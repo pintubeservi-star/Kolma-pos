@@ -1,4 +1,3 @@
-```react
 "use client";
 import React, { useState, useEffect } from "react";
 
@@ -36,7 +35,7 @@ export default function KolmaPOSPremium() {
       })
       .catch(() => setLoading(false));
     
-    if (window.innerWidth > 1024) setIsSidebarOpen(true);
+    if (typeof window !== "undefined" && window.innerWidth > 1024) setIsSidebarOpen(true);
   }, []);
 
   const addToTicket = (p) => {
@@ -82,6 +81,12 @@ export default function KolmaPOSPremium() {
 
   return (
     <div className="flex h-screen bg-[#F6F6F7] text-[#202223] font-sans overflow-hidden">
+      <style dangerouslySetInnerHTML={{ __html: `
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E1E3E5; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #C9CCCF; }
+      `}} />
       
       {/* SIDEBAR */}
       <aside className={`fixed inset-y-0 left-0 bg-[#1A1C1D] text-white z-[60] flex flex-col transition-all duration-300 ${isSidebarOpen ? "w-64 translate-x-0" : "w-20 -translate-x-full lg:translate-x-0"}`}>
@@ -153,7 +158,7 @@ export default function KolmaPOSPremium() {
                 className="flex flex-col bg-white border border-[#E1E3E5] rounded-2xl overflow-hidden hover:shadow-xl hover:border-[#008060] transition-all group active:scale-[0.97]"
               >
                 <div className="aspect-square w-full bg-[#F9FAFB] p-3 md:p-4 flex items-center justify-center relative">
-                  <img src={p.image} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500" alt={p.name} />
+                  <img src={p.image || "https://via.placeholder.com/150"} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500" alt={p.name} />
                 </div>
                 <div className="p-3 md:p-4 border-t border-[#F1F2F3] text-left">
                   <h3 className="font-bold text-[10px] md:text-xs text-gray-500 uppercase tracking-tight truncate mb-1">{p.name}</h3>
@@ -186,7 +191,7 @@ export default function KolmaPOSPremium() {
           ) : ticket.map(item => (
             <div key={item.id} className="flex items-center gap-3 md:gap-4 bg-white border border-gray-100 p-3 rounded-2xl shadow-sm hover:border-[#008060] transition-all">
               <div className="w-12 h-12 bg-gray-50 rounded-xl p-1 shrink-0">
-                <img src={item.image} className="w-full h-full object-contain" alt={item.name} />
+                <img src={item.image || "https://via.placeholder.com/150"} className="w-full h-full object-contain" alt={item.name} />
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="font-bold text-[11px] truncate uppercase text-gray-800 mb-1.5">{item.name}</h4>
@@ -271,13 +276,6 @@ export default function KolmaPOSPremium() {
           </div>
         </div>
       )}
-
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E1E3E5; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #C9CCCF; }
-      `}</style>
     </div>
   );
 }
@@ -298,5 +296,4 @@ function MenuBtn({ active, onClick, label, open, icon }) {
   );
 }
 
-```
-  
+    
