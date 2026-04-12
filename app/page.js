@@ -1,6 +1,10 @@
-```react
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
+
+/**
+ * KOLMA POS - Página Principal
+ * Ubicación: /app/page.js
+ */
 
 export default function App() {
   const [products, setProducts] = useState([]);
@@ -11,14 +15,20 @@ export default function App() {
   const [category, setCategory] = useState("Todos");
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
 
+  // Carga de productos desde tu nueva ruta /api/products
   useEffect(() => {
-    fetch("/api/products")
-      .then((res) => res.json())
-      .then((data) => {
+    const loadProducts = async () => {
+      try {
+        const res = await fetch("/api/products");
+        const data = await res.json();
         setProducts(data.products || []);
+      } catch (error) {
+        console.error("Error cargando inventario:", error);
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      }
+    };
+    loadProducts();
   }, []);
 
   const categories = useMemo(() => ["Todos", ...new Set(products.map((p) => p.vendor))], [products]);
@@ -68,10 +78,10 @@ export default function App() {
         setCart([]);
         setIsMobileCartOpen(false);
       } else {
-        alert("Error de Shopify: " + data.error);
+        alert("Error: " + data.error);
       }
     } catch (e) {
-      alert("Error de conexión");
+      alert("Error de conexión con el servidor");
     } finally {
       setProcessing(false);
     }
@@ -114,7 +124,7 @@ export default function App() {
 
         <div className="flex-1 overflow-y-auto p-4 md:px-8 pb-24 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 custom-scrollbar">
           {loading ? (
-             <div className="col-span-full text-center py-20 font-black opacity-20 uppercase tracking-widest">Sincronizando inventario...</div>
+             <div className="col-span-full text-center py-20 font-black opacity-20 uppercase tracking-widest animate-pulse">Sincronizando inventario...</div>
           ) : filteredProducts.length === 0 ? (
             <div className="col-span-full text-center py-20 text-slate-300 font-bold uppercase text-xs">No se encontraron productos</div>
           ) : filteredProducts.map((p) => (
