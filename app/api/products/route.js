@@ -16,6 +16,7 @@ export async function GET() {
                 id
                 title
                 price
+                inventoryQuantity # Solo disponible con Admin API
               }
             }
           }
@@ -35,20 +36,18 @@ export async function GET() {
     });
 
     const { data } = await res.json();
-    
-    // Esto separa cada variante como un ítem individual
     const products = data.products.edges.flatMap(({ node }) => 
-      node.variants.edges.map(({ node: variant }) => ({
-        id: variant.id,
-        // Si la variante no tiene nombre especial, usa el del producto
-        name: variant.title === "Default Title" ? node.title : `${node.title} (${variant.title})`,
-        price: parseFloat(variant.price),
+      node.variants.edges.map(({ node: v }) => ({
+        id: v.id,
+        name: v.title === "Default Title" ? node.title : `${node.title} - ${v.title}`,
+        price: parseFloat(v.price),
         image: node.featuredImage?.url || "https://via.placeholder.com/150",
+        stock: v.inventoryQuantity // Útil para el POS
       }))
     );
 
     return NextResponse.json(products);
   } catch (e) {
-    return NextResponse.json({ error: "Error en Shopify" }, { status: 500 });
+    return NextResponse.json({ error: "Error de conexión" }, { status: 500 });
   }
-}
+        }
