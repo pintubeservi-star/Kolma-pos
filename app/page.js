@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 
 // ==========================================
 // ÍCONOS SVG NATIVOS (0 dependencias)
@@ -22,9 +22,9 @@ const ServerCrash = p => <Svg {...p}><path d="M6 4H18A2 2 0 0 1 20 6V10A2 2 0 0 
 const Loader = p => <Svg {...p} className={`animate-spin ${className}`}><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></Svg>;
 const ShoppingCart = p => <Svg {...p}><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></Svg>;
 
-// --- CREDENCIALES EXACTAS ---
+// --- CREDENCIALES DESDE VERCEL (MÁXIMA SEGURIDAD) ---
 const DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "q0q09e-cp.myshopify.com";
-const ACCESS_TOKEN = process.env.NEXT_PUBLIC_SHOPIFY_ACCESS_TOKEN || "c9bda45020488455d7fe2d8b7e22f352";
+const ADMIN_TOKEN = process.env.NEXT_PUBLIC_SHOPIFY_ADMIN_ACCESS_TOKEN; 
 
 export default function KolmaPOS() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -40,48 +40,63 @@ export default function KolmaPOS() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [successMsg, setSuccessMsg] = useState(false);
   
-  // Responsive: Controlar panel lateral en móviles
+  // Responsive y Referencias
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
   const [weightModal, setWeightModal] = useState({ isOpen: false, product: null, weight: '' });
   const [dailySales, setDailySales] = useState(0);
   const [dailyTransactions, setDailyTransactions] = useState(0);
+  const searchInputRef = useRef(null);
 
-  // --- 1. CONEXIÓN EXCLUSIVA A SHOPIFY ---
+  // --- 1. CONEXIÓN DIRECTA A ADMIN API SHOPIFY ---
   const fetchShopifyProducts = async () => {
     setIsLoadingProducts(true);
     setFetchError(null);
     try {
-      const res = await fetch(`https://${DOMAIN}/api/2024-04/graphql.json`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Shopify-Storefront-Access-Token': ACCESS_TOKEN },
-        body: JSON.stringify({ query: `{ products(first: 250) { edges { node { id title images(first: 1) { edges { node { url } } } variants(first: 1) { edges { node { id price { amount } barcode } } } } } } }`})
+      if (!ADMIN_TOKEN) throw new Error("Falta el TOKEN secreto en Vercel (NEXT_PUBLIC_SHOPIFY_ADMIN_ACCESS_TOKEN).");
+
+      const res = await fetch(`https://${DOMAIN}/admin/api/2024-04/products.json?limit=250`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': ADMIN_TOKEN
+        }
       });
       
-      const { data, errors } = await res.json();
-      if (errors) throw new Error("Error en la consulta de Shopify");
+      if (!res.ok) throw new Error(`Error de credenciales. Revisa tu dominio o token. (Código: ${res.status})`);
+
+      const data = await res.json();
       
-      if (data?.products?.edges?.length > 0) {
-        const shopifyProds = data.products.edges.map(p => ({
-          id: p.node.id, 
-          name: p.node.title, 
-          price: parseFloat(p.node.variants.edges[0].node.price.amount),
-          image: p.node.images.edges[0]?.node.url || 'https://via.placeholder.com/300?text=Kolma',
-          variantId: p.node.variants.edges[0].node.id,
-          barcode: p.node.variants.edges[0].node.barcode || ''
+      if (data?.products?.length > 0) {
+        const shopifyProds = data.products.map(p => ({
+          id: p.id,
+          name: p.title,
+          price: parseFloat(p.variants[0]?.price || 0),
+          image: p.images?.[0]?.src || 'https://via.placeholder.com/300?text=Kolma+POS',
+          variantId: p.variants[0]?.id,
+          barcode: p.variants[0]?.barcode || ''
         }));
-        setProducts(shopifyProds);
+        setProducts(shopifyProds.filter(p => p.price > 0)); // Solo productos con precio válido
       } else {
-        setProducts([]); // NO MÁS SIMULACIONES. Si no hay, es un array vacío.
+        setProducts([]);
       }
     } catch (e) {
       console.error("Error conectando a Shopify:", e);
-      setFetchError("No se pudo conectar con Shopify. Verifica tu internet o el token.");
+      setFetchError(e.message || "No se pudo conectar con tu catálogo en Shopify.");
     } finally {
       setIsLoadingProducts(false);
     }
   };
 
   useEffect(() => { fetchShopifyProducts(); }, []);
+
+  // --- AUTO-FOCUS PARA ESCÁNER DE CÓDIGO DE BARRAS ---
+  useEffect(() => {
+    if (isAuthenticated && activeView === 'pos' && !weightModal.isOpen) {
+      // Retardo mínimo para asegurar que el DOM está listo
+      const timeoutId = setTimeout(() => searchInputRef.current?.focus(), 100);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isAuthenticated, activeView, weightModal.isOpen, cart.length]);
 
   // --- 2. LÓGICA PIN (1221) ---
   const handlePinInput = (num) => {
@@ -95,7 +110,7 @@ export default function KolmaPOS() {
 
   const handleLogout = () => { setIsAuthenticated(false); setActiveView('pos'); setCart([]); setIsMobileCartOpen(false); };
 
-  // --- 3. LÓGICA DE CARRITO Y BÁSCULA ---
+  // --- 3. LÓGICA DE BÚSQUEDA Y CARRITO (TECLADO/ESCÁNER) ---
   const filteredProducts = useMemo(() => {
     if (!searchTerm) return products;
     const term = searchTerm.toLowerCase();
@@ -104,9 +119,31 @@ export default function KolmaPOS() {
 
   const handleProductClick = (product) => {
     const isWeighedItem = product.name.toLowerCase().includes('libra') || product.name.toLowerCase().includes('lobra');
-    if (isWeighedItem) setWeightModal({ isOpen: true, product, weight: '' });
-    else addToCart(product, 1, false);
-    setSearchTerm('');
+    if (isWeighedItem) {
+      setWeightModal({ isOpen: true, product, weight: '' });
+    } else {
+      addToCart(product, 1, false);
+    }
+    setSearchTerm(''); // Limpia para el siguiente escaneo
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (!searchTerm) return;
+      
+      // Buscar coincidencia exacta por código de barras
+      const exactBarcodeMatch = products.find(p => p.barcode === searchTerm);
+      if (exactBarcodeMatch) {
+        handleProductClick(exactBarcodeMatch);
+        return;
+      }
+
+      // Si no es código, pero solo hay un producto en el filtro, agregarlo
+      if (filteredProducts.length === 1) {
+        handleProductClick(filteredProducts[0]);
+      }
+    }
   };
 
   const confirmWeight = () => {
@@ -131,22 +168,28 @@ export default function KolmaPOS() {
   const clearCart = () => setCart([]);
   const total = cart.reduce((acc, item) => acc + item.finalPrice, 0);
 
-  // --- 4. INTEGRACIÓN SHOPIFY ESTRICTA ---
+  // --- 4. INTEGRACIÓN SHOPIFY (COBRO CON ADMIN API) ---
   const procesarVenta = async () => {
     if (cart.length === 0) return;
+    if (!ADMIN_TOKEN) {
+      alert("Error: No hay Token Admin de Shopify en Vercel.");
+      return;
+    }
+
     setIsProcessing(true);
 
     const line_items = cart.map(item => ({
       title: item.isWeighed ? `${item.name} (${item.qty} lbs)` : item.name,
       price: item.isWeighed ? item.finalPrice.toString() : item.price.toString(),
-      quantity: item.isWeighed ? 1 : item.qty
+      quantity: item.isWeighed ? 1 : item.qty,
+      variant_id: item.variantId
     }));
 
     const orderData = {
       order: {
         line_items,
-        financial_status: "paid", // Siempre pagado
-        customer: { first_name: "Ventas", last_name: "Directa" }, // Único cliente
+        financial_status: "paid", 
+        customer: { first_name: "Ventas", last_name: "Directa" },
         source_name: "Kolma POS"
       }
     };
@@ -154,9 +197,10 @@ export default function KolmaPOS() {
     try {
       const res = await fetch(`https://${DOMAIN}/admin/api/2024-04/orders.json`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Shopify-Access-Token': ACCESS_TOKEN },
+        headers: { 'Content-Type': 'application/json', 'X-Shopify-Access-Token': ADMIN_TOKEN },
         body: JSON.stringify(orderData)
       });
+      
       if (res.ok) {
         setDailySales(prev => prev + total);
         setDailyTransactions(prev => prev + 1);
@@ -164,18 +208,20 @@ export default function KolmaPOS() {
         setTimeout(() => {
           setSuccessMsg(false);
           clearCart();
-          setIsMobileCartOpen(false); // Cierra modal en celular
+          setIsMobileCartOpen(false);
+          searchInputRef.current?.focus(); // Retornar foco tras cobro
         }, 2000);
       } else {
-        alert("Error Shopify. Revisa si el Token tiene permisos de 'Escribir Órdenes'.");
+        const err = await res.json();
+        alert(`Error Shopify: ${JSON.stringify(err)}`);
       }
     } catch (e) {
-      alert("Error crítico de red.");
+      alert("Error crítico de red al cobrar.");
     } finally { setIsProcessing(false); }
   };
 
   const cerrarTurno = () => {
-    if (window.confirm('¿Cerrar el turno de hoy? Las métricas volverán a cero.')) {
+    if (window.confirm('¿Cerrar el turno de hoy? Las métricas de ventas en pantalla volverán a cero.')) {
       setDailySales(0); setDailyTransactions(0); handleLogout();
     }
   };
@@ -217,7 +263,7 @@ export default function KolmaPOS() {
           <div className="bg-white p-6 md:p-8 rounded-[40px] shadow-2xl w-full max-w-[400px] animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-6">
               <div className="w-14 h-14 bg-orange-50 text-[#FF3D00] rounded-[20px] flex items-center justify-center"><Scale size={28} /></div>
-              <button onClick={() => setWeightModal({ isOpen: false, product: null, weight: '' })} className="p-2 bg-slate-100 rounded-full"><X size={20} /></button>
+              <button onClick={() => { setWeightModal({ isOpen: false, product: null, weight: '' }); searchInputRef.current?.focus(); }} className="p-2 bg-slate-100 rounded-full"><X size={20} /></button>
             </div>
             <h3 className="text-2xl font-black tracking-tighter mb-2">{weightModal.product?.name}</h3>
             <p className="text-slate-500 font-bold mb-6">Precio base: RD${weightModal.product?.price} / lb</p>
@@ -249,7 +295,15 @@ export default function KolmaPOS() {
             {activeView === 'pos' && (
               <>
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#FF3D00]" size={18} />
-                <input type="text" placeholder="Buscar producto..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-slate-50 border-2 border-transparent focus:border-orange-200 focus:bg-white rounded-[20px] py-3 pl-12 pr-4 font-bold outline-none text-sm md:text-base"/>
+                <input 
+                  ref={searchInputRef}
+                  type="text" 
+                  placeholder="Escáner o código..." 
+                  value={searchTerm} 
+                  onChange={(e) => setSearchTerm(e.target.value)} 
+                  onKeyDown={handleSearchKeyDown}
+                  className="w-full bg-slate-50 border-2 border-transparent focus:border-orange-200 focus:bg-white rounded-[20px] py-3 pl-12 pr-4 font-bold outline-none text-sm md:text-base"
+                />
               </>
             )}
           </div>
@@ -280,7 +334,7 @@ export default function KolmaPOS() {
                 {filteredProducts.map(p => {
                   const isWeighed = p.name.toLowerCase().includes('libra') || p.name.toLowerCase().includes('lobra');
                   return (
-                    <div key={p.id} onClick={() => handleProductClick(p)} className="bg-white rounded-[24px] p-3 md:p-4 border border-slate-100 shadow-sm active:scale-95 flex flex-col cursor-pointer">
+                    <div key={p.id} onClick={() => handleProductClick(p)} className="bg-white rounded-[24px] p-3 md:p-4 border border-slate-100 shadow-sm active:scale-95 flex flex-col cursor-pointer hover:border-orange-200 transition-colors">
                       <div className="aspect-square bg-slate-50 rounded-[16px] md:rounded-[24px] mb-3 md:mb-4 overflow-hidden relative border border-slate-50">
                         <img src={p.image} alt={p.name} className="w-full h-full object-cover mix-blend-multiply" loading="lazy"/>
                         {isWeighed && <div className="absolute top-2 left-2 bg-white/90 px-2 py-1 rounded-[8px] text-[9px] font-black text-[#FF3D00] flex items-center gap-1 border border-red-50"><Scale size={10} strokeWidth={3}/> PESO</div>}
@@ -292,7 +346,7 @@ export default function KolmaPOS() {
                 })}
                 {filteredProducts.length === 0 && (
                   <div className="col-span-full py-10 text-center text-slate-400 bg-white rounded-[24px] border border-dashed border-slate-200">
-                    <p className="font-black text-lg text-slate-800">Producto no encontrado</p>
+                    <p className="font-black text-lg text-slate-800">No se encontraron productos.</p>
                   </div>
                 )}
               </div>
@@ -314,16 +368,13 @@ export default function KolmaPOS() {
       </div>
 
       {/* --- PANEL DE COBRO (CHECKOUT) --- */}
-      {/* Desktop: Siempre visible a la derecha si hay items. Móvil: Modal o Fullscreen según isMobileCartOpen */}
       {(cart.length > 0 && activeView === 'pos') && (
         <>
-          {/* Botón Flotante Móvil (Solo visible en pantallas pequeñas) */}
           <button onClick={() => setIsMobileCartOpen(true)} className="md:hidden fixed bottom-24 right-4 bg-[#FF3D00] text-white w-16 h-16 rounded-[20px] shadow-2xl flex items-center justify-center active:scale-95 z-40 border-2 border-white">
             <ShoppingCart size={28} />
             <span className="absolute -top-2 -right-2 bg-[#111] text-white w-6 h-6 rounded-full text-xs font-black flex items-center justify-center border-2 border-white">{cart.length}</span>
           </button>
 
-          {/* Panel Lateral Desktop / Modal Móvil */}
           <div className={`fixed inset-0 z-50 md:static md:w-[450px] bg-white flex flex-col md:border-l border-slate-200 transition-transform duration-300 md:translate-y-0 ${isMobileCartOpen ? 'translate-y-0' : 'translate-y-full md:translate-y-0'}`}>
             <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <div>
@@ -331,7 +382,7 @@ export default function KolmaPOS() {
                 <h2 className="text-2xl md:text-3xl font-black text-[#111]">Ticket</h2>
               </div>
               <div className="flex gap-2">
-                <button onClick={clearCart} className="text-red-500 bg-white shadow-sm p-3 rounded-xl"><Trash size={18} /></button>
+                <button onClick={() => { clearCart(); searchInputRef.current?.focus(); }} className="text-red-500 bg-white shadow-sm p-3 rounded-xl"><Trash size={18} /></button>
                 <button onClick={() => setIsMobileCartOpen(false)} className="md:hidden bg-slate-200 text-slate-600 p-3 rounded-xl"><X size={18}/></button>
               </div>
             </div>
@@ -355,7 +406,7 @@ export default function KolmaPOS() {
                     )}
                     <div className="flex items-center gap-3">
                       <span className="font-black text-lg text-[#111]">${item.finalPrice.toFixed(0)}</span>
-                      <button onClick={() => removeCartItem(item.cartId)} className="text-slate-400 p-1"><X size={16}/></button>
+                      <button onClick={() => { removeCartItem(item.cartId); searchInputRef.current?.focus(); }} className="text-slate-400 p-1"><X size={16}/></button>
                     </div>
                   </div>
                 </div>
@@ -368,7 +419,7 @@ export default function KolmaPOS() {
                 <span className="text-4xl md:text-5xl font-black text-[#111]">RD$ {total.toFixed(0)}</span>
               </div>
               {successMsg ? (
-                <div className="w-full bg-green-500 text-white py-5 rounded-[20px] font-black text-xl flex justify-center gap-2"><CheckCircle size={28}/> ¡Pagado!</div>
+                <div className="w-full bg-green-500 text-white py-5 md:py-6 rounded-[20px] font-black text-xl flex justify-center gap-2"><CheckCircle size={28}/> ¡Pagado!</div>
               ) : (
                 <button onClick={procesarVenta} disabled={isProcessing} className="w-full py-5 md:py-6 rounded-[20px] font-black text-xl md:text-2xl flex justify-center items-center gap-2 bg-[#FF3D00] text-white active:scale-95 shadow-lg shadow-orange-200">
                   {isProcessing ? <Loader size={24} className="text-white"/> : 'Cobrar Exacto'}
@@ -379,7 +430,7 @@ export default function KolmaPOS() {
         </>
       )}
 
-      {/* Navegación Móvil (App Style) */}
+      {/* Navegación Móvil */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 flex justify-around p-3 pb-safe z-30">
         <button onClick={() => setActiveView('pos')} className={`flex flex-col items-center gap-1 ${activeView === 'pos' ? 'text-[#FF3D00]' : 'text-slate-400'}`}><LayoutDashboard size={24} /><span className="text-[10px] font-black">POS</span></button>
         <button onClick={() => setActiveView('cierre')} className={`flex flex-col items-center gap-1 ${activeView === 'cierre' ? 'text-[#FF3D00]' : 'text-slate-400'}`}><Receipt size={24} /><span className="text-[10px] font-black">Cierre</span></button>
