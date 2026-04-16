@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 
 // ==========================================
-// ÍCONOS SVG NATIVOS (0 dependencias)
+// ÍCONOS SVG NATIVOS
 // ==========================================
 const Svg = ({ children, size=24, className='', strokeWidth=2, fill="none", ...props }) => <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>{children}</svg>;
 const Search = p => <Svg {...p}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></Svg>;
@@ -16,10 +16,10 @@ const LayoutDashboard = p => <Svg {...p}><rect x="3" y="3" width="7" height="9"/
 const Receipt = p => <Svg {...p}><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17V7"/></Svg>;
 const LogOut = p => <Svg {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></Svg>;
 const Scale = p => <Svg {...p}><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m3-4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/><circle cx="15" cy="11" r="2"/><path d="M15 9V3"/><path d="M15 13v6"/></Svg>;
-// Aquí estaba el error del className. Corregido:
 const Loader = ({ className='', ...p }) => <Svg {...p} className={`animate-spin ${className}`}><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></Svg>;
 const ShoppingCart = p => <Svg {...p}><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></Svg>;
 const List = p => <Svg {...p}><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></Svg>;
+const ServerCrash = p => <Svg {...p}><path d="M6 4H18A2 2 0 0 1 20 6V10A2 2 0 0 1 18 12H6A2 2 0 0 1 4 10V6A2 2 0 0 1 6 4z"/><path d="M6 14H18A2 2 0 0 1 20 16V20A2 2 0 0 1 18 22H6A2 2 0 0 1 4 20V16A2 2 0 0 1 6 14z"/><path d="M12 22V12"/><path d="M8 8H8.01"/><path d="M8 18H8.01"/></Svg>;
 
 export default function KolmaPOS() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -31,6 +31,8 @@ export default function KolmaPOS() {
   const [products, setProducts] = useState([]);
   const [ordersHistory, setOrdersHistory] = useState([]);
   const [isLoading, setIsLoading] = useState({ products: true, orders: false });
+  const [fetchError, setFetchError] = useState(null); // <- AÑADIDO PARA VER ERRORES
+  
   const [cart, setCart] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -45,22 +47,30 @@ export default function KolmaPOS() {
   // --- 1. PERSISTENCIA DE SESIÓN ---
   useEffect(() => {
     const session = localStorage.getItem('kolma_pos_session');
-    if (session === 'active') {
-      setIsAuthenticated(true);
-    }
+    if (session === 'active') setIsAuthenticated(true);
     setIsInitializing(false);
     fetchShopifyProducts();
   }, []);
 
-  // --- 2. PETICIONES AL BACKEND (API ROUTE INTERNA) ---
+  // --- 2. PETICIONES AL BACKEND (AHORA MUESTRAN ERRORES EXACTOS) ---
   const fetchShopifyProducts = async () => {
+    setIsLoading(prev => ({ ...prev, products: true }));
+    setFetchError(null);
     try {
       const res = await fetch('/api/shopify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'get_products' })
       });
+      
+      if (!res.ok) {
+        throw new Error(`Ruta /api/shopify devolvió error ${res.status}. Asegúrate de haber creado el archivo pages/api/shopify.js`);
+      }
+
       const data = await res.json();
+      
+      if (data.error) throw new Error(`Shopify dice: ${data.error}. (Revisa si marcaste el permiso 'read_products' en Shopify y si tus variables en Vercel son correctas).`);
+
       if (data?.products?.length > 0) {
         const shopifyProds = data.products.map(p => ({
           id: p.id,
@@ -71,9 +81,12 @@ export default function KolmaPOS() {
           barcode: p.variants[0]?.barcode || ''
         }));
         setProducts(shopifyProds.filter(p => p.price > 0));
+      } else {
+        setProducts([]); // No hay productos activos
       }
     } catch (e) {
       console.error("Error cargando productos", e);
+      setFetchError(e.message);
     } finally {
       setIsLoading(prev => ({ ...prev, products: false }));
     }
@@ -87,6 +100,7 @@ export default function KolmaPOS() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'get_orders' })
       });
+      if (!res.ok) throw new Error("Error interno al buscar pedidos");
       const data = await res.json();
       if (data?.orders) {
         setOrdersHistory(data.orders);
@@ -104,9 +118,7 @@ export default function KolmaPOS() {
 
   // Auto-focus para escáner
   useEffect(() => {
-    if (isAuthenticated && activeView === 'pos' && !weightModal.isOpen) {
-      setTimeout(() => searchInputRef.current?.focus(), 100);
-    }
+    if (isAuthenticated && activeView === 'pos' && !weightModal.isOpen) setTimeout(() => searchInputRef.current?.focus(), 100);
     if (activeView === 'pedidos') fetchOrdersHistory();
   }, [isAuthenticated, activeView, weightModal.isOpen, cart.length]);
 
@@ -121,9 +133,7 @@ export default function KolmaPOS() {
           setIsAuthenticated(true); 
           setPinCode(''); 
         }, 200);
-      } else if (newPin.length === 4) {
-        setTimeout(() => setPinCode(''), 400);
-      }
+      } else if (newPin.length === 4) setTimeout(() => setPinCode(''), 400);
     }
   };
 
@@ -211,6 +221,7 @@ export default function KolmaPOS() {
         body: JSON.stringify({ action: 'create_order', payload })
       });
       
+      const data = await res.json();
       if (res.ok) {
         setDailySales(prev => prev + total);
         setSuccessMsg(true);
@@ -221,10 +232,10 @@ export default function KolmaPOS() {
           searchInputRef.current?.focus();
         }, 2000);
       } else {
-        alert(`Error al procesar la orden.`);
+        alert(`Error al cobrar: ${data.error || 'Fallo desconocido'}`);
       }
     } catch (e) {
-      alert("Error crítico de red.");
+      alert("Error crítico de red al cobrar.");
     } finally { setIsProcessing(false); }
   };
 
@@ -321,6 +332,19 @@ export default function KolmaPOS() {
           <div className="flex-1 overflow-y-auto p-4 md:p-8 no-scrollbar">
             {isLoading.products ? (
               <div className="h-full flex flex-col items-center justify-center text-[#FF3D00]"><Loader size={48} /><p className="mt-4 font-black">Cargando catálogo...</p></div>
+            ) : fetchError ? (
+              <div className="h-full flex flex-col items-center justify-center text-slate-500 text-center">
+                 <ServerCrash size={64} className="text-red-400 mb-4" />
+                 <p className="font-black text-xl mb-2">Error de conexión con Shopify</p>
+                 <p className="font-bold mb-6 text-sm px-4 max-w-lg">{fetchError}</p>
+                 <button onClick={fetchShopifyProducts} className="bg-[#111] text-white px-8 py-3 rounded-2xl font-black hover:bg-[#FF3D00] transition-colors shadow-lg">Reintentar</button>
+              </div>
+            ) : products.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                <Search size={48} className="mb-4 opacity-50" />
+                <p className="font-black text-xl text-slate-800">Catálogo vacío.</p>
+                <p className="font-bold">Asegúrate de que tus productos en Shopify estén "Activos".</p>
+              </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-5 pb-20 md:pb-0">
                 {filteredProducts.map(p => {
