@@ -4,7 +4,7 @@ import {
   Search, ShoppingBag, User, MapPin, Clock, Star, Plus, Minus, X, 
   CheckCircle, TrendingUp, Flame, LogOut, Navigation, ChevronRight, 
   Tag, Zap, Phone, MessageSquare, Sparkles, ShoppingBasket, Bell, 
-  Cpu, ArrowRight, CreditCard, Home, Map as MapIcon
+  Cpu, ArrowRight, CreditCard, Home, Map as MapIcon, Trash
 } from 'lucide-react';
 
 // --- CONFIGURACIÓN DE ENTORNO Y MARCA ---
@@ -12,6 +12,43 @@ const APP_ID = "kolma-rd-premium-001";
 const MAP_CENTER = [19.0528, -70.1492]; // Cotuí, RD
 const DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "q0q09e-cp.myshopify.com";
 const ACCESS_TOKEN = process.env.NEXT_PUBLIC_SHOPIFY_ACCESS_TOKEN || "c9bda45020488455d7fe2d8b7e22f352";
+
+// ==========================================
+// INTEGRACIÓN SHOPIFY (KOLMA POS SUPERMERCADO)
+// ==========================================
+const registrarVentaEnShopify = async (cartItems) => {
+  const line_items = cartItems.map(item => ({
+    title: item.name,
+    price: item.price.toString(),
+    quantity: item.qty
+  }));
+
+  const orderData = {
+    order: {
+      line_items: line_items,
+      financial_status: "paid", // Registra la venta como ya cobrada en el POS
+      customer: {
+        first_name: "Ventas",
+        last_name: "Directa"
+      },
+      source_name: "Kolma POS"
+    }
+  };
+
+  try {
+    const res = await fetch(`https://${DOMAIN}/admin/api/2024-04/orders.json`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Access-Token': ACCESS_TOKEN // Asegúrate de que este token tenga permisos de Admin API
+      },
+      body: JSON.stringify(orderData)
+    });
+    if (!res.ok) console.error("Error Kolma POS -> Shopify:", await res.text());
+  } catch (e) {
+    console.error("Error de red con Shopify:", e);
+  }
+};
 
 // ==========================================
 // COMPONENTE: MAPA EN VIVO SHIPDAY
@@ -250,12 +287,20 @@ export default function App() {
     if (view === 'cart') setCheckoutStep('checkout');
   };
 
+  // LÓGICA PRINCIPAL MODIFICADA DE COMPLETAR VENTA
   const placeOrder = () => {
     const newOrder = { id: 'KOL-' + Math.floor(Math.random()*90000 + 10000), items: [...cart], total: subtotal, status: 'Preparando', date: new Date().toLocaleTimeString(), method: paymentMethod };
     setCurrentOrder(newOrder);
     const newHistory = [...orders, newOrder];
-    setOrders(newHistory); localStorage.setItem(`${APP_ID}_orders`, JSON.stringify(newHistory));
-    setCart([]); setCheckoutStep('success');
+    setOrders(newHistory); 
+    localStorage.setItem(`${APP_ID}_orders`, JSON.stringify(newHistory));
+    
+    // --- NUEVO: REGISTRAR EN SHOPIFY ---
+    registrarVentaEnShopify(cart);
+    // -----------------------------------
+
+    setCart([]); 
+    setCheckoutStep('success');
   };
 
   const logout = () => { localStorage.removeItem(`${APP_ID}_user`); setUser(null); setView('home'); };
