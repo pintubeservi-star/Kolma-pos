@@ -16,7 +16,8 @@ const LayoutDashboard = p => <Svg {...p}><rect x="3" y="3" width="7" height="9"/
 const Receipt = p => <Svg {...p}><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17V7"/></Svg>;
 const LogOut = p => <Svg {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></Svg>;
 const Scale = p => <Svg {...p}><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m3-4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/><circle cx="15" cy="11" r="2"/><path d="M15 9V3"/><path d="M15 13v6"/></Svg>;
-const Loader = p => <Svg {...p} className={`animate-spin ${className}`}><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></Svg>;
+// Aquí estaba el error del className. Corregido:
+const Loader = ({ className='', ...p }) => <Svg {...p} className={`animate-spin ${className}`}><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></Svg>;
 const ShoppingCart = p => <Svg {...p}><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></Svg>;
 const List = p => <Svg {...p}><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></Svg>;
 
@@ -24,7 +25,7 @@ export default function KolmaPOS() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [pinCode, setPinCode] = useState('');
-  const [activeView, setActiveView] = useState('pos'); // pos, pedidos, cierre
+  const [activeView, setActiveView] = useState('pos');
   
   // --- ESTADOS DE DATOS ---
   const [products, setProducts] = useState([]);
@@ -41,7 +42,7 @@ export default function KolmaPOS() {
   const [dailySales, setDailySales] = useState(0);
   const searchInputRef = useRef(null);
 
-  // --- 1. PERSISTENCIA DE SESIÓN (Evita bloqueo al actualizar) ---
+  // --- 1. PERSISTENCIA DE SESIÓN ---
   useEffect(() => {
     const session = localStorage.getItem('kolma_pos_session');
     if (session === 'active') {
@@ -89,7 +90,6 @@ export default function KolmaPOS() {
       const data = await res.json();
       if (data?.orders) {
         setOrdersHistory(data.orders);
-        // Calcular total del día basándose en el historial reciente de ventas pagadas
         const total = data.orders
           .filter(o => o.financial_status === 'paid' && new Date(o.created_at).toDateString() === new Date().toDateString())
           .reduce((acc, curr) => acc + parseFloat(curr.total_price), 0);
@@ -108,7 +108,7 @@ export default function KolmaPOS() {
       setTimeout(() => searchInputRef.current?.focus(), 100);
     }
     if (activeView === 'pedidos') fetchOrdersHistory();
-  }, [isAuthenticated, activeView, weightModal.isOpen]);
+  }, [isAuthenticated, activeView, weightModal.isOpen, cart.length]);
 
   // --- 3. LOGIN Y LOGOUT ---
   const handlePinInput = (num) => {
@@ -229,7 +229,7 @@ export default function KolmaPOS() {
   };
 
   // ==========================================
-  // RENDERIZADO INICIAL (Evita parpadeos)
+  // RENDERIZADO INICIAL
   // ==========================================
   if (isInitializing) return <div className="h-screen bg-slate-900 flex items-center justify-center"><Loader size={48} className="text-[#FF3D00]" /></div>;
 
