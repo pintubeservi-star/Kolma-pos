@@ -2,26 +2,23 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 
 // ==========================================
-// ÍCONOS SVG NATIVOS
+// ÍCONOS SVG
 // ==========================================
-const Svg = ({ children, size=24, className='', strokeWidth=2, fill="none", ...props }) => <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>{children}</svg>;
+const Svg = ({ children, size=24, className='', strokeWidth=2, ...props }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>{children}</svg>;
 const Search = p => <Svg {...p}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></Svg>;
 const Plus = p => <Svg {...p}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></Svg>;
 const Minus = p => <Svg {...p}><line x1="5" y1="12" x2="19" y2="12"/></Svg>;
 const Trash = p => <Svg {...p}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></Svg>;
-const CheckCircle = p => <Svg {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></Svg>;
 const X = p => <Svg {...p}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Svg>;
-const Lock = p => <Svg {...p}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></Svg>;
 const LayoutDashboard = p => <Svg {...p}><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></Svg>;
 const Receipt = p => <Svg {...p}><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17V7"/></Svg>;
 const LogOut = p => <Svg {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></Svg>;
 const Scale = p => <Svg {...p}><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m3-4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/><circle cx="15" cy="11" r="2"/><path d="M15 9V3"/><path d="M15 13v6"/></Svg>;
 const Loader = ({ className='', ...p }) => <Svg {...p} className={`animate-spin ${className}`}><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></Svg>;
-const ShoppingCart = p => <Svg {...p}><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></Svg>;
-const List = p => <Svg {...p}><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></Svg>;
-const ServerCrash = p => <Svg {...p}><path d="M6 4H18A2 2 0 0 1 20 6V10A2 2 0 0 1 18 12H6A2 2 0 0 1 4 10V6A2 2 0 0 1 6 4z"/><path d="M6 14H18A2 2 0 0 1 20 16V20A2 2 0 0 1 18 22H6A2 2 0 0 1 4 20V16A2 2 0 0 1 6 14z"/><path d="M12 22V12"/><path d="M8 8H8.01"/><path d="M8 18H8.01"/></Svg>;
+const Download = p => <Svg {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></Svg>;
+const Users = p => <Svg {...p}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></Svg>;
 
-// VARIABLES DE ENTORNO PARA LEER PRODUCTOS
+// --- CONFIGURACIÓN ---
 const DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "q0q09e-cp.myshopify.com";
 const STOREFRONT_TOKEN = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN || "c9bda45020488455d7fe2d8b7e22f352";
 
@@ -31,103 +28,69 @@ export default function KolmaPOS() {
   const [pinCode, setPinCode] = useState('');
   const [activeView, setActiveView] = useState('pos');
   
-  // --- ESTADOS DE DATOS ---
+  // Catálogo y Estados Globales
   const [products, setProducts] = useState([]);
-  const [ordersHistory, setOrdersHistory] = useState([]);
-  const [isLoading, setIsLoading] = useState({ products: true, orders: false });
-  const [fetchError, setFetchError] = useState(null); 
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   
+  // Carrito y Búsqueda
   const [cart, setCart] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [successMsg, setSuccessMsg] = useState(false);
-  
-  const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
-  const [weightModal, setWeightModal] = useState({ isOpen: false, product: null, weight: '' });
-  const [dailySales, setDailySales] = useState(0);
   const searchInputRef = useRef(null);
 
-  // --- 1. PERSISTENCIA DE SESIÓN ---
+  // Modal Báscula
+  const [weightModal, setWeightModal] = useState({ isOpen: false, product: null, weight: '' });
+  
+  // Crédito
+  const [creditModal, setCreditModal] = useState(false);
+  const [customerData, setCustomerData] = useState({ name: '', phone: '' });
+
+  // Contabilidad del Día (Guardado en LocalStorage)
+  const [localSales, setLocalSales] = useState([]);
+
+  // --- INICIO Y CARGA DE DATOS ---
   useEffect(() => {
     const session = localStorage.getItem('kolma_pos_session');
+    const savedSales = JSON.parse(localStorage.getItem('kolma_daily_sales') || '[]');
+    
     if (session === 'active') setIsAuthenticated(true);
+    setLocalSales(savedSales);
     setIsInitializing(false);
     fetchShopifyProducts();
   }, []);
 
-  // --- 2. PETICIONES SEPARADAS (Storefront para Catálogo, Backend para Órdenes) ---
-  
-  // A. Obtener Productos vía Storefront API (Directo, Seguro y Rápido)
+  useEffect(() => {
+    // Mantener contabilidad sincronizada localmente
+    localStorage.setItem('kolma_daily_sales', JSON.stringify(localSales));
+  }, [localSales]);
+
   const fetchShopifyProducts = async () => {
-    setIsLoading(prev => ({ ...prev, products: true }));
-    setFetchError(null);
+    setIsLoadingProducts(true);
     try {
       const res = await fetch(`https://${DOMAIN}/api/2024-04/graphql.json`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-Shopify-Storefront-Access-Token': STOREFRONT_TOKEN
-        },
+        headers: { 'Content-Type': 'application/json', 'X-Shopify-Storefront-Access-Token': STOREFRONT_TOKEN },
         body: JSON.stringify({ query: `{ products(first: 250) { edges { node { id title images(first: 1) { edges { node { url } } } variants(first: 1) { edges { node { id price { amount } barcode } } } } } } }`})
       });
-      
-      const { data, errors } = await res.json();
-      
-      if (errors) throw new Error(errors[0].message);
-
-      if (data?.products?.edges?.length > 0) {
+      const { data } = await res.json();
+      if (data?.products?.edges) {
         const shopifyProds = data.products.edges.map(p => ({
-          id: p.node.id,
-          name: p.node.title,
+          id: p.node.id, name: p.node.title,
           price: parseFloat(p.node.variants.edges[0].node.price.amount),
-          image: p.node.images.edges[0]?.node.url || 'https://via.placeholder.com/300?text=Kolma+POS',
+          image: p.node.images.edges[0]?.node.url || null,
           variantId: p.node.variants.edges[0].node.id,
           barcode: p.node.variants.edges[0].node.barcode || ''
         }));
         setProducts(shopifyProds.filter(p => p.price > 0));
-      } else {
-        setProducts([]);
       }
     } catch (e) {
-      console.error("Error cargando productos", e);
-      setFetchError(e.message);
+      console.error("Error catálogo", e);
     } finally {
-      setIsLoading(prev => ({ ...prev, products: false }));
+      setIsLoadingProducts(false);
     }
   };
 
-  // B. Obtener Órdenes vía Backend (Admin API)
-  const fetchOrdersHistory = async () => {
-    setIsLoading(prev => ({ ...prev, orders: true }));
-    try {
-      const res = await fetch('/api/shopify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'get_orders' })
-      });
-      if (!res.ok) throw new Error("Error conectando al backend");
-      const data = await res.json();
-      if (data?.orders) {
-        setOrdersHistory(data.orders);
-        const total = data.orders
-          .filter(o => o.financial_status === 'paid' && new Date(o.created_at).toDateString() === new Date().toDateString())
-          .reduce((acc, curr) => acc + parseFloat(curr.total_price), 0);
-        setDailySales(total);
-      }
-    } catch (e) {
-      console.error("Error cargando pedidos", e);
-    } finally {
-      setIsLoading(prev => ({ ...prev, orders: false }));
-    }
-  };
-
-  // Auto-focus
-  useEffect(() => {
-    if (isAuthenticated && activeView === 'pos' && !weightModal.isOpen) setTimeout(() => searchInputRef.current?.focus(), 100);
-    if (activeView === 'pedidos') fetchOrdersHistory();
-  }, [isAuthenticated, activeView, weightModal.isOpen, cart.length]);
-
-  // --- 3. LOGIN Y LOGOUT ---
+  // --- LÓGICA DE AUTENTICACIÓN ---
   const handlePinInput = (num) => {
     if (pinCode.length < 4) {
       const newPin = pinCode + num;
@@ -135,24 +98,13 @@ export default function KolmaPOS() {
       if (newPin === '1221') {
         setTimeout(() => { 
           localStorage.setItem('kolma_pos_session', 'active');
-          setIsAuthenticated(true); 
-          setPinCode(''); 
+          setIsAuthenticated(true); setPinCode(''); 
         }, 200);
       } else if (newPin.length === 4) setTimeout(() => setPinCode(''), 400);
     }
   };
 
-  const cerrarTurno = () => {
-    if (window.confirm('¿Cerrar el turno de hoy? Se bloqueará la terminal.')) {
-      localStorage.removeItem('kolma_pos_session');
-      setIsAuthenticated(false);
-      setActiveView('pos');
-      setCart([]);
-      setIsMobileCartOpen(false);
-    }
-  };
-
-  // --- 4. LÓGICA DE BÚSQUEDA Y CARRITO ---
+  // --- CARRITO ---
   const filteredProducts = useMemo(() => {
     if (!searchTerm) return products;
     const term = searchTerm.toLowerCase();
@@ -160,28 +112,29 @@ export default function KolmaPOS() {
   }, [products, searchTerm]);
 
   const handleProductClick = (product) => {
-    const isWeighedItem = product.name.toLowerCase().includes('libra') || product.name.toLowerCase().includes('lobra');
-    if (isWeighedItem) setWeightModal({ isOpen: true, product, weight: '' });
-    else addToCart(product, 1, false);
+    if (product.name.toLowerCase().includes('libra') || product.name.toLowerCase().includes('lobra')) {
+      setWeightModal({ isOpen: true, product, weight: '' });
+    } else {
+      addToCart(product, 1, false);
+    }
     setSearchTerm('');
+    searchInputRef.current?.focus();
   };
 
   const handleSearchKeyDown = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && searchTerm) {
       e.preventDefault();
-      if (!searchTerm) return;
-      const exactBarcodeMatch = products.find(p => p.barcode === searchTerm);
-      if (exactBarcodeMatch) return handleProductClick(exactBarcodeMatch);
+      const exactMatch = products.find(p => p.barcode === searchTerm);
+      if (exactMatch) return handleProductClick(exactMatch);
       if (filteredProducts.length === 1) return handleProductClick(filteredProducts[0]);
     }
   };
 
   const confirmWeight = () => {
     const w = parseFloat(weightModal.weight);
-    if (w > 0) {
-      addToCart(weightModal.product, w, true);
-      setWeightModal({ isOpen: false, product: null, weight: '' });
-    }
+    if (w > 0) addToCart(weightModal.product, w, true);
+    setWeightModal({ isOpen: false, product: null, weight: '' });
+    searchInputRef.current?.focus();
   };
 
   const addToCart = (product, quantity, isWeighed) => {
@@ -194,13 +147,18 @@ export default function KolmaPOS() {
   };
 
   const updateQty = (id, delta) => setCart(prev => prev.map(i => i.variantId === id && !i.isWeighed ? { ...i, qty: i.qty + delta, finalPrice: i.price * (i.qty + delta) } : i).filter(i => i.qty > 0));
-  const removeCartItem = (cartId) => setCart(prev => prev.filter(i => i.cartId !== cartId));
-  const clearCart = () => setCart([]);
   const total = cart.reduce((acc, item) => acc + item.finalPrice, 0);
 
-  // --- 5. PROCESAR VENTA (Crea Orden vía Backend/Admin API) ---
-  const procesarVenta = async () => {
+  // --- PROCESAR VENTA (EFECTIVO O CRÉDITO) ---
+  const registrarVenta = async (type) => {
     if (cart.length === 0) return;
+    
+    // Validación obligatoria de crédito
+    if (type === 'credit' && (!customerData.name.trim() || !customerData.phone.trim())) {
+      alert("Para ventas a crédito, el nombre y teléfono son obligatorios.");
+      return;
+    }
+
     setIsProcessing(true);
 
     const line_items = cart.map(item => ({
@@ -210,64 +168,128 @@ export default function KolmaPOS() {
       variant_id: item.variantId
     }));
 
-    const payload = {
+    const orderPayload = {
       order: {
         line_items,
-        financial_status: "paid", 
-        customer: { first_name: "Ventas", last_name: "Directa" },
+        financial_status: type === 'cash' ? "paid" : "pending",
+        customer: type === 'credit' ? { first_name: customerData.name, phone: customerData.phone } : { first_name: "Venta", last_name: "Directa" },
+        note: type === 'credit' ? `CRÉDITO - Tel: ${customerData.phone}` : "EFECTIVO",
         source_name: "Kolma POS"
       }
     };
 
     try {
-      const res = await fetch('/api/shopify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create_order', payload })
-      });
+      // 1. Guardar en Shopify (Intento)
+      fetch('/api/shopify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'create_order', payload: orderPayload }) }).catch(e => console.log("Shopify API Error:", e));
+
+      // 2. Guardar Contabilidad Local Inmediatamente (A prueba de fallos de internet)
+      const newSale = {
+        id: Date.now(),
+        type: type,
+        customer: type === 'credit' ? customerData.name : 'Venta Directa',
+        total: total,
+        items: [...cart],
+        date: new Date().toISOString()
+      };
       
-      const data = await res.json();
-      if (res.ok && !data.error) {
-        setDailySales(prev => prev + total);
-        setSuccessMsg(true);
-        setTimeout(() => {
-          setSuccessMsg(false);
-          clearCart();
-          setIsMobileCartOpen(false);
-          searchInputRef.current?.focus();
-        }, 2000);
-      } else {
-        alert(`Error al cobrar: ${data.error || 'Fallo desconocido'}`);
-      }
-    } catch (e) {
-      alert("Error crítico de red al cobrar.");
-    } finally { setIsProcessing(false); }
+      setLocalSales(prev => [...prev, newSale]);
+      
+      // 3. Limpiar UI
+      setCart([]);
+      setCreditModal(false);
+      setCustomerData({ name: '', phone: '' });
+      searchInputRef.current?.focus();
+      
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // --- CIERRE DE CAJA Y REPORTE ---
+  const stats = useMemo(() => {
+    let cash = 0, credit = 0;
+    localSales.forEach(s => { if (s.type === 'cash') cash += s.total; else credit += s.total; });
+    return { cash, credit, total: cash + credit, count: localSales.length };
+  }, [localSales]);
+
+  const generarCierre = () => {
+    if (localSales.length === 0) return alert("No hay ventas registradas hoy.");
+
+    // Agregar Productos
+    const prodMap = {};
+    localSales.forEach(sale => {
+      sale.items.forEach(item => {
+        if (!prodMap[item.name]) prodMap[item.name] = { qty: 0, revenue: 0 };
+        prodMap[item.name].qty += item.qty;
+        prodMap[item.name].revenue += item.finalPrice;
+      });
+    });
+
+    const sortedProducts = Object.entries(prodMap).sort((a, b) => b[1].qty - a[1].qty);
+
+    let txt = `======================================\n`;
+    txt += `       KOLMA RD - CIERRE DE CAJA      \n`;
+    txt += `======================================\n`;
+    txt += `Fecha: ${new Date().toLocaleString('es-DO')}\n\n`;
+    
+    txt += `--- RESUMEN FINANCIERO ---\n`;
+    txt += `Transacciones: ${stats.count}\n`;
+    txt += `Total Efectivo: RD$ ${stats.cash.toFixed(2)}\n`;
+    txt += `Total Crédito:  RD$ ${stats.credit.toFixed(2)}\n`;
+    txt += `TOTAL VENTAS:   RD$ ${stats.total.toFixed(2)}\n\n`;
+
+    txt += `--- PRODUCTOS VENDIDOS (Mayor a Menor) ---\n`;
+    txt += `CANT | PRODUCTO | TOTAL RD$\n`;
+    txt += `--------------------------------------\n`;
+    sortedProducts.forEach(([name, data]) => {
+      txt += `${data.qty.toString().padEnd(4)} | ${name.substring(0, 20).padEnd(20)} | $${data.revenue.toFixed(2)}\n`;
+    });
+    
+    txt += `\n--- DETALLE DE CRÉDITOS ---\n`;
+    const credits = localSales.filter(s => s.type === 'credit');
+    if(credits.length === 0) txt += "Sin créditos hoy.\n";
+    credits.forEach(c => {
+      txt += `Cliente: ${c.customer} - Monto: RD$${c.total.toFixed(2)}\n`;
+    });
+
+    // Descargar Archivo
+    const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Cierre_Kolma_${new Date().toISOString().split('T')[0]}.txt`;
+    link.click();
+
+    // Resetear Sistema
+    localStorage.removeItem('kolma_daily_sales');
+    localStorage.removeItem('kolma_pos_session');
+    setLocalSales([]);
+    setIsAuthenticated(false);
+    setActiveView('pos');
   };
 
   // ==========================================
-  // RENDERIZADO INICIAL
+  // RENDER PANTALLA INICIAL (PIN)
   // ==========================================
-  if (isInitializing) return <div className="h-screen bg-slate-900 flex items-center justify-center"><Loader size={48} className="text-[#FF3D00]" /></div>;
+  if (isInitializing) return <div className="h-screen bg-slate-900 flex items-center justify-center"><Loader size={48} className="text-slate-400" /></div>;
 
-  // ==========================================
-  // PANTALLA PIN
-  // ==========================================
   if (!isAuthenticated) {
     return (
-      <div className="flex min-h-[100dvh] bg-slate-900 items-center justify-center font-sans p-4">
-        <div className="bg-white/10 backdrop-blur-3xl border border-white/20 p-8 md:p-12 rounded-[48px] shadow-2xl text-center w-full max-w-[400px]">
-          <div className="w-20 h-20 bg-gradient-to-br from-[#FF3D00] to-[#FF9100] text-white rounded-[24px] flex items-center justify-center font-black text-4xl mx-auto mb-6">K</div>
-          <h2 className="text-white text-3xl font-black tracking-tighter mb-2">Kolma POS</h2>
-          <p className="text-slate-400 font-bold mb-8">Ingresa PIN (1221)</p>
+      <div className="flex h-screen bg-[#0f172a] items-center justify-center font-sans text-slate-200">
+        <div className="bg-[#1e293b] border border-slate-700 p-10 rounded-2xl shadow-2xl text-center w-[380px]">
+          <div className="w-16 h-16 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-3xl mx-auto mb-6">K</div>
+          <h2 className="text-2xl font-bold text-white mb-1">Kolma RD</h2>
+          <p className="text-slate-400 text-sm mb-8">Punto de Venta Profesional</p>
+          
           <div className="flex justify-center gap-4 mb-8">
-            {[0, 1, 2, 3].map(i => <div key={i} className={`w-4 h-4 rounded-full transition-all ${pinCode.length > i ? 'bg-[#FF3D00] scale-110 shadow-[0_0_15px_rgba(255,61,0,0.5)]' : 'bg-white/20'}`} />)}
+            {[0, 1, 2, 3].map(i => <div key={i} className={`w-3 h-3 rounded-full ${pinCode.length > i ? 'bg-blue-500' : 'bg-slate-600'}`} />)}
           </div>
-          <div className="grid grid-cols-3 gap-3 md:gap-4">
+
+          <div className="grid grid-cols-3 gap-3">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-              <button key={num} onClick={() => handlePinInput(num.toString())} className="h-16 rounded-[20px] bg-white/5 hover:bg-white/20 text-white font-black text-2xl active:scale-95 border border-white/5">{num}</button>
+              <button key={num} onClick={() => handlePinInput(num.toString())} className="h-14 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xl active:scale-95">{num}</button>
             ))}
-            <div className="col-start-2"><button onClick={() => handlePinInput('0')} className="w-full h-16 rounded-[20px] bg-white/5 hover:bg-white/20 text-white font-black text-2xl active:scale-95 border border-white/5">0</button></div>
-            <div className="col-start-3"><button onClick={() => setPinCode(pinCode.slice(0, -1))} className="w-full h-16 rounded-[20px] flex items-center justify-center text-slate-400 hover:text-red-400 active:scale-95"><X size={28} strokeWidth={3}/></button></div>
+            <div className="col-start-2"><button onClick={() => handlePinInput('0')} className="w-full h-14 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xl active:scale-95">0</button></div>
+            <div className="col-start-3"><button onClick={() => setPinCode(pinCode.slice(0, -1))} className="w-full h-14 rounded-xl flex items-center justify-center text-slate-400 hover:text-white active:scale-95"><X size={24}/></button></div>
           </div>
         </div>
       </div>
@@ -275,202 +297,189 @@ export default function KolmaPOS() {
   }
 
   // ==========================================
-  // POS PRINCIPAL
+  // RENDER INTERFAZ PRINCIPAL
   // ==========================================
   return (
-    <div className="flex flex-col md:flex-row h-[100dvh] bg-[#F8FAFC] font-sans text-slate-900 selection:bg-orange-200">
+    <div className="flex h-screen bg-[#0f172a] font-sans text-slate-200 overflow-hidden">
       
       {/* MODAL BÁSCULA */}
       {weightModal.isOpen && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white p-6 md:p-8 rounded-[40px] shadow-2xl w-full max-w-[400px] animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-[#1e293b] border border-slate-700 p-8 rounded-2xl shadow-2xl w-[400px]">
             <div className="flex justify-between items-center mb-6">
-              <div className="w-14 h-14 bg-orange-50 text-[#FF3D00] rounded-[20px] flex items-center justify-center"><Scale size={28} /></div>
-              <button onClick={() => { setWeightModal({ isOpen: false, product: null, weight: '' }); searchInputRef.current?.focus(); }} className="p-2 bg-slate-100 rounded-full"><X size={20} /></button>
+              <h3 className="text-xl font-bold text-white">Pesaje en Libras</h3>
+              <button onClick={() => { setWeightModal({ isOpen: false, product: null, weight: '' }); searchInputRef.current?.focus(); }} className="text-slate-400 hover:text-white"><X size={24}/></button>
             </div>
-            <h3 className="text-2xl font-black tracking-tighter mb-2">{weightModal.product?.name}</h3>
-            <p className="text-slate-500 font-bold mb-6">Precio base: RD${weightModal.product?.price} / lb</p>
-            <div className="bg-slate-50 border-2 border-slate-200 rounded-[24px] p-2 flex items-center mb-8 focus-within:border-[#FF3D00] focus-within:bg-white">
-              <input type="number" step="0.01" autoFocus value={weightModal.weight} onChange={e => setWeightModal({...weightModal, weight: e.target.value})} onKeyDown={e => e.key === 'Enter' && confirmWeight()} placeholder="0.00" className="w-full bg-transparent text-right text-4xl font-black outline-none px-4"/>
-              <span className="font-black text-xl text-slate-400 pr-4">lbs</span>
+            <p className="text-slate-400 mb-2">{weightModal.product?.name}</p>
+            <div className="bg-[#0f172a] border border-blue-500/50 rounded-xl p-4 flex items-center mb-6">
+              <input type="number" step="0.01" autoFocus value={weightModal.weight} onChange={e => setWeightModal({...weightModal, weight: e.target.value})} onKeyDown={e => e.key === 'Enter' && confirmWeight()} placeholder="0.00" className="w-full bg-transparent text-right text-4xl font-black text-white outline-none"/>
+              <span className="font-bold text-slate-500 ml-3">lbs</span>
             </div>
-            <button onClick={confirmWeight} disabled={!weightModal.weight || weightModal.weight <= 0} className="w-full bg-[#111] text-white py-5 rounded-[20px] font-black text-xl hover:bg-[#FF3D00] transition-colors disabled:opacity-50">Registrar Peso</button>
+            <button onClick={confirmWeight} disabled={!weightModal.weight || weightModal.weight <= 0} className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-500 disabled:opacity-50">Registrar Peso</button>
           </div>
         </div>
       )}
 
-      {/* MENÚ LATERAL (PC) */}
-      <div className="hidden md:flex w-[100px] bg-white border-r border-slate-200 flex-col items-center py-8 z-20">
-        <div className="w-14 h-14 bg-gradient-to-br from-[#FF3D00] to-[#FF9100] text-white rounded-[20px] flex items-center justify-center font-black text-2xl shadow-xl shadow-orange-200 mb-8">K</div>
-        <div className="flex-1 flex flex-col gap-4 w-full px-4">
-          <button onClick={() => setActiveView('pos')} className={`w-full aspect-square flex flex-col items-center justify-center gap-2 rounded-[24px] ${activeView === 'pos' ? 'bg-[#111] text-white' : 'text-slate-400 hover:bg-slate-100'}`}><LayoutDashboard size={24} /><span className="text-[10px] font-black">POS</span></button>
-          <button onClick={() => setActiveView('pedidos')} className={`w-full aspect-square flex flex-col items-center justify-center gap-2 rounded-[24px] ${activeView === 'pedidos' ? 'bg-[#111] text-white' : 'text-slate-400 hover:bg-slate-100'}`}><List size={24} /><span className="text-[10px] font-black">Pedidos</span></button>
-          <button onClick={() => setActiveView('cierre')} className={`w-full aspect-square flex flex-col items-center justify-center gap-2 rounded-[24px] ${activeView === 'cierre' ? 'bg-[#111] text-white' : 'text-slate-400 hover:bg-slate-100'}`}><Receipt size={24} /><span className="text-[10px] font-black">Cierre</span></button>
+      {/* MODAL CRÉDITO OBLIGATORIO */}
+      {creditModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-[#1e293b] border border-slate-700 p-8 rounded-2xl shadow-2xl w-[400px]">
+            <h3 className="text-xl font-bold text-white mb-2">Venta a Crédito</h3>
+            <p className="text-sm text-slate-400 mb-6">Monto: RD$ {total.toFixed(2)}</p>
+            
+            <div className="space-y-4 mb-8">
+              <div>
+                <label className="block text-xs font-bold text-slate-400 mb-1 uppercase">Nombre del Cliente *</label>
+                <input type="text" autoFocus value={customerData.name} onChange={e=>setCustomerData({...customerData, name: e.target.value})} className="w-full bg-[#0f172a] border border-slate-600 rounded-lg px-4 py-3 text-white outline-none focus:border-blue-500" placeholder="Ej. Juan Pérez"/>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-400 mb-1 uppercase">Teléfono *</label>
+                <input type="tel" value={customerData.phone} onChange={e=>setCustomerData({...customerData, phone: e.target.value})} className="w-full bg-[#0f172a] border border-slate-600 rounded-lg px-4 py-3 text-white outline-none focus:border-blue-500" placeholder="Ej. 809-555-5555"/>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <button onClick={() => setCreditModal(false)} className="flex-1 py-3 bg-slate-700 rounded-lg font-bold hover:bg-slate-600">Cancelar</button>
+              <button onClick={() => registrarVenta('credit')} className="flex-1 py-3 bg-amber-600 text-white rounded-lg font-bold hover:bg-amber-500">Confirmar Crédito</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MENÚ LATERAL */}
+      <div className="w-[80px] bg-[#1e293b] border-r border-slate-800 flex flex-col items-center py-6 z-20 shrink-0">
+        <div className="w-12 h-12 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-xl mb-8">K</div>
+        <div className="flex flex-col gap-6 w-full">
+          <button onClick={() => setActiveView('pos')} className={`flex flex-col items-center gap-1 ${activeView === 'pos' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><LayoutDashboard size={24} /><span className="text-[10px] font-bold">Caja</span></button>
+          <button onClick={() => setActiveView('cierre')} className={`flex flex-col items-center gap-1 ${activeView === 'cierre' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><Receipt size={24} /><span className="text-[10px] font-bold">Reporte</span></button>
         </div>
       </div>
 
       {/* ÁREA CENTRAL */}
-      <div className="flex-1 flex flex-col min-w-0 pb-[70px] md:pb-0">
-        <div className="h-[80px] md:h-[90px] bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 shrink-0">
-          <div className="relative w-full max-w-[200px] sm:max-w-md">
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* HEADER */}
+        <div className="h-[70px] border-b border-slate-800 flex items-center justify-between px-6 bg-[#0f172a] shrink-0">
+          <div className="relative w-full max-w-md">
             {activeView === 'pos' && (
               <>
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#FF3D00]" size={18} />
-                <input ref={searchInputRef} type="text" placeholder="Escáner o código..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onKeyDown={handleSearchKeyDown} className="w-full bg-slate-50 border-2 border-transparent focus:border-orange-200 focus:bg-white rounded-[20px] py-3 pl-12 pr-4 font-bold outline-none text-sm md:text-base"/>
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                <input ref={searchInputRef} type="text" placeholder="Escáner o buscar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onKeyDown={handleSearchKeyDown} className="w-full bg-[#1e293b] border border-slate-700 focus:border-blue-500 rounded-lg py-2 pl-10 pr-4 text-white outline-none text-sm"/>
               </>
             )}
-            {activeView === 'pedidos' && <h2 className="text-2xl font-black">Historial de Pedidos</h2>}
+            {activeView === 'cierre' && <h2 className="text-xl font-bold">Gestión y Cierre</h2>}
           </div>
-          <div className="flex items-center gap-4 md:gap-8 ml-2">
-            <div className="text-right border-r border-slate-200 pr-4 md:pr-8 hidden sm:block">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Caja Hoy</p>
-              <p className="font-black text-xl md:text-2xl text-[#111] leading-none">RD$ {dailySales.toFixed(2)}</p>
-            </div>
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-500"><Lock size={18} /></div>
+          <div className="flex items-center gap-6">
+            <div className="text-right">
+              <p className="text-[10px] font-bold text-slate-500 uppercase">Caja Actual</p>
+              <p className="font-black text-xl text-emerald-400">RD$ {stats.total.toFixed(2)}</p>
             </div>
           </div>
         </div>
 
-        {/* --- VISTAS --- */}
+        {/* VISTAS */}
         {activeView === 'pos' && (
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 no-scrollbar">
-            {isLoading.products ? (
-              <div className="h-full flex flex-col items-center justify-center text-[#FF3D00]"><Loader size={48} /><p className="mt-4 font-black">Cargando catálogo...</p></div>
-            ) : fetchError ? (
-              <div className="h-full flex flex-col items-center justify-center text-slate-500 text-center">
-                 <ServerCrash size={64} className="text-red-400 mb-4" />
-                 <p className="font-black text-xl mb-2">Error de conexión con Storefront</p>
-                 <p className="font-bold mb-6 text-sm px-4 max-w-lg">{fetchError}</p>
-                 <button onClick={fetchShopifyProducts} className="bg-[#111] text-white px-8 py-3 rounded-2xl font-black hover:bg-[#FF3D00] transition-colors shadow-lg">Reintentar</button>
-              </div>
-            ) : products.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-slate-400">
-                <Search size={48} className="mb-4 opacity-50" />
-                <p className="font-black text-xl text-slate-800">Catálogo vacío.</p>
-                <p className="font-bold">Asegúrate de que tus productos en Shopify estén "Activos".</p>
-              </div>
+          <div className="flex-1 overflow-y-auto p-6 no-scrollbar">
+            {isLoadingProducts ? (
+              <div className="h-full flex flex-col items-center justify-center text-slate-500"><Loader size={40} /><p className="mt-4 font-bold">Conectando catálogo...</p></div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-5 pb-20 md:pb-0">
-                {filteredProducts.map(p => {
-                  const isWeighed = p.name.toLowerCase().includes('libra') || p.name.toLowerCase().includes('lobra');
-                  return (
-                    <div key={p.id} onClick={() => handleProductClick(p)} className="bg-white rounded-[24px] p-3 md:p-4 border border-slate-100 shadow-sm active:scale-95 flex flex-col cursor-pointer hover:border-orange-200 transition-colors">
-                      <div className="aspect-square bg-slate-50 rounded-[16px] md:rounded-[24px] mb-3 md:mb-4 overflow-hidden relative">
-                        <img src={p.image} alt={p.name} className="w-full h-full object-cover mix-blend-multiply" loading="lazy"/>
-                        {isWeighed && <div className="absolute top-2 left-2 bg-white/90 px-2 py-1 rounded-[8px] text-[9px] font-black text-[#FF3D00] flex items-center gap-1 border border-red-50"><Scale size={10} strokeWidth={3}/> PESO</div>}
-                      </div>
-                      <h3 className="font-bold text-xs md:text-sm leading-tight mb-2 text-slate-800 line-clamp-2">{p.name}</h3>
-                      <p className="font-black text-lg md:text-xl text-[#FF3D00] mt-auto">RD${p.price.toFixed(0)}</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4">
+                {filteredProducts.map(p => (
+                  <div key={p.id} onClick={() => handleProductClick(p)} className="bg-[#1e293b] rounded-xl p-3 border border-slate-700 hover:border-blue-500 cursor-pointer flex flex-col">
+                    <div className="aspect-square bg-[#0f172a] rounded-lg mb-3 flex items-center justify-center relative overflow-hidden">
+                      {p.image ? <img src={p.image} className="w-full h-full object-cover" loading="lazy"/> : <span className="text-slate-600 font-bold text-xs">Sin Foto</span>}
                     </div>
-                  )
-                })}
+                    <h3 className="font-bold text-xs text-slate-300 leading-tight mb-2 line-clamp-2">{p.name}</h3>
+                    <p className="font-black text-white mt-auto">RD${p.price.toFixed(2)}</p>
+                  </div>
+                ))}
               </div>
             )}
           </div>
         )}
 
-        {activeView === 'pedidos' && (
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50">
-            <div className="max-w-4xl mx-auto space-y-4">
-              {isLoading.orders ? (
-                <div className="flex flex-col items-center py-20 text-[#FF3D00]"><Loader size={48} /><p className="mt-4 font-black">Buscando en Shopify...</p></div>
-              ) : ordersHistory.length === 0 ? (
-                <div className="text-center py-20 text-slate-400 bg-white rounded-[32px]"><List size={48} className="mx-auto mb-4 opacity-50" /><p className="font-black text-xl text-slate-800">No hay pedidos recientes</p></div>
-              ) : (
-                ordersHistory.map(order => (
-                  <div key={order.id} className="bg-white border border-slate-100 rounded-[24px] p-6 flex flex-col sm:flex-row justify-between sm:items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
-                    <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="font-black text-lg text-slate-900">Orden #{order.order_number}</span>
-                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${order.financial_status === 'paid' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                          {order.financial_status === 'paid' ? 'Pagado' : 'Pendiente'}
-                        </span>
-                      </div>
-                      <p className="text-sm font-bold text-slate-500">{new Date(order.created_at).toLocaleString('es-DO')} • {order.line_items.length} artículos</p>
-                    </div>
-                    <div className="text-left sm:text-right">
-                      <span className="text-[10px] font-black uppercase text-slate-400 block mb-1">Total Cliente: {order.customer?.first_name || 'Desconocido'}</span>
-                      <span className="font-black text-2xl text-[#111]">RD${parseFloat(order.total_price).toFixed(2)}</span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
-
         {activeView === 'cierre' && (
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 flex items-center justify-center bg-slate-50">
-            <div className="bg-white p-6 md:p-12 rounded-[32px] shadow-xl w-full max-w-lg text-center">
-              <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6"><Receipt size={40} /></div>
-              <h2 className="text-3xl md:text-4xl font-black mb-2">Cierre de Turno</h2>
-              <div className="bg-orange-50 p-6 rounded-[24px] mt-8 mb-8">
-                <p className="text-xs font-black uppercase text-[#FF3D00] mb-1">Total Caja Actual</p>
-                <p className="text-4xl font-black text-[#FF3D00]">RD${dailySales.toFixed(2)}</p>
+          <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center">
+            <div className="bg-[#1e293b] border border-slate-700 p-8 rounded-2xl w-full max-w-2xl">
+              <div className="flex items-center justify-between mb-8 pb-6 border-b border-slate-700">
+                <h2 className="text-2xl font-bold text-white">Resumen del Día</h2>
+                <span className="text-slate-400 text-sm">{new Date().toLocaleDateString('es-DO')}</span>
               </div>
-              <button onClick={cerrarTurno} className="w-full bg-[#111] text-white py-5 rounded-[20px] font-black text-xl active:scale-95 hover:bg-red-500 transition-colors">Bloquear Terminal</button>
+              
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="bg-[#0f172a] p-6 rounded-xl border border-slate-800">
+                  <p className="text-xs font-bold text-slate-500 uppercase mb-1">Efectivo Recibido</p>
+                  <p className="text-3xl font-black text-emerald-400">RD${stats.cash.toFixed(2)}</p>
+                </div>
+                <div className="bg-[#0f172a] p-6 rounded-xl border border-slate-800">
+                  <p className="text-xs font-bold text-slate-500 uppercase mb-1">Créditos Otorgados</p>
+                  <p className="text-3xl font-black text-amber-500">RD${stats.credit.toFixed(2)}</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <button onClick={generarCierre} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2">
+                  <Download size={20}/> Generar Archivo de Cierre
+                </button>
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* --- PANEL DE COBRO (CHECKOUT) --- */}
-      {(cart.length > 0 && activeView === 'pos') && (
-        <>
-          <button onClick={() => setIsMobileCartOpen(true)} className="md:hidden fixed bottom-24 right-4 bg-[#FF3D00] text-white w-16 h-16 rounded-[20px] shadow-2xl flex items-center justify-center active:scale-95 z-40 border-2 border-white">
-            <ShoppingCart size={28} />
-            <span className="absolute -top-2 -right-2 bg-[#111] text-white w-6 h-6 rounded-full text-xs font-black flex items-center justify-center border-2 border-white">{cart.length}</span>
-          </button>
+      {/* PANEL DE TICKET (DERECHA) */}
+      <div className="w-[350px] bg-[#1e293b] border-l border-slate-800 flex flex-col z-30 shrink-0">
+        <div className="h-[70px] border-b border-slate-800 flex items-center justify-between px-6">
+          <h2 className="text-lg font-bold text-white">Ticket</h2>
+          {cart.length > 0 && <button onClick={() => { setCart([]); searchInputRef.current?.focus(); }} className="text-red-400 hover:text-red-300 text-sm font-bold flex items-center gap-1"><Trash size={16}/> Vaciar</button>}
+        </div>
 
-          <div className={`fixed inset-0 z-50 md:static md:w-[450px] bg-white flex flex-col md:border-l border-slate-200 transition-transform duration-300 md:translate-y-0 ${isMobileCartOpen ? 'translate-y-0' : 'translate-y-full md:translate-y-0'}`}>
-            <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <div><span className="text-[10px] font-black uppercase text-[#FF9100] bg-orange-100 px-3 py-1 rounded-xl mb-2 inline-block">Checkout</span><h2 className="text-2xl md:text-3xl font-black text-[#111]">Ticket</h2></div>
-              <div className="flex gap-2">
-                <button onClick={() => { clearCart(); searchInputRef.current?.focus(); }} className="text-red-500 bg-white shadow-sm p-3 rounded-xl"><Trash size={18} /></button>
-                <button onClick={() => setIsMobileCartOpen(false)} className="md:hidden bg-slate-200 text-slate-600 p-3 rounded-xl"><X size={18}/></button>
+        <div className="flex-1 overflow-y-auto p-4 space-y-2 no-scrollbar">
+          {cart.map(item => (
+            <div key={item.cartId} className="bg-[#0f172a] border border-slate-700 rounded-lg p-3">
+              <div className="flex justify-between items-start mb-2">
+                <h4 className="font-bold text-xs text-slate-300 pr-2 line-clamp-2">{item.name}</h4>
+                <button onClick={() => { removeCartItem(item.cartId); searchInputRef.current?.focus(); }} className="text-slate-500 hover:text-red-400"><X size={14}/></button>
+              </div>
+              <div className="flex items-center justify-between">
+                {item.isWeighed ? <span className="text-xs font-bold text-blue-400">{item.qty} LBS</span> : (
+                  <div className="flex items-center gap-2 bg-[#1e293b] rounded py-1 px-2">
+                    <button onClick={() => updateQty(item.variantId, -1)} className="text-slate-400"><Minus size={12} /></button>
+                    <span className="text-xs font-bold w-4 text-center">{item.qty}</span>
+                    <button onClick={() => updateQty(item.variantId, 1)} className="text-slate-400"><Plus size={12}/></button>
+                  </div>
+                )}
+                <span className="font-bold text-sm text-white">${item.finalPrice.toFixed(2)}</span>
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-3 no-scrollbar">
-              {cart.map(item => (
-                <div key={item.cartId} className="bg-white border border-slate-100 rounded-[20px] p-4 flex flex-col gap-2 shadow-sm">
-                  <div className="flex items-start justify-between"><h4 className="font-bold text-sm text-slate-800 pr-2">{item.name}</h4><p className="font-black text-[#FF3D00]">RD${item.price.toFixed(0)}</p></div>
-                  <div className="flex items-center justify-between mt-2">
-                    {item.isWeighed ? <span className="bg-orange-50 text-[#FF3D00] px-2 py-1 rounded-[8px] text-[10px] font-black border border-orange-100">{item.qty} LBS</span> : (
-                      <div className="flex items-center bg-slate-50 rounded-[12px] p-1 border border-slate-200">
-                        <button onClick={() => updateQty(item.variantId, -1)} className="w-8 h-8 flex items-center justify-center text-slate-600 rounded-lg">{item.qty === 1 ? <Trash size={14} className="text-red-500" /> : <Minus size={14} />}</button>
-                        <span className="w-6 text-center font-black text-sm">{item.qty}</span>
-                        <button onClick={() => updateQty(item.variantId, 1)} className="w-8 h-8 flex items-center justify-center bg-[#111] text-white rounded-lg"><Plus size={14}/></button>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-3">
-                      <span className="font-black text-lg text-[#111]">${item.finalPrice.toFixed(0)}</span>
-                      <button onClick={() => { removeCartItem(item.cartId); searchInputRef.current?.focus(); }} className="text-slate-400 p-1"><X size={16}/></button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="p-6 md:p-8 bg-white border-t border-slate-100 pb-10 md:pb-8">
-              <div className="flex justify-between items-end mb-6"><span className="font-black text-slate-800 uppercase text-sm">Cobrar</span><span className="text-4xl md:text-5xl font-black text-[#111]">RD$ {total.toFixed(0)}</span></div>
-              {successMsg ? (
-                <div className="w-full bg-green-500 text-white py-5 md:py-6 rounded-[20px] font-black text-xl flex justify-center gap-2"><CheckCircle size={28}/> ¡Pagado!</div>
-              ) : (
-                <button onClick={procesarVenta} disabled={isProcessing} className="w-full py-5 md:py-6 rounded-[20px] font-black text-xl md:text-2xl flex justify-center items-center gap-2 bg-[#FF3D00] text-white active:scale-95 shadow-lg shadow-orange-200">
-                  {isProcessing ? <Loader size={24} className="text-white"/> : 'Cobrar Exacto'}
-                </button>
-              )}
-            </div>
-          </div>
-        </>
-      )}
+          ))}
+          {cart.length === 0 && <div className="text-center text-slate-600 mt-20 text-sm font-bold">Carrito vacío</div>}
+        </div>
 
-      {/* Navegación Móvil */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 flex justify-around p-3 pb-safe z-30">
-        <button onClick={() => setActiveView('pos')} className={`flex flex-col items-center gap-1 ${activeView === 'pos' ? 'text-[#FF3D00]' : 'text-slate-400'}`}><LayoutDashboard size={24} /><span className="text-[10px] font-black">POS</span></button>
-        <button onClick={() => setActiveView('pedidos')} className={`flex flex-col items-center gap-1 ${activeView === 'pedidos' ? 'text-[#FF3D00]' : 'text-slate-400'}`}><List size={24} /><span className="text-[10px] font-black">Pedidos</span></button>
-        <button onClick={() => setActiveView('cierre')} className={`flex flex-col items-center gap-1 ${activeView === 'cierre' ? 'text-[#FF3D00]' : 'text-slate-400'}`}><Receipt size={24} /><span className="text-[10px] font-black">Cierre</span></button>
-      </nav>
+        <div className="p-6 bg-[#1e293b] border-t border-slate-800">
+          <div className="flex justify-between items-end mb-4">
+            <span className="text-slate-400 text-sm font-bold">Total a Cobrar</span>
+            <span className="text-3xl font-black text-white">RD$ {total.toFixed(0)}</span>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <button 
+              onClick={() => registrarVenta('cash')} 
+              disabled={cart.length === 0 || isProcessing} 
+              className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold flex justify-center items-center gap-2 disabled:opacity-50"
+            >
+              {isProcessing ? <Loader size={20}/> : 'Cobrar Efectivo'}
+            </button>
+            
+            <button 
+              onClick={() => setCreditModal(true)} 
+              disabled={cart.length === 0 || isProcessing} 
+              className="w-full py-3 bg-transparent border border-slate-600 hover:border-amber-500 hover:text-amber-500 text-slate-300 rounded-xl font-bold text-sm flex justify-center items-center gap-2 disabled:opacity-50 transition-colors"
+            >
+              <Users size={16}/> Vender a Crédito
+            </button>
+          </div>
+        </div>
+      </div>
       
     </div>
   );
