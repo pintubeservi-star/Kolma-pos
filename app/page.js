@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 
 // ==========================================
-// ÍCONOS SVG
+// ÍCONOS SVG (CANDADO RESTAURADO)
 // ==========================================
 const Svg = ({ children, size=24, className='', strokeWidth=2, ...props }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>{children}</svg>;
 const Search = p => <Svg {...p}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></Svg>;
@@ -20,11 +20,12 @@ const Users = p => <Svg {...p}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v
 const History = p => <Svg {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></Svg>;
 const CheckCircle = p => <Svg {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></Svg>;
 const AlertCircle = p => <Svg {...p}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></Svg>;
+const Lock = p => <Svg {...p}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></Svg>; // <-- AQUÍ ESTÁ EL CANDADO
 
 // --- CONFIGURACIÓN Y SEGURIDAD ---
 const DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "";
 const STOREFRONT_TOKEN = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN || "";
-const ADMIN_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN || ""; 
+const ADMIN_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN || "1221"; 
 
 export default function KolmaPOS() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -249,7 +250,11 @@ export default function KolmaPOS() {
   const stats = useMemo(() => {
     let cash = 0, credit = 0;
     const validSales = localSales.filter(s => s.status === 'completed');
-    validSales.forEach(s => { if (s.type === 'cash') cash += s.total; else credit += s.total; });
+    validSales.forEach(s => { 
+      // Se protege contra ventas antiguas corruptas
+      if (s.type === 'cash') cash += (s.total || 0); 
+      else credit += (s.total || 0); 
+    });
     return { cash, credit, total: cash + credit, count: validSales.length };
   }, [localSales]);
 
@@ -259,11 +264,13 @@ export default function KolmaPOS() {
 
     const prodMap = {};
     validSales.forEach(sale => {
-      sale.items.forEach(item => {
-        if (!prodMap[item.name]) prodMap[item.name] = { qty: 0, revenue: 0 };
-        prodMap[item.name].qty += item.qty;
-        prodMap[item.name].revenue += item.finalPrice;
-      });
+      if(sale.items) {
+        sale.items.forEach(item => {
+          if (!prodMap[item.name]) prodMap[item.name] = { qty: 0, revenue: 0 };
+          prodMap[item.name].qty += item.qty;
+          prodMap[item.name].revenue += item.finalPrice;
+        });
+      }
     });
 
     const sortedProducts = Object.entries(prodMap).sort((a, b) => b[1].qty - a[1].qty);
@@ -288,7 +295,7 @@ export default function KolmaPOS() {
     txt += `\n--- DETALLE DE CRÉDITOS ---\n`;
     const credits = validSales.filter(s => s.type === 'credit');
     if(credits.length === 0) txt += "Sin créditos hoy.\n";
-    credits.forEach(c => txt += `Cliente: ${c.customer} - Monto: RD$${c.total.toFixed(2)}\n`);
+    credits.forEach(c => txt += `Cliente: ${c.customer} - Monto: RD$${(c.total||0).toFixed(2)}\n`);
 
     const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
     const link = document.createElement('a');
@@ -550,10 +557,10 @@ export default function KolmaPOS() {
                         {sale.status === 'voided' && <span className="px-2 py-1 rounded bg-red-900/50 text-red-400 text-[10px] font-black uppercase">Anulada</span>}
                         <span className="text-xs text-slate-400">{new Date(sale.date).toLocaleTimeString('es-DO')}</span>
                       </div>
-                      <p className="font-bold text-white text-sm">{sale.customer} • {sale.items.length} artículos</p>
+                      <p className="font-bold text-white text-sm">{sale.customer} • {sale.items?.length || 0} artículos</p>
                     </div>
                     <div className="flex items-center gap-6 justify-between sm:justify-end">
-                      <p className={`font-black text-xl ${sale.status === 'voided' ? 'text-slate-500 line-through' : 'text-white'}`}>RD${sale.total.toFixed(2)}</p>
+                      <p className={`font-black text-xl ${sale.status === 'voided' ? 'text-slate-500 line-through' : 'text-white'}`}>RD${(sale.total||0).toFixed(2)}</p>
                       {sale.status !== 'voided' && (
                         <button onClick={() => anularVenta(sale.id)} className="text-xs font-bold text-red-400 hover:text-red-300 border border-red-900/50 px-3 py-2 rounded-lg bg-red-900/20 transition-colors">
                           Anular
