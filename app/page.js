@@ -17,39 +17,43 @@ const Scale = p => <Svg {...p}><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7
 const Loader = ({ className='', ...p }) => <Svg {...p} className={`animate-spin ${className}`}><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></Svg>;
 const Download = p => <Svg {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></Svg>;
 const Users = p => <Svg {...p}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></Svg>;
+const History = p => <Svg {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></Svg>;
+const CheckCircle = p => <Svg {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></Svg>;
+const AlertCircle = p => <Svg {...p}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></Svg>;
 
-// --- CONFIGURACIÓN ---
-const DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "q0q09e-cp.myshopify.com";
-const STOREFRONT_TOKEN = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN || "c9bda45020488455d7fe2d8b7e22f352";
+// --- CONFIGURACIÓN Y SEGURIDAD ---
+const DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "";
+const STOREFRONT_TOKEN = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN || "";
+const ADMIN_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN || ""; 
 
 export default function KolmaPOS() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
-  const [pinCode, setPinCode] = useState('');
   const [activeView, setActiveView] = useState('pos');
   
-  // Catálogo y Estados Globales
+  // Datos y Estados
   const [products, setProducts] = useState([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
-  
-  // Carrito y Búsqueda
   const [cart, setCart] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const searchInputRef = useRef(null);
-
-  // UI (Drawer del Ticket)
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [weightModal, setWeightModal] = useState({ isOpen: false, product: null, weight: '' });
+  const [localSales, setLocalSales] = useState([]);
   
-  // Crédito
+  // UI States
+  const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
+  const [weightModal, setWeightModal] = useState({ isOpen: false, product: null, weight: '' });
   const [creditModal, setCreditModal] = useState(false);
   const [customerData, setCustomerData] = useState({ name: '', phone: '' });
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, type: null });
+  const [successToast, setSuccessToast] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Security States
+  const [authModal, setAuthModal] = useState({ isOpen: false, targetView: null, pinCode: '' });
+  const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
 
-  // Contabilidad del Día (Guardado en LocalStorage)
-  const [localSales, setLocalSales] = useState([]);
+  const searchInputRef = useRef(null);
 
-  // --- INICIO Y CARGA DE DATOS ---
+  // --- INICIALIZACIÓN ---
   useEffect(() => {
     const session = localStorage.getItem('kolma_pos_session');
     const savedSales = JSON.parse(localStorage.getItem('kolma_daily_sales') || '[]');
@@ -90,17 +94,32 @@ export default function KolmaPOS() {
     }
   };
 
-  // --- LÓGICA DE AUTENTICACIÓN ---
-  const handlePinInput = (num) => {
-    if (pinCode.length < 4) {
-      const newPin = pinCode + num;
-      setPinCode(newPin);
-      if (newPin === '1221') {
-        setTimeout(() => { 
-          localStorage.setItem('kolma_pos_session', 'active');
-          setIsAuthenticated(true); setPinCode(''); 
-        }, 200);
-      } else if (newPin.length === 4) setTimeout(() => setPinCode(''), 400);
+  // --- SEGURIDAD Y NAVEGACIÓN ---
+  const handleAuthPinInput = (num) => {
+    const newPin = authModal.pinCode + num;
+    setAuthModal(prev => ({ ...prev, pinCode: newPin }));
+    
+    if (newPin === ADMIN_PIN) {
+      setTimeout(() => { 
+        if(!isAuthenticated) {
+            localStorage.setItem('kolma_pos_session', 'active');
+            setIsAuthenticated(true);
+        } else {
+            setIsAdminUnlocked(true);
+            setActiveView(authModal.targetView);
+        }
+        setAuthModal({ isOpen: false, targetView: null, pinCode: '' });
+      }, 200);
+    } else if (newPin.length === 4) {
+      setTimeout(() => setAuthModal(prev => ({ ...prev, pinCode: '' })), 400);
+    }
+  };
+
+  const requestAdminAccess = (view) => {
+    if (isAdminUnlocked) {
+      setActiveView(view);
+    } else {
+      setAuthModal({ isOpen: true, targetView: view, pinCode: '' });
     }
   };
 
@@ -152,7 +171,6 @@ export default function KolmaPOS() {
       }
       return newCart;
     });
-    setIsCartOpen(true); // Abre el drawer automáticamente si se añade un producto
   };
 
   const updateQty = (id, delta) => setCart(prev => prev.map(i => i.variantId === id && !i.isWeighed ? { ...i, qty: i.qty + delta, finalPrice: i.price * (i.qty + delta) } : i).filter(i => i.qty > 0));
@@ -160,13 +178,16 @@ export default function KolmaPOS() {
   const total = cart.reduce((acc, item) => acc + item.finalPrice, 0);
 
   // --- PROCESAR VENTA ---
-  const registrarVenta = async (type) => {
-    if (cart.length === 0) return;
+  const triggerPaymentConfirmation = (type) => {
     if (type === 'credit' && (!customerData.name.trim() || !customerData.phone.trim())) {
       alert("Nombre y teléfono son obligatorios para crédito.");
       return;
     }
+    setConfirmModal({ isOpen: true, type });
+  };
 
+  const ejecutarVenta = async () => {
+    const type = confirmModal.type;
     setIsProcessing(true);
 
     const line_items = cart.map(item => ({
@@ -187,7 +208,7 @@ export default function KolmaPOS() {
     };
 
     try {
-      fetch('/api/shopify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'create_order', payload: orderPayload }) }).catch(e => console.log("Shopify API Error:", e));
+      fetch('/api/shopify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'create_order', payload: orderPayload }) }).catch(e => console.log("Shopify Error:", e));
 
       const newSale = {
         id: Date.now(),
@@ -195,15 +216,21 @@ export default function KolmaPOS() {
         customer: type === 'credit' ? customerData.name : 'Venta Directa',
         total: total,
         items: [...cart],
-        date: new Date().toISOString()
+        date: new Date().toISOString(),
+        status: 'completed'
       };
       
-      setLocalSales(prev => [...prev, newSale]);
+      setLocalSales(prev => [newSale, ...prev]);
       
+      // Reset y Alerta de Éxito
       setCart([]);
       setCreditModal(false);
+      setConfirmModal({ isOpen: false, type: null });
       setCustomerData({ name: '', phone: '' });
-      setIsCartOpen(false); // Cierra el drawer al pagar
+      setIsCartDrawerOpen(false);
+      
+      setSuccessToast(true);
+      setTimeout(() => setSuccessToast(false), 3000);
       searchInputRef.current?.focus();
       
     } finally {
@@ -211,18 +238,27 @@ export default function KolmaPOS() {
     }
   };
 
+  // --- HISTORIAL Y ANULACIONES ---
+  const anularVenta = (id) => {
+    if(window.confirm("¿Estás seguro de anular esta venta? Esto la descontará de la caja.")) {
+      setLocalSales(prev => prev.map(s => s.id === id ? { ...s, status: 'voided' } : s));
+    }
+  };
+
   // --- CIERRE DE CAJA ---
   const stats = useMemo(() => {
     let cash = 0, credit = 0;
-    localSales.forEach(s => { if (s.type === 'cash') cash += s.total; else credit += s.total; });
-    return { cash, credit, total: cash + credit, count: localSales.length };
+    const validSales = localSales.filter(s => s.status === 'completed');
+    validSales.forEach(s => { if (s.type === 'cash') cash += s.total; else credit += s.total; });
+    return { cash, credit, total: cash + credit, count: validSales.length };
   }, [localSales]);
 
   const generarCierre = () => {
-    if (localSales.length === 0) return alert("No hay ventas registradas hoy.");
+    const validSales = localSales.filter(s => s.status === 'completed');
+    if (validSales.length === 0) return alert("No hay ventas válidas registradas hoy.");
 
     const prodMap = {};
-    localSales.forEach(sale => {
+    validSales.forEach(sale => {
       sale.items.forEach(item => {
         if (!prodMap[item.name]) prodMap[item.name] = { qty: 0, revenue: 0 };
         prodMap[item.name].qty += item.qty;
@@ -250,7 +286,7 @@ export default function KolmaPOS() {
     });
     
     txt += `\n--- DETALLE DE CRÉDITOS ---\n`;
-    const credits = localSales.filter(s => s.type === 'credit');
+    const credits = validSales.filter(s => s.type === 'credit');
     if(credits.length === 0) txt += "Sin créditos hoy.\n";
     credits.forEach(c => txt += `Cliente: ${c.customer} - Monto: RD$${c.total.toFixed(2)}\n`);
 
@@ -264,35 +300,46 @@ export default function KolmaPOS() {
     localStorage.removeItem('kolma_pos_session');
     setLocalSales([]);
     setIsAuthenticated(false);
+    setIsAdminUnlocked(false);
     setActiveView('pos');
   };
 
   // ==========================================
-  // RENDER (PIN)
+  // RENDER MODALES GLOBALES
   // ==========================================
-  if (isInitializing) return <div className="h-screen bg-slate-900 flex items-center justify-center"><Loader size={48} className="text-slate-400" /></div>;
-
-  if (!isAuthenticated) {
+  const renderAuthModal = () => {
+    if (!authModal.isOpen && isAuthenticated) return null;
+    const isLogin = !isAuthenticated;
     return (
-      <div className="flex h-screen bg-[#0f172a] items-center justify-center font-sans text-slate-200">
-        <div className="bg-[#1e293b] border border-slate-700 p-10 rounded-2xl shadow-2xl text-center w-[380px]">
-          <div className="w-16 h-16 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-3xl mx-auto mb-6">K</div>
-          <h2 className="text-2xl font-bold text-white mb-1">Kolma RD</h2>
-          <p className="text-slate-400 text-sm mb-8">Punto de Venta Profesional</p>
-          <div className="flex justify-center gap-4 mb-8">
-            {[0, 1, 2, 3].map(i => <div key={i} className={`w-3 h-3 rounded-full ${pinCode.length > i ? 'bg-blue-500' : 'bg-slate-600'}`} />)}
+      <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center font-sans text-slate-200">
+        <div className="bg-[#1e293b] border border-slate-700 p-8 rounded-2xl shadow-2xl text-center w-[360px]">
+          {isLogin ? (
+            <div className="w-14 h-14 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-2xl mx-auto mb-4">K</div>
+          ) : (
+            <div className="w-14 h-14 bg-slate-800 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4"><Lock size={28}/></div>
+          )}
+          <h2 className="text-xl font-bold text-white mb-1">{isLogin ? 'Kolma POS' : 'Bóveda de Seguridad'}</h2>
+          <p className="text-slate-400 text-xs mb-6">{isLogin ? 'Inicia sesión para continuar' : 'Ingresa el PIN de administrador'}</p>
+          
+          <div className="flex justify-center gap-3 mb-8">
+            {[0, 1, 2, 3].map(i => <div key={i} className={`w-3 h-3 rounded-full ${authModal.pinCode.length > i ? 'bg-blue-500' : 'bg-slate-600'}`} />)}
           </div>
-          <div className="grid grid-cols-3 gap-3">
+
+          <div className="grid grid-cols-3 gap-2">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-              <button key={num} onClick={() => handlePinInput(num.toString())} className="h-14 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xl active:scale-95">{num}</button>
+              <button key={num} onClick={() => handleAuthPinInput(num.toString())} className="h-14 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xl active:scale-95">{num}</button>
             ))}
-            <div className="col-start-2"><button onClick={() => handlePinInput('0')} className="w-full h-14 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xl active:scale-95">0</button></div>
-            <div className="col-start-3"><button onClick={() => setPinCode(pinCode.slice(0, -1))} className="w-full h-14 rounded-xl flex items-center justify-center text-slate-400 hover:text-white active:scale-95"><X size={24}/></button></div>
+            {!isLogin && <button onClick={() => setAuthModal({isOpen: false, targetView: null, pinCode: ''})} className="col-start-1 h-14 rounded-xl flex items-center justify-center text-slate-400 hover:text-white active:scale-95"><X size={24}/></button>}
+            <button onClick={() => handleAuthPinInput('0')} className={`${isLogin ? 'col-start-2' : ''} w-full h-14 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xl active:scale-95`}>0</button>
+            <button onClick={() => setAuthModal(prev => ({...prev, pinCode: prev.pinCode.slice(0, -1)}))} className="w-full h-14 rounded-xl flex items-center justify-center text-slate-400 hover:text-white active:scale-95"><Minus size={24}/></button>
           </div>
         </div>
       </div>
     );
-  }
+  };
+
+  if (isInitializing) return <div className="h-screen bg-slate-900 flex items-center justify-center"><Loader size={48} className="text-slate-400" /></div>;
+  if (!isAuthenticated) return renderAuthModal();
 
   // ==========================================
   // RENDER INTERFAZ PRINCIPAL
@@ -300,7 +347,17 @@ export default function KolmaPOS() {
   return (
     <div className="flex h-screen bg-[#0f172a] font-sans text-slate-200 overflow-hidden relative">
       
-      {/* MODAL BÁSCULA */}
+      {/* TOAST DE ÉXITO */}
+      {successToast && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] bg-emerald-500 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 font-bold animate-in slide-in-from-top-10">
+          <CheckCircle size={20}/> Venta registrada exitosamente
+        </div>
+      )}
+
+      {/* PIN MODAL (INTERNO) */}
+      {renderAuthModal()}
+
+      {/* MODALES SECUNDARIOS */}
       {weightModal.isOpen && (
         <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-[#1e293b] border border-slate-700 p-8 rounded-2xl shadow-2xl w-[400px]">
@@ -318,12 +375,11 @@ export default function KolmaPOS() {
         </div>
       )}
 
-      {/* MODAL CRÉDITO */}
       {creditModal && (
         <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-[#1e293b] border border-slate-700 p-8 rounded-2xl shadow-2xl w-[400px]">
-            <h3 className="text-xl font-bold text-white mb-2">Venta a Crédito</h3>
-            <p className="text-sm text-slate-400 mb-6">Monto: RD$ {total.toFixed(2)}</p>
+            <h3 className="text-xl font-bold text-white mb-2">Datos de Crédito</h3>
+            <p className="text-sm text-slate-400 mb-6">Completa para continuar con el pago.</p>
             <div className="space-y-4 mb-8">
               <div>
                 <label className="block text-xs font-bold text-slate-400 mb-1 uppercase">Nombre del Cliente *</label>
@@ -335,24 +391,36 @@ export default function KolmaPOS() {
               </div>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setCreditModal(false)} className="flex-1 py-3 bg-slate-700 rounded-lg font-bold hover:bg-slate-600">Cancelar</button>
-              <button onClick={() => registrarVenta('credit')} className="flex-1 py-3 bg-amber-600 text-white rounded-lg font-bold hover:bg-amber-500">Confirmar Crédito</button>
+              <button onClick={() => setCreditModal(false)} className="flex-1 py-3 bg-slate-700 rounded-lg font-bold hover:bg-slate-600">Volver</button>
+              <button onClick={() => { if(customerData.name && customerData.phone) triggerPaymentConfirmation('credit'); else alert('Llene los campos'); }} className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-500">Continuar</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* DRAWER DEL TICKET (Oculto por defecto) */}
-      {/* Fondo oscuro al abrir en móvil/PC */}
-      {isCartOpen && <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setIsCartOpen(false)}></div>}
-      
-      <div className={`fixed inset-y-0 right-0 w-full sm:w-[380px] bg-[#1e293b] border-l border-slate-700 z-50 shadow-2xl transform transition-transform duration-300 flex flex-col ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="h-[70px] border-b border-slate-800 flex items-center justify-between px-6 bg-[#0f172a]">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2"><ShoppingCart size={20}/> Ticket</h2>
-          <div className="flex items-center gap-4">
-            {cart.length > 0 && <button onClick={() => { setCart([]); searchInputRef.current?.focus(); }} className="text-red-400 hover:text-red-300 text-sm font-bold flex items-center gap-1"><Trash size={16}/> Vaciar</button>}
-            <button onClick={() => setIsCartOpen(false)} className="text-slate-400 hover:text-white p-2"><X size={20}/></button>
+      {/* MODAL DE CONFIRMACIÓN DE PAGO */}
+      {confirmModal.isOpen && (
+        <div className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-[#1e293b] border border-slate-700 p-8 rounded-2xl shadow-2xl w-[350px] text-center">
+            <div className="w-16 h-16 bg-slate-800 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4"><AlertCircle size={32}/></div>
+            <h3 className="text-xl font-bold text-white mb-2">Confirmar Pago</h3>
+            <p className="text-slate-400 mb-6">Vas a procesar un cobro en <b className="text-white">{confirmModal.type === 'cash' ? 'Efectivo' : 'Crédito'}</b> por un total de <b className="text-white">RD${total.toFixed(2)}</b>.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmModal({isOpen: false, type: null})} disabled={isProcessing} className="flex-1 py-3 bg-slate-700 rounded-lg font-bold hover:bg-slate-600 disabled:opacity-50">Cancelar</button>
+              <button onClick={ejecutarVenta} disabled={isProcessing} className="flex-1 py-3 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-500 flex items-center justify-center disabled:opacity-50">
+                {isProcessing ? <Loader size={20}/> : 'Confirmar'}
+              </button>
+            </div>
           </div>
+        </div>
+      )}
+
+      {/* DRAWER DEL TICKET */}
+      {isCartDrawerOpen && <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setIsCartDrawerOpen(false)}></div>}
+      <div className={`fixed inset-y-0 right-0 w-full sm:w-[380px] bg-[#1e293b] border-l border-slate-700 z-50 shadow-2xl transform transition-transform duration-300 flex flex-col ${isCartDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="h-[70px] border-b border-slate-800 flex items-center justify-between px-6 bg-[#0f172a]">
+          <h2 className="text-lg font-bold text-white flex items-center gap-2"><ShoppingCart size={20}/> Ticket de Compra</h2>
+          <button onClick={() => setIsCartDrawerOpen(false)} className="text-slate-400 hover:text-white p-2 bg-slate-800 rounded-full"><X size={18}/></button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-2 no-scrollbar">
@@ -383,10 +451,10 @@ export default function KolmaPOS() {
             <span className="text-3xl font-black text-white">RD$ {total.toFixed(0)}</span>
           </div>
           <div className="flex flex-col gap-3">
-            <button onClick={() => registrarVenta('cash')} disabled={cart.length === 0 || isProcessing} className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold flex justify-center items-center gap-2 disabled:opacity-50">
-              {isProcessing ? <Loader size={20}/> : 'Cobrar Efectivo'}
+            <button onClick={() => triggerPaymentConfirmation('cash')} disabled={cart.length === 0} className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold flex justify-center items-center gap-2 disabled:opacity-50">
+               Cobrar Efectivo
             </button>
-            <button onClick={() => setCreditModal(true)} disabled={cart.length === 0 || isProcessing} className="w-full py-3 bg-transparent border border-slate-600 hover:border-amber-500 hover:text-amber-500 text-slate-300 rounded-xl font-bold text-sm flex justify-center items-center gap-2 disabled:opacity-50 transition-colors">
+            <button onClick={() => setCreditModal(true)} disabled={cart.length === 0} className="w-full py-3 bg-transparent border border-slate-600 hover:border-amber-500 hover:text-amber-500 text-slate-300 rounded-xl font-bold text-sm flex justify-center items-center gap-2 disabled:opacity-50 transition-colors">
               <Users size={16}/> Vender a Crédito
             </button>
           </div>
@@ -398,41 +466,39 @@ export default function KolmaPOS() {
         <div className="w-12 h-12 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-xl mb-8">K</div>
         <div className="flex flex-col gap-6 w-full">
           <button onClick={() => setActiveView('pos')} className={`flex flex-col items-center gap-1 ${activeView === 'pos' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><LayoutDashboard size={24} /><span className="text-[10px] font-bold">Caja</span></button>
-          <button onClick={() => setActiveView('cierre')} className={`flex flex-col items-center gap-1 ${activeView === 'cierre' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><Receipt size={24} /><span className="text-[10px] font-bold">Reporte</span></button>
+          <button onClick={() => requestAdminAccess('history')} className={`flex flex-col items-center gap-1 ${activeView === 'history' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><History size={24} /><span className="text-[10px] font-bold">Ventas</span></button>
+          <button onClick={() => requestAdminAccess('cierre')} className={`flex flex-col items-center gap-1 ${activeView === 'cierre' ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'}`}><Receipt size={24} /><span className="text-[10px] font-bold">Cierre</span></button>
         </div>
       </div>
 
       {/* ÁREA CENTRAL */}
-      <div className="flex-1 flex flex-col min-w-0 pb-[70px] md:pb-0">
+      <div className="flex-1 flex flex-col min-w-0 relative">
         
         {/* HEADER */}
         <div className="h-[70px] border-b border-slate-800 flex items-center justify-between px-4 md:px-6 bg-[#0f172a] shrink-0">
-          <div className="relative w-full max-w-[200px] md:max-w-md">
+          <div className="relative w-full max-w-[250px] md:max-w-md">
             {activeView === 'pos' && (
               <>
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                 <input ref={searchInputRef} type="text" placeholder="Buscar producto..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} onKeyDown={handleSearchKeyDown} className="w-full bg-[#1e293b] border border-slate-700 focus:border-blue-500 rounded-lg py-2 pl-10 pr-4 text-white outline-none text-sm transition-colors"/>
               </>
             )}
+            {activeView === 'history' && <h2 className="text-xl font-bold">Historial de Ventas</h2>}
             {activeView === 'cierre' && <h2 className="text-xl font-bold">Cierre de Caja</h2>}
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <p className="text-[10px] font-bold text-slate-500 uppercase">Caja Actual</p>
+          <div className="flex items-center gap-4 hidden sm:flex">
+            <div className="text-right">
+              <p className="text-[10px] font-bold text-slate-500 uppercase">Total en Caja</p>
               <p className="font-black text-lg text-emerald-400 leading-none">RD$ {stats.total.toFixed(0)}</p>
             </div>
-            {/* BOTÓN PARA ABRIR TICKET */}
-            <button onClick={() => setIsCartOpen(true)} className="relative p-2.5 bg-[#1e293b] border border-slate-700 rounded-lg hover:border-blue-500 text-slate-300 hover:text-white transition-colors">
-              <ShoppingCart size={22} />
-              {cart.length > 0 && <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-[#0f172a]">{cart.length}</span>}
-            </button>
+            {isAdminUnlocked && <button onClick={() => setIsAdminUnlocked(false)} className="ml-4 text-slate-500 hover:text-amber-500 flex items-center gap-1 text-xs font-bold"><Lock size={14}/> Bloquear Admin</button>}
           </div>
         </div>
 
         {/* VISTAS */}
         {activeView === 'pos' && (
-          <div className="flex-1 overflow-y-auto p-4 md:p-6 no-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 no-scrollbar pb-[100px]">
             {isLoadingProducts ? (
               <div className="h-full flex flex-col items-center justify-center text-slate-500"><Loader size={40} /><p className="mt-4 font-bold">Cargando Shopify...</p></div>
             ) : (
@@ -457,9 +523,53 @@ export default function KolmaPOS() {
           </div>
         )}
 
+        {/* BARRA FLOTANTE DE PAGO (Solo en POS) */}
+        {activeView === 'pos' && (
+          <div className="absolute bottom-0 left-0 right-0 bg-[#1e293b] border-t border-slate-700 p-4 flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.5)] md:pb-4 pb-20">
+            <div className="flex flex-col">
+               <span className="text-xs font-bold text-slate-400 uppercase">{cart.length} Artículos en Ticket</span>
+               <span className="text-2xl font-black text-white">RD$ {total.toFixed(0)}</span>
+            </div>
+            <button onClick={() => setIsCartDrawerOpen(true)} className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl font-bold flex items-center gap-2 shadow-lg active:scale-95 transition-all">
+               Ir a Pago <ShoppingCart size={20}/>
+            </button>
+          </div>
+        )}
+
+        {activeView === 'history' && (
+          <div className="flex-1 overflow-y-auto p-4 md:p-8">
+            <div className="max-w-4xl mx-auto space-y-4 pb-20">
+              {localSales.length === 0 ? (
+                 <div className="text-center flex flex-col items-center text-slate-500 mt-20"><History size={48} className="mb-4 opacity-50"/><p className="text-lg font-bold">No hay ventas registradas hoy</p></div>
+              ) : (
+                localSales.map(sale => (
+                  <div key={sale.id} className={`bg-[#1e293b] border rounded-xl p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-4 transition-colors ${sale.status === 'voided' ? 'border-red-900/50 opacity-50' : 'border-slate-700'}`}>
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className={`px-2 py-1 rounded text-[10px] font-black uppercase ${sale.type === 'cash' ? 'bg-emerald-900/50 text-emerald-400' : 'bg-amber-900/50 text-amber-400'}`}>{sale.type === 'cash' ? 'Efectivo' : 'Crédito'}</span>
+                        {sale.status === 'voided' && <span className="px-2 py-1 rounded bg-red-900/50 text-red-400 text-[10px] font-black uppercase">Anulada</span>}
+                        <span className="text-xs text-slate-400">{new Date(sale.date).toLocaleTimeString('es-DO')}</span>
+                      </div>
+                      <p className="font-bold text-white text-sm">{sale.customer} • {sale.items.length} artículos</p>
+                    </div>
+                    <div className="flex items-center gap-6 justify-between sm:justify-end">
+                      <p className={`font-black text-xl ${sale.status === 'voided' ? 'text-slate-500 line-through' : 'text-white'}`}>RD${sale.total.toFixed(2)}</p>
+                      {sale.status !== 'voided' && (
+                        <button onClick={() => anularVenta(sale.id)} className="text-xs font-bold text-red-400 hover:text-red-300 border border-red-900/50 px-3 py-2 rounded-lg bg-red-900/20 transition-colors">
+                          Anular
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
         {activeView === 'cierre' && (
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center">
-            <div className="bg-[#1e293b] border border-slate-700 p-6 md:p-8 rounded-2xl w-full max-w-2xl mt-4 md:mt-10">
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center pb-20">
+            <div className="bg-[#1e293b] border border-slate-700 p-6 md:p-8 rounded-2xl w-full max-w-2xl mt-4">
               <div className="flex items-center justify-between mb-8 pb-6 border-b border-slate-700">
                 <h2 className="text-xl md:text-2xl font-bold text-white">Resumen del Día</h2>
                 <span className="text-slate-400 text-sm">{new Date().toLocaleDateString('es-DO')}</span>
@@ -476,20 +586,19 @@ export default function KolmaPOS() {
                 </div>
               </div>
 
-              <div className="flex gap-4">
-                <button onClick={generarCierre} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors">
-                  <Download size={20}/> Cerrar y Descargar Reporte
-                </button>
-              </div>
+              <button onClick={generarCierre} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors">
+                <Download size={20}/> Cerrar Turno y Descargar Reporte
+              </button>
             </div>
           </div>
         )}
       </div>
 
       {/* NAVEGACIÓN MÓVIL INFERIOR */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-[#1e293b] border-t border-slate-800 flex justify-around p-3 z-20 pb-safe">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-[#1e293b] border-t border-slate-800 flex justify-around p-3 z-[10] pb-safe">
         <button onClick={() => setActiveView('pos')} className={`flex flex-col items-center gap-1 ${activeView === 'pos' ? 'text-blue-500' : 'text-slate-500'}`}><LayoutDashboard size={24} /><span className="text-[10px] font-bold">Caja</span></button>
-        <button onClick={() => setActiveView('cierre')} className={`flex flex-col items-center gap-1 ${activeView === 'cierre' ? 'text-blue-500' : 'text-slate-500'}`}><Receipt size={24} /><span className="text-[10px] font-bold">Reporte</span></button>
+        <button onClick={() => requestAdminAccess('history')} className={`flex flex-col items-center gap-1 ${activeView === 'history' ? 'text-blue-500' : 'text-slate-500'}`}><History size={24} /><span className="text-[10px] font-bold">Ventas</span></button>
+        <button onClick={() => requestAdminAccess('cierre')} className={`flex flex-col items-center gap-1 ${activeView === 'cierre' ? 'text-blue-500' : 'text-slate-500'}`}><Receipt size={24} /><span className="text-[10px] font-bold">Cierre</span></button>
       </nav>
 
     </div>
