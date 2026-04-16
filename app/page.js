@@ -21,6 +21,10 @@ const ShoppingCart = p => <Svg {...p}><circle cx="9" cy="21" r="1"/><circle cx="
 const List = p => <Svg {...p}><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></Svg>;
 const ServerCrash = p => <Svg {...p}><path d="M6 4H18A2 2 0 0 1 20 6V10A2 2 0 0 1 18 12H6A2 2 0 0 1 4 10V6A2 2 0 0 1 6 4z"/><path d="M6 14H18A2 2 0 0 1 20 16V20A2 2 0 0 1 18 22H6A2 2 0 0 1 4 20V16A2 2 0 0 1 6 14z"/><path d="M12 22V12"/><path d="M8 8H8.01"/><path d="M8 18H8.01"/></Svg>;
 
+// VARIABLES DE ENTORNO PARA LEER PRODUCTOS
+const DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "q0q09e-cp.myshopify.com";
+const STOREFRONT_TOKEN = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN || "c9bda45020488455d7fe2d8b7e22f352";
+
 export default function KolmaPOS() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -31,14 +35,13 @@ export default function KolmaPOS() {
   const [products, setProducts] = useState([]);
   const [ordersHistory, setOrdersHistory] = useState([]);
   const [isLoading, setIsLoading] = useState({ products: true, orders: false });
-  const [fetchError, setFetchError] = useState(null); // <- AÑADIDO PARA VER ERRORES
+  const [fetchError, setFetchError] = useState(null); 
   
   const [cart, setCart] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [successMsg, setSuccessMsg] = useState(false);
   
-  // UI & Referencias
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
   const [weightModal, setWeightModal] = useState({ isOpen: false, product: null, weight: '' });
   const [dailySales, setDailySales] = useState(0);
@@ -52,37 +55,38 @@ export default function KolmaPOS() {
     fetchShopifyProducts();
   }, []);
 
-  // --- 2. PETICIONES AL BACKEND (AHORA MUESTRAN ERRORES EXACTOS) ---
+  // --- 2. PETICIONES SEPARADAS (Storefront para Catálogo, Backend para Órdenes) ---
+  
+  // A. Obtener Productos vía Storefront API (Directo, Seguro y Rápido)
   const fetchShopifyProducts = async () => {
     setIsLoading(prev => ({ ...prev, products: true }));
     setFetchError(null);
     try {
-      const res = await fetch('/api/shopify', {
+      const res = await fetch(`https://${DOMAIN}/api/2024-04/graphql.json`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'get_products' })
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Shopify-Storefront-Access-Token': STOREFRONT_TOKEN
+        },
+        body: JSON.stringify({ query: `{ products(first: 250) { edges { node { id title images(first: 1) { edges { node { url } } } variants(first: 1) { edges { node { id price { amount } barcode } } } } } } }`})
       });
       
-      if (!res.ok) {
-        throw new Error(`Ruta /api/shopify devolvió error ${res.status}. Asegúrate de haber creado el archivo pages/api/shopify.js`);
-      }
-
-      const data = await res.json();
+      const { data, errors } = await res.json();
       
-      if (data.error) throw new Error(`Shopify dice: ${data.error}. (Revisa si marcaste el permiso 'read_products' en Shopify y si tus variables en Vercel son correctas).`);
+      if (errors) throw new Error(errors[0].message);
 
-      if (data?.products?.length > 0) {
-        const shopifyProds = data.products.map(p => ({
-          id: p.id,
-          name: p.title,
-          price: parseFloat(p.variants[0]?.price || 0),
-          image: p.images?.[0]?.src || 'https://via.placeholder.com/300?text=Kolma+POS',
-          variantId: p.variants[0]?.id,
-          barcode: p.variants[0]?.barcode || ''
+      if (data?.products?.edges?.length > 0) {
+        const shopifyProds = data.products.edges.map(p => ({
+          id: p.node.id,
+          name: p.node.title,
+          price: parseFloat(p.node.variants.edges[0].node.price.amount),
+          image: p.node.images.edges[0]?.node.url || 'https://via.placeholder.com/300?text=Kolma+POS',
+          variantId: p.node.variants.edges[0].node.id,
+          barcode: p.node.variants.edges[0].node.barcode || ''
         }));
         setProducts(shopifyProds.filter(p => p.price > 0));
       } else {
-        setProducts([]); // No hay productos activos
+        setProducts([]);
       }
     } catch (e) {
       console.error("Error cargando productos", e);
@@ -92,6 +96,7 @@ export default function KolmaPOS() {
     }
   };
 
+  // B. Obtener Órdenes vía Backend (Admin API)
   const fetchOrdersHistory = async () => {
     setIsLoading(prev => ({ ...prev, orders: true }));
     try {
@@ -100,7 +105,7 @@ export default function KolmaPOS() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'get_orders' })
       });
-      if (!res.ok) throw new Error("Error interno al buscar pedidos");
+      if (!res.ok) throw new Error("Error conectando al backend");
       const data = await res.json();
       if (data?.orders) {
         setOrdersHistory(data.orders);
@@ -116,7 +121,7 @@ export default function KolmaPOS() {
     }
   };
 
-  // Auto-focus para escáner
+  // Auto-focus
   useEffect(() => {
     if (isAuthenticated && activeView === 'pos' && !weightModal.isOpen) setTimeout(() => searchInputRef.current?.focus(), 100);
     if (activeView === 'pedidos') fetchOrdersHistory();
@@ -193,7 +198,7 @@ export default function KolmaPOS() {
   const clearCart = () => setCart([]);
   const total = cart.reduce((acc, item) => acc + item.finalPrice, 0);
 
-  // --- 5. PROCESAR VENTA ---
+  // --- 5. PROCESAR VENTA (Crea Orden vía Backend/Admin API) ---
   const procesarVenta = async () => {
     if (cart.length === 0) return;
     setIsProcessing(true);
@@ -222,7 +227,7 @@ export default function KolmaPOS() {
       });
       
       const data = await res.json();
-      if (res.ok) {
+      if (res.ok && !data.error) {
         setDailySales(prev => prev + total);
         setSuccessMsg(true);
         setTimeout(() => {
@@ -335,7 +340,7 @@ export default function KolmaPOS() {
             ) : fetchError ? (
               <div className="h-full flex flex-col items-center justify-center text-slate-500 text-center">
                  <ServerCrash size={64} className="text-red-400 mb-4" />
-                 <p className="font-black text-xl mb-2">Error de conexión con Shopify</p>
+                 <p className="font-black text-xl mb-2">Error de conexión con Storefront</p>
                  <p className="font-bold mb-6 text-sm px-4 max-w-lg">{fetchError}</p>
                  <button onClick={fetchShopifyProducts} className="bg-[#111] text-white px-8 py-3 rounded-2xl font-black hover:bg-[#FF3D00] transition-colors shadow-lg">Reintentar</button>
               </div>
