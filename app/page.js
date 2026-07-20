@@ -8,39 +8,30 @@ const Svg = ({ children, size=24, className='', strokeWidth=2, ...props }) => <s
 const Search = p => <Svg {...p}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></Svg>;
 const Plus = p => <Svg {...p}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></Svg>;
 const Minus = p => <Svg {...p}><line x1="5" y1="12" x2="19" y2="12"/></Svg>;
-const Trash = p => <Svg {...p}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></Svg>;
 const X = p => <Svg {...p}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Svg>;
 const LayoutDashboard = p => <Svg {...p}><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></Svg>;
 const Receipt = p => <Svg {...p}><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17V7"/></Svg>;
 const ShoppingCart = p => <Svg {...p}><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></Svg>;
 const Loader = ({ className='', ...p }) => <Svg {...p} className={`animate-spin ${className}`}><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></Svg>;
 const Download = p => <Svg {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></Svg>;
-const Users = p => <Svg {...p}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></Svg>;
 const History = p => <Svg {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></Svg>;
 const CheckCircle = p => <Svg {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></Svg>;
 const AlertCircle = p => <Svg {...p}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></Svg>;
-const Lock = p => <Svg {...p}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></Svg>; 
+const Lock = p => <Svg {...p}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></Svg>;
+const Truck = p => <Svg {...p}><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></Svg>;
+const Store = p => <Svg {...p}><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h2v-4h8v4h2a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 9.7V7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2.7a2 2 0 0 1-.59 1.42l-1.63 1.63a2 2 0 0 1-2.83 0l-1.66-1.66a2 2 0 0 0-2.82 0l-1.66 1.66a2 2 0 0 1-2.83 0l-1.66-1.66a2 2 0 0 0-2.82 0l-1.63-1.63A2 2 0 0 1 2 9.7Z"/></Svg>;
 
-// --- CONFIGURACIÓN Y SEGURIDAD ---
-const ADMIN_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN || "1221"; 
+// --- CONFIGURACIÓN ---
+const ADMIN_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN || "1221";
+const SHIPDAY_API_KEY = "fzKmvwy7mB.DgaRNOaMv19P28urcMEb";
 
-// --- MENÚ XIAO KITCHEN ---
 const CATEGORIAS = ['Todos', 'Burritos', 'Sándwiches', 'Yaroas'];
 const RESTAURANT_MENU = [
   { id: 'b1s', name: 'Burrito de Pollo (Solo)', price: 185, category: 'Burritos' },
   { id: 'b1p', name: 'Burrito de Pollo (+ Papas)', price: 230, category: 'Burritos' },
   { id: 'b2s', name: 'Burrito de Res (Solo)', price: 220, category: 'Burritos' },
-  { id: 'b2p', name: 'Burrito de Res (+ Papas)', price: 250, category: 'Burritos' },
-  { id: 'b3s', name: 'Burrito Cheese & Tocineta (Solo)', price: 230, category: 'Burritos' },
-  { id: 'b3p', name: 'Burrito Cheese & Tocineta (+ Papas)', price: 260, category: 'Burritos' },
-  { id: 'b4s', name: 'Burrito Pollo y Res (Solo)', price: 220, category: 'Burritos' },
-  { id: 'b4p', name: 'Burrito Pollo y Res (+ Papas)', price: 250, category: 'Burritos' },
-  { id: 'b5s', name: 'Burrito Pollo y Tocineta (Solo)', price: 230, category: 'Burritos' },
-  { id: 'b5p', name: 'Burrito Pollo y Tocineta (+ Papas)', price: 260, category: 'Burritos' },
   { id: 's1', name: 'Club Sándwich Tradicional', price: 150, category: 'Sándwiches' },
-  { id: 's2', name: 'Club Sándwich Premium', price: 230, category: 'Sándwiches' },
-  { id: 'y1', name: 'Yaroa Mediana', price: 250, category: 'Yaroas' },
-  { id: 'y2', name: 'Yaroa Grande', price: 300, category: 'Yaroas' }
+  { id: 'y1', name: 'Yaroa Mediana', price: 250, category: 'Yaroas' }
 ];
 
 export default function XiaoKitchenPOS() {
@@ -48,32 +39,30 @@ export default function XiaoKitchenPOS() {
   const [isInitializing, setIsInitializing] = useState(true);
   const [activeView, setActiveView] = useState('pos');
   
-  // Datos y Estados
   const [products, setProducts] = useState(RESTAURANT_MENU);
   const [activeCategory, setActiveCategory] = useState('Todos');
   const [cart, setCart] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [localSales, setLocalSales] = useState([]);
   
-  // UI States
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
-  const [creditModal, setCreditModal] = useState(false);
-  const [customerData, setCustomerData] = useState({ name: '', phone: '' });
-  const [confirmModal, setConfirmModal] = useState({ isOpen: false, type: null });
+  
+  // Modal de Cobro
+  const [checkoutModal, setCheckoutModal] = useState(false);
+  const [orderMethod, setOrderMethod] = useState('local'); // 'local' o 'delivery'
+  const [paymentType, setPaymentType] = useState('cash'); // 'cash' o 'credit'
+  const [customerData, setCustomerData] = useState({ name: '', phone: '', address: '' });
+  
   const [successToast, setSuccessToast] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  
-  // Security States
   const [authModal, setAuthModal] = useState({ isOpen: false, targetView: null, pinCode: '' });
   const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
-
+  
   const searchInputRef = useRef(null);
 
-  // --- INICIALIZACIÓN ---
   useEffect(() => {
     const session = localStorage.getItem('xiao_pos_session');
     const savedSales = JSON.parse(localStorage.getItem('xiao_daily_sales') || '[]');
-    
     if (session === 'active') setIsAuthenticated(true);
     setLocalSales(savedSales);
     setIsInitializing(false);
@@ -83,11 +72,115 @@ export default function XiaoKitchenPOS() {
     localStorage.setItem('xiao_daily_sales', JSON.stringify(localSales));
   }, [localSales]);
 
-  // --- SEGURIDAD Y NAVEGACIÓN ---
+  // --- IMPRESIÓN TÉRMICA TIPO POS (ANDROID & WINDOWS) ---
+  const printReceipt = (sale) => {
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+    const itemsHtml = sale.items.map(item => `
+      <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 2px;">
+        <span style="flex:1;">${item.qty}x ${item.name}</span>
+        <span>$${item.finalPrice.toFixed(0)}</span>
+      </div>
+    `).join('');
+
+    const html = `
+      <html>
+        <head>
+          <title>Recibo</title>
+          <style>
+            @page { margin: 0; size: 58mm auto; }
+            body { 
+              font-family: monospace; 
+              width: 58mm; 
+              margin: 0; 
+              padding: 2mm; 
+              color: #000;
+              font-size: 12px;
+            }
+            .center { text-align: center; }
+            .bold { font-weight: bold; }
+            .divider { border-bottom: 1px dashed #000; margin: 6px 0; }
+            h2 { margin: 0; font-size: 16px; font-weight: bold; }
+            p { margin: 2px 0; font-size: 11px; }
+          </style>
+        </head>
+        <body>
+          <div class="center">
+            <h2>SUPERMERCADOS KOLMA</h2>
+            <p>Ticket de Orden #${sale.id.toString().slice(-4)}</p>
+            <p>${new Date(sale.date).toLocaleString('es-DO')}</p>
+          </div>
+          <div class="divider"></div>
+          <p class="bold">Tipo: ${sale.method === 'delivery' ? 'DELIVERY' : 'LOCAL'} - ${sale.type === 'credit' ? 'CRÉDITO' : 'EFECTIVO'}</p>
+          <p>Cliente: ${sale.customer}</p>
+          ${sale.method === 'delivery' ? `
+            <p>Tel: ${sale.phone}</p>
+            <p>Dir: ${sale.address}</p>
+          ` : ''}
+          <div class="divider"></div>
+          ${itemsHtml}
+          <div class="divider"></div>
+          <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: bold;">
+            <span>TOTAL:</span>
+            <span>RD$${sale.total.toFixed(2)}</span>
+          </div>
+          <div class="divider"></div>
+          <div class="center">
+            <p>¡Gracias por su preferencia!</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    iframe.onload = () => {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+      setTimeout(() => document.body.removeChild(iframe), 1000);
+    };
+  };
+
+  // --- ENVÍO A SHIPDAY ---
+  const sendToShipday = async (sale) => {
+    try {
+      const orderData = {
+        orderNumber: `ORD-${sale.id.toString().slice(-6)}`,
+        customerName: sale.customer,
+        customerAddress: sale.address,
+        customerPhoneNumber: sale.phone,
+        restaurantName: "Supermercado Kolma",
+        expectedDeliveryDate: new Date().toISOString().split('T')[0],
+        expectedDeliveryTime: new Date(Date.now() + 30 * 60000).toLocaleTimeString('en-US', { hour12: false }), // +30 mins
+        orderItem: sale.items.map(item => ({
+          name: item.name,
+          unitPrice: item.price,
+          quantity: item.qty
+        }))
+      };
+
+      await fetch('https://api.shipday.com/orders', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${SHIPDAY_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(orderData)
+      });
+      console.log('Enviado a Shipday exitosamente');
+    } catch (error) {
+      console.error('Error enviando a Shipday:', error);
+    }
+  };
+
   const handleAuthPinInput = (num) => {
     const newPin = authModal.pinCode + num;
     setAuthModal(prev => ({ ...prev, pinCode: newPin }));
-    
     if (newPin === ADMIN_PIN) {
       setTimeout(() => { 
         if(!isAuthenticated) {
@@ -105,93 +198,82 @@ export default function XiaoKitchenPOS() {
   };
 
   const requestAdminAccess = (view) => {
-    if (isAdminUnlocked) {
-      setActiveView(view);
-    } else {
-      setAuthModal({ isOpen: true, targetView: view, pinCode: '' });
-    }
+    if (isAdminUnlocked) setActiveView(view);
+    else setAuthModal({ isOpen: true, targetView: view, pinCode: '' });
   };
 
-  // --- CARRITO ---
   const filteredProducts = useMemo(() => {
     let filtered = products;
-    if (activeCategory !== 'Todos') {
-      filtered = filtered.filter(p => p.category === activeCategory);
-    }
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(p => p.name.toLowerCase().includes(term));
-    }
+    if (activeCategory !== 'Todos') filtered = filtered.filter(p => p.category === activeCategory);
+    if (searchTerm) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
     return filtered;
   }, [products, searchTerm, activeCategory]);
 
   const handleProductClick = (product) => {
-    addToCart(product, 1);
-    setSearchTerm('');
-    searchInputRef.current?.focus();
-  };
-
-  const addToCart = (product, quantity) => {
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
-      if (existing) {
-        return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + quantity, finalPrice: item.price * (item.qty + quantity) } : item);
-      } else {
-        return [...prev, { ...product, cartId: Date.now(), qty: quantity, finalPrice: product.price * quantity }];
-      }
+      if (existing) return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + 1, finalPrice: item.price * (item.qty + 1) } : item);
+      return [...prev, { ...product, cartId: Date.now(), qty: 1, finalPrice: product.price }];
     });
+    setSearchTerm('');
+    searchInputRef.current?.focus();
   };
 
   const updateQty = (id, delta) => setCart(prev => prev.map(i => i.id === id ? { ...i, qty: i.qty + delta, finalPrice: i.price * (i.qty + delta) } : i).filter(i => i.qty > 0));
   const removeCartItem = (cartId) => setCart(prev => prev.filter(i => i.cartId !== cartId));
   const total = cart.reduce((acc, item) => acc + item.finalPrice, 0);
 
-  // --- PROCESAR VENTA ---
-  const triggerPaymentConfirmation = (type) => {
-    if (type === 'credit' && (!customerData.name.trim() || !customerData.phone.trim())) {
-      alert("Nombre y teléfono son obligatorios para crédito.");
-      return;
-    }
-    setConfirmModal({ isOpen: true, type });
+  const openCheckout = () => {
+    setOrderMethod('local');
+    setPaymentType('cash');
+    setCustomerData({ name: '', phone: '', address: '' });
+    setCheckoutModal(true);
   };
 
-  const ejecutarVenta = () => {
-    const type = confirmModal.type;
+  const ejecutarVenta = async () => {
+    // Validaciones
+    if (!customerData.name.trim()) return alert("El nombre del cliente es obligatorio.");
+    if (orderMethod === 'delivery' && (!customerData.phone.trim() || !customerData.address.trim())) {
+      return alert("Teléfono y Dirección son obligatorios para Delivery.");
+    }
+
     setIsProcessing(true);
 
-    setTimeout(() => {
-      const newSale = {
-        id: Date.now(),
-        type: type,
-        customer: type === 'credit' ? customerData.name : 'Venta Directa',
-        total: total,
-        items: [...cart],
-        date: new Date().toISOString(),
-        status: 'completed'
-      };
-      
-      setLocalSales(prev => [newSale, ...prev]);
-      
-      setCart([]);
-      setCreditModal(false);
-      setConfirmModal({ isOpen: false, type: null });
-      setCustomerData({ name: '', phone: '' });
-      setIsCartDrawerOpen(false);
-      
-      setSuccessToast(true);
-      setTimeout(() => setSuccessToast(false), 3000);
-      setIsProcessing(false);
-    }, 500); // Simulando pequeño delay
+    const newSale = {
+      id: Date.now(),
+      type: paymentType,
+      method: orderMethod,
+      customer: customerData.name,
+      phone: customerData.phone,
+      address: customerData.address,
+      total: total,
+      items: [...cart],
+      date: new Date().toISOString(),
+      status: 'completed'
+    };
+    
+    setLocalSales(prev => [newSale, ...prev]);
+    
+    // Imprimir y Enviar a Shipday
+    printReceipt(newSale);
+    if (orderMethod === 'delivery') {
+      await sendToShipday(newSale);
+    }
+
+    setCart([]);
+    setCheckoutModal(false);
+    setIsCartDrawerOpen(false);
+    setSuccessToast(true);
+    setTimeout(() => setSuccessToast(false), 3000);
+    setIsProcessing(false);
   };
 
-  // --- HISTORIAL Y ANULACIONES ---
   const anularVenta = (id) => {
-    if(window.confirm("¿Estás seguro de anular esta venta? Esto la descontará de la caja.")) {
+    if(window.confirm("¿Estás seguro de anular esta venta?")) {
       setLocalSales(prev => prev.map(s => s.id === id ? { ...s, status: 'voided' } : s));
     }
   };
 
-  // --- CIERRE DE CAJA ---
   const stats = useMemo(() => {
     let cash = 0, credit = 0;
     const validSales = localSales.filter(s => s.status === 'completed');
@@ -206,45 +288,14 @@ export default function XiaoKitchenPOS() {
     const validSales = localSales.filter(s => s.status === 'completed');
     if (validSales.length === 0) return alert("No hay ventas válidas registradas hoy.");
 
-    const prodMap = {};
-    validSales.forEach(sale => {
-      if(sale.items) {
-        sale.items.forEach(item => {
-          if (!prodMap[item.name]) prodMap[item.name] = { qty: 0, revenue: 0 };
-          prodMap[item.name].qty += item.qty;
-          prodMap[item.name].revenue += item.finalPrice;
-        });
-      }
-    });
-
-    const sortedProducts = Object.entries(prodMap).sort((a, b) => b[1].qty - a[1].qty);
-
-    let txt = `======================================\n`;
-    txt += `     XIAO KITCHEN - CIERRE DE CAJA    \n`;
-    txt += `======================================\n`;
-    txt += `Fecha: ${new Date().toLocaleString('es-DO')}\n\n`;
-    txt += `--- RESUMEN FINANCIERO ---\n`;
-    txt += `Órdenes Procesadas: ${stats.count}\n`;
-    txt += `Total Efectivo: RD$ ${stats.cash.toFixed(2)}\n`;
-    txt += `Total Crédito:  RD$ ${stats.credit.toFixed(2)}\n`;
+    let txt = `CIERRE DE CAJA\nFecha: ${new Date().toLocaleString('es-DO')}\n\n`;
+    txt += `Total Efectivo: RD$ ${stats.cash.toFixed(2)}\nTotal Crédito:  RD$ ${stats.credit.toFixed(2)}\n`;
     txt += `TOTAL VENTAS:   RD$ ${stats.total.toFixed(2)}\n\n`;
-
-    txt += `--- PLATOS VENDIDOS ---\n`;
-    txt += `CANT | PRODUCTO | TOTAL RD$\n`;
-    txt += `--------------------------------------\n`;
-    sortedProducts.forEach(([name, data]) => {
-      txt += `${data.qty.toString().padEnd(4)} | ${name.substring(0, 20).padEnd(20)} | $${data.revenue.toFixed(2)}\n`;
-    });
-    
-    txt += `\n--- DETALLE DE CRÉDITOS ---\n`;
-    const credits = validSales.filter(s => s.type === 'credit');
-    if(credits.length === 0) txt += "Sin créditos hoy.\n";
-    credits.forEach(c => txt += `Cliente: ${c.customer} - Monto: RD$${(c.total||0).toFixed(2)}\n`);
 
     const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `Cierre_Xiao_${new Date().toISOString().split('T')[0]}.txt`;
+    link.download = `Cierre_${new Date().toISOString().split('T')[0]}.txt`;
     link.click();
 
     localStorage.removeItem('xiao_daily_sales');
@@ -255,34 +306,23 @@ export default function XiaoKitchenPOS() {
     setActiveView('pos');
   };
 
-  // ==========================================
-  // RENDER MODALES GLOBALES
-  // ==========================================
   const renderAuthModal = () => {
     if (!authModal.isOpen && isAuthenticated) return null;
     const isLogin = !isAuthenticated;
     return (
       <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center font-sans text-slate-200">
         <div className="bg-[#1e293b] border border-red-900/50 p-8 rounded-2xl shadow-2xl text-center w-[360px]">
-          {isLogin ? (
-            <div className="w-14 h-14 bg-red-600 text-white rounded-xl flex items-center justify-center font-black text-2xl mx-auto mb-4">XK</div>
-          ) : (
-            <div className="w-14 h-14 bg-slate-800 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4"><Lock size={28}/></div>
-          )}
-          <h2 className="text-xl font-bold text-white mb-1">{isLogin ? 'Xiao Kitchen POS' : 'Administrador'}</h2>
-          <p className="text-slate-400 text-xs mb-6">{isLogin ? 'Inicia sesión para continuar' : 'Ingresa el PIN'}</p>
-          
+          <h2 className="text-xl font-bold text-white mb-6">{isLogin ? 'Iniciar Sesión' : 'Administrador'}</h2>
           <div className="flex justify-center gap-3 mb-8">
             {[0, 1, 2, 3].map(i => <div key={i} className={`w-3 h-3 rounded-full ${authModal.pinCode.length > i ? 'bg-red-500' : 'bg-slate-600'}`} />)}
           </div>
-
           <div className="grid grid-cols-3 gap-2">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-              <button key={num} onClick={() => handleAuthPinInput(num.toString())} className="h-14 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xl active:scale-95">{num}</button>
+              <button key={num} onClick={() => handleAuthPinInput(num.toString())} className="h-14 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xl">{num}</button>
             ))}
-            {!isLogin && <button onClick={() => setAuthModal({isOpen: false, targetView: null, pinCode: ''})} className="col-start-1 h-14 rounded-xl flex items-center justify-center text-slate-400 hover:text-white active:scale-95"><X size={24}/></button>}
-            <button onClick={() => handleAuthPinInput('0')} className={`${isLogin ? 'col-start-2' : ''} w-full h-14 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xl active:scale-95`}>0</button>
-            <button onClick={() => setAuthModal(prev => ({...prev, pinCode: prev.pinCode.slice(0, -1)}))} className="w-full h-14 rounded-xl flex items-center justify-center text-slate-400 hover:text-white active:scale-95"><Minus size={24}/></button>
+            {!isLogin && <button onClick={() => setAuthModal({isOpen: false, targetView: null, pinCode: ''})} className="col-start-1 h-14 rounded-xl flex items-center justify-center text-slate-400 hover:text-white"><X size={24}/></button>}
+            <button onClick={() => handleAuthPinInput('0')} className={`${isLogin ? 'col-start-2' : ''} w-full h-14 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xl`}>0</button>
+            <button onClick={() => setAuthModal(prev => ({...prev, pinCode: prev.pinCode.slice(0, -1)}))} className="w-full h-14 rounded-xl flex items-center justify-center text-slate-400 hover:text-white"><Minus size={24}/></button>
           </div>
         </div>
       </div>
@@ -292,56 +332,70 @@ export default function XiaoKitchenPOS() {
   if (isInitializing) return <div className="h-screen bg-slate-900 flex items-center justify-center"><Loader size={48} className="text-red-500" /></div>;
   if (!isAuthenticated) return renderAuthModal();
 
-  // ==========================================
-  // RENDER INTERFAZ PRINCIPAL
-  // ==========================================
   return (
     <div className="flex h-screen bg-[#0f172a] font-sans text-slate-200 overflow-hidden relative">
       
-      {/* TOAST DE ÉXITO */}
       {successToast && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] bg-emerald-500 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 font-bold animate-in slide-in-from-top-10">
-          <CheckCircle size={20}/> Orden registrada exitosamente
+          <CheckCircle size={20}/> Orden registrada e impresa
         </div>
       )}
 
-      {/* PIN MODAL (INTERNO) */}
       {renderAuthModal()}
 
-      {/* MODAL CRÉDITO */}
-      {creditModal && (
-        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-[#1e293b] border border-slate-700 p-8 rounded-2xl shadow-2xl w-[400px]">
-            <h3 className="text-xl font-bold text-white mb-2">Datos del Cliente</h3>
-            <div className="space-y-4 mb-8 mt-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-400 mb-1 uppercase">Nombre del Cliente *</label>
-                <input type="text" autoFocus value={customerData.name} onChange={e=>setCustomerData({...customerData, name: e.target.value})} className="w-full bg-[#0f172a] border border-slate-600 rounded-lg px-4 py-3 text-white outline-none focus:border-red-500" placeholder="Ej. Juan Pérez"/>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-400 mb-1 uppercase">Teléfono *</label>
-                <input type="tel" value={customerData.phone} onChange={e=>setCustomerData({...customerData, phone: e.target.value})} className="w-full bg-[#0f172a] border border-slate-600 rounded-lg px-4 py-3 text-white outline-none focus:border-red-500" placeholder="Ej. 809-555-5555"/>
-              </div>
+      {/* MODAL CHECKOUT COMPLETO */}
+      {checkoutModal && (
+        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#1e293b] border border-slate-700 p-6 rounded-2xl shadow-2xl w-full max-w-md">
+            <h3 className="text-xl font-bold text-white mb-4">Completar Orden</h3>
+            
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              <button onClick={() => setOrderMethod('local')} className={`py-3 rounded-lg flex items-center justify-center gap-2 font-bold ${orderMethod === 'local' ? 'bg-red-600 text-white' : 'bg-slate-700 text-slate-400'}`}>
+                <Store size={18}/> Local
+              </button>
+              <button onClick={() => setOrderMethod('delivery')} className={`py-3 rounded-lg flex items-center justify-center gap-2 font-bold ${orderMethod === 'delivery' ? 'bg-red-600 text-white' : 'bg-slate-700 text-slate-400'}`}>
+                <Truck size={18}/> Delivery
+              </button>
             </div>
-            <div className="flex gap-3">
-              <button onClick={() => setCreditModal(false)} className="flex-1 py-3 bg-slate-700 rounded-lg font-bold hover:bg-slate-600">Volver</button>
-              <button onClick={() => { if(customerData.name && customerData.phone) triggerPaymentConfirmation('credit'); else alert('Llene los campos'); }} className="flex-1 py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-500">Continuar</button>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* MODAL CONFIRMACIÓN */}
-      {confirmModal.isOpen && (
-        <div className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-[#1e293b] border border-slate-700 p-8 rounded-2xl shadow-2xl w-[350px] text-center">
-            <div className="w-16 h-16 bg-slate-800 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4"><AlertCircle size={32}/></div>
-            <h3 className="text-xl font-bold text-white mb-2">Confirmar Orden</h3>
-            <p className="text-slate-400 mb-6">Procesando orden en <b className="text-white">{confirmModal.type === 'cash' ? 'Efectivo' : 'Crédito'}</b> por <b className="text-white">RD${total.toFixed(2)}</b>.</p>
+            <div className="grid grid-cols-2 gap-2 mb-6">
+              <button onClick={() => setPaymentType('cash')} className={`py-2 rounded-lg text-sm font-bold border ${paymentType === 'cash' ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400' : 'border-slate-700 text-slate-400'}`}>
+                Efectivo
+              </button>
+              <button onClick={() => setPaymentType('credit')} className={`py-2 rounded-lg text-sm font-bold border ${paymentType === 'credit' ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-700 text-slate-400'}`}>
+                Crédito
+              </button>
+            </div>
+
+            <div className="space-y-4 mb-8">
+              <div>
+                <label className="block text-xs font-bold text-slate-400 mb-1">NOMBRE DEL CLIENTE *</label>
+                <input type="text" value={customerData.name} onChange={e=>setCustomerData({...customerData, name: e.target.value})} className="w-full bg-[#0f172a] border border-slate-600 rounded-lg px-4 py-3 text-white outline-none focus:border-red-500" placeholder="Ej. Juan Pérez"/>
+              </div>
+              
+              {orderMethod === 'delivery' && (
+                <>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 mb-1">TELÉFONO *</label>
+                    <input type="tel" value={customerData.phone} onChange={e=>setCustomerData({...customerData, phone: e.target.value})} className="w-full bg-[#0f172a] border border-slate-600 rounded-lg px-4 py-3 text-white outline-none focus:border-red-500" placeholder="Teléfono"/>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 mb-1">DIRECCIÓN DE ENTREGA *</label>
+                    <input type="text" value={customerData.address} onChange={e=>setCustomerData({...customerData, address: e.target.value})} className="w-full bg-[#0f172a] border border-slate-600 rounded-lg px-4 py-3 text-white outline-none focus:border-red-500" placeholder="Dirección completa"/>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="flex justify-between items-center mb-6">
+              <span className="text-slate-400 font-bold">Total a Pagar</span>
+              <span className="text-2xl font-black text-white">RD${total.toFixed(0)}</span>
+            </div>
+
             <div className="flex gap-3">
-              <button onClick={() => setConfirmModal({isOpen: false, type: null})} disabled={isProcessing} className="flex-1 py-3 bg-slate-700 rounded-lg font-bold hover:bg-slate-600 disabled:opacity-50">Cancelar</button>
-              <button onClick={ejecutarVenta} disabled={isProcessing} className="flex-1 py-3 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-500 flex items-center justify-center disabled:opacity-50">
-                {isProcessing ? <Loader size={20}/> : 'Confirmar'}
+              <button onClick={() => setCheckoutModal(false)} className="flex-1 py-3 bg-slate-700 rounded-lg font-bold hover:bg-slate-600 text-white">Cancelar</button>
+              <button onClick={ejecutarVenta} disabled={isProcessing} className="flex-1 py-3 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-500 flex justify-center items-center">
+                {isProcessing ? <Loader size={20}/> : 'Confirmar e Imprimir'}
               </button>
             </div>
           </div>
@@ -378,23 +432,18 @@ export default function XiaoKitchenPOS() {
 
         <div className="p-6 bg-[#1e293b] border-t border-slate-800">
           <div className="flex justify-between items-end mb-4">
-            <span className="text-slate-400 text-sm font-bold">Total a Cobrar</span>
+            <span className="text-slate-400 text-sm font-bold">Total</span>
             <span className="text-3xl font-black text-red-500">RD$ {total.toFixed(0)}</span>
           </div>
-          <div className="flex flex-col gap-3">
-            <button onClick={() => triggerPaymentConfirmation('cash')} disabled={cart.length === 0} className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold flex justify-center items-center gap-2 disabled:opacity-50">
-               Cobrar Efectivo
-            </button>
-            <button onClick={() => setCreditModal(true)} disabled={cart.length === 0} className="w-full py-3 bg-transparent border border-slate-600 hover:border-red-500 hover:text-red-500 text-slate-300 rounded-xl font-bold text-sm flex justify-center items-center gap-2 disabled:opacity-50 transition-colors">
-              <Users size={16}/> Vender a Crédito
-            </button>
-          </div>
+          <button onClick={openCheckout} disabled={cart.length === 0} className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold flex justify-center items-center gap-2 disabled:opacity-50">
+            Proceder al Pago
+          </button>
         </div>
       </div>
 
       {/* MENÚ LATERAL IZQUIERDO */}
       <div className="w-[80px] bg-[#1e293b] border-r border-slate-800 flex flex-col items-center py-6 z-20 shrink-0 hidden md:flex">
-        <div className="w-12 h-12 bg-red-600 text-white rounded-xl flex items-center justify-center font-black text-xl mb-8">XK</div>
+        <div className="w-12 h-12 bg-red-600 text-white rounded-xl flex items-center justify-center font-black text-xl mb-8">SK</div>
         <div className="flex flex-col gap-6 w-full">
           <button onClick={() => setActiveView('pos')} className={`flex flex-col items-center gap-1 ${activeView === 'pos' ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}><LayoutDashboard size={24} /><span className="text-[10px] font-bold">POS</span></button>
           <button onClick={() => requestAdminAccess('history')} className={`flex flex-col items-center gap-1 ${activeView === 'history' ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}><History size={24} /><span className="text-[10px] font-bold">Órdenes</span></button>
@@ -404,8 +453,6 @@ export default function XiaoKitchenPOS() {
 
       {/* ÁREA CENTRAL */}
       <div className="flex-1 flex flex-col min-w-0 relative">
-        
-        {/* HEADER */}
         <div className="h-[70px] border-b border-slate-800 flex items-center justify-between px-4 md:px-6 bg-[#0f172a] shrink-0">
           <div className="relative w-full max-w-[250px] md:max-w-md">
             {activeView === 'pos' && (
@@ -427,22 +474,16 @@ export default function XiaoKitchenPOS() {
           </div>
         </div>
 
-        {/* TABS DE CATEGORÍA PARA POS */}
         {activeView === 'pos' && (
           <div className="px-4 md:px-6 py-4 bg-[#0f172a] border-b border-slate-800/50 flex gap-2 overflow-x-auto no-scrollbar shrink-0">
             {CATEGORIAS.map(cat => (
-              <button 
-                key={cat} 
-                onClick={() => setActiveCategory(cat)}
-                className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${activeCategory === cat ? 'bg-red-600 text-white' : 'bg-[#1e293b] text-slate-400 hover:bg-slate-800 hover:text-white'}`}
-              >
+              <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${activeCategory === cat ? 'bg-red-600 text-white' : 'bg-[#1e293b] text-slate-400 hover:bg-slate-800'}`}>
                 {cat}
               </button>
             ))}
           </div>
         )}
 
-        {/* VISTAS */}
         {activeView === 'pos' && (
           <div className="flex-1 overflow-y-auto p-4 md:p-6 no-scrollbar pb-[100px]">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
@@ -457,7 +498,6 @@ export default function XiaoKitchenPOS() {
           </div>
         )}
 
-        {/* BARRA FLOTANTE */}
         {activeView === 'pos' && (
           <div className="absolute bottom-0 left-0 right-0 bg-[#1e293b] border-t border-slate-700 p-4 flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.5)] md:pb-4 pb-20">
             <div className="flex flex-col">
@@ -473,30 +513,27 @@ export default function XiaoKitchenPOS() {
         {activeView === 'history' && (
           <div className="flex-1 overflow-y-auto p-4 md:p-8">
             <div className="max-w-4xl mx-auto space-y-4 pb-20">
-              {localSales.length === 0 ? (
-                 <div className="text-center flex flex-col items-center text-slate-500 mt-20"><History size={48} className="mb-4 opacity-50"/><p className="text-lg font-bold">No hay órdenes hoy</p></div>
-              ) : (
-                localSales.map(sale => (
-                  <div key={sale.id} className={`bg-[#1e293b] border rounded-xl p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-4 transition-colors ${sale.status === 'voided' ? 'border-red-900/50 opacity-50' : 'border-slate-700'}`}>
-                    <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className={`px-2 py-1 rounded text-[10px] font-black uppercase ${sale.type === 'cash' ? 'bg-emerald-900/50 text-emerald-400' : 'bg-amber-900/50 text-amber-400'}`}>{sale.type === 'cash' ? 'Efectivo' : 'Crédito'}</span>
-                        {sale.status === 'voided' && <span className="px-2 py-1 rounded bg-red-900/50 text-red-400 text-[10px] font-black uppercase">Anulada</span>}
-                        <span className="text-xs text-slate-400">{new Date(sale.date).toLocaleTimeString('es-DO')}</span>
-                      </div>
-                      <p className="font-bold text-white text-sm">{sale.customer} • {sale.items?.length || 0} platos</p>
+              {localSales.map(sale => (
+                <div key={sale.id} className={`bg-[#1e293b] border rounded-xl p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-4 transition-colors ${sale.status === 'voided' ? 'border-red-900/50 opacity-50' : 'border-slate-700'}`}>
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className={`px-2 py-1 rounded text-[10px] font-black uppercase ${sale.method === 'delivery' ? 'bg-blue-900/50 text-blue-400' : 'bg-purple-900/50 text-purple-400'}`}>{sale.method}</span>
+                      <span className={`px-2 py-1 rounded text-[10px] font-black uppercase ${sale.type === 'cash' ? 'bg-emerald-900/50 text-emerald-400' : 'bg-amber-900/50 text-amber-400'}`}>{sale.type}</span>
+                      <span className="text-xs text-slate-400">{new Date(sale.date).toLocaleTimeString('es-DO')}</span>
                     </div>
-                    <div className="flex items-center gap-6 justify-between sm:justify-end">
-                      <p className={`font-black text-xl ${sale.status === 'voided' ? 'text-slate-500 line-through' : 'text-white'}`}>RD${(sale.total||0).toFixed(2)}</p>
-                      {sale.status !== 'voided' && (
-                        <button onClick={() => anularVenta(sale.id)} className="text-xs font-bold text-red-400 hover:text-red-300 border border-red-900/50 px-3 py-2 rounded-lg bg-red-900/20 transition-colors">
-                          Anular
-                        </button>
-                      )}
-                    </div>
+                    <p className="font-bold text-white text-sm">{sale.customer} • {sale.items?.length || 0} platos</p>
                   </div>
-                ))
-              )}
+                  <div className="flex items-center gap-6 justify-between sm:justify-end">
+                    <p className={`font-black text-xl ${sale.status === 'voided' ? 'text-slate-500 line-through' : 'text-white'}`}>RD${(sale.total||0).toFixed(2)}</p>
+                    {sale.status !== 'voided' && (
+                      <div className="flex gap-2">
+                        <button onClick={() => printReceipt(sale)} className="text-xs font-bold text-slate-300 border border-slate-600 px-3 py-2 rounded-lg hover:bg-slate-700">Reimprimir</button>
+                        <button onClick={() => anularVenta(sale.id)} className="text-xs font-bold text-red-400 border border-red-900/50 px-3 py-2 rounded-lg bg-red-900/20">Anular</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -508,7 +545,6 @@ export default function XiaoKitchenPOS() {
                 <h2 className="text-xl md:text-2xl font-bold text-white">Resumen del Día</h2>
                 <span className="text-slate-400 text-sm">{new Date().toLocaleDateString('es-DO')}</span>
               </div>
-              
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                 <div className="bg-[#0f172a] p-6 rounded-xl border border-slate-800">
                   <p className="text-xs font-bold text-slate-500 uppercase mb-1">Efectivo Recibido</p>
@@ -519,8 +555,7 @@ export default function XiaoKitchenPOS() {
                   <p className="text-3xl font-black text-amber-500">RD${stats.credit.toFixed(2)}</p>
                 </div>
               </div>
-
-              <button onClick={generarCierre} className="w-full bg-red-600 hover:bg-red-500 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors">
+              <button onClick={generarCierre} className="w-full bg-red-600 hover:bg-red-500 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2">
                 <Download size={20}/> Cerrar Turno y Descargar Reporte
               </button>
             </div>
@@ -528,13 +563,11 @@ export default function XiaoKitchenPOS() {
         )}
       </div>
 
-      {/* NAVEGACIÓN MÓVIL */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 bg-[#1e293b] border-t border-slate-800 flex justify-around p-3 z-[10] pb-safe">
         <button onClick={() => setActiveView('pos')} className={`flex flex-col items-center gap-1 ${activeView === 'pos' ? 'text-red-500' : 'text-slate-500'}`}><LayoutDashboard size={24} /><span className="text-[10px] font-bold">POS</span></button>
         <button onClick={() => requestAdminAccess('history')} className={`flex flex-col items-center gap-1 ${activeView === 'history' ? 'text-red-500' : 'text-slate-500'}`}><History size={24} /><span className="text-[10px] font-bold">Órdenes</span></button>
         <button onClick={() => requestAdminAccess('cierre')} className={`flex flex-col items-center gap-1 ${activeView === 'cierre' ? 'text-red-500' : 'text-slate-500'}`}><Receipt size={24} /><span className="text-[10px] font-bold">Cierre</span></button>
       </nav>
-
     </div>
   );
 }
