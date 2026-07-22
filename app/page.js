@@ -21,17 +21,47 @@ const Lock = p => <Svg {...p}><rect x="3" y="11" width="18" height="11" rx="2" r
 const Truck = p => <Svg {...p}><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></Svg>;
 const Store = p => <Svg {...p}><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h2v-4h8v4h2a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 9.7V7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2.7a2 2 0 0 1-.59 1.42l-1.63 1.63a2 2 0 0 1-2.83 0l-1.66-1.66a2 2 0 0 0-2.82 0l-1.66 1.66a2 2 0 0 1-2.83 0l-1.66-1.66a2 2 0 0 0-2.82 0l-1.63-1.63A2 2 0 0 1 2 9.7Z"/></Svg>;
 
-// --- CONFIGURACIÓN ---
+// --- CONFIGURACIÓN Y SEGURIDAD ---
 const ADMIN_PIN = process.env.NEXT_PUBLIC_ADMIN_PIN || "1221";
 const SHIPDAY_API_KEY = "fzKmvwy7mB.DgaRNOaMv19P28urcMEb";
 
-const CATEGORIAS = ['Todos', 'Burritos', 'Sándwiches', 'Yaroas'];
+// --- MENÚ XIIAO KITCHEN (ACTUALIZADO SEGÚN IMAGEN) ---
+const CATEGORIAS = ['Todos', 'Sándwiches', 'Tostadas', 'Burritos', 'Yaroas'];
 const RESTAURANT_MENU = [
-  { id: 'b1s', name: 'Burrito de Pollo (Solo)', price: 185, category: 'Burritos' },
-  { id: 'b1p', name: 'Burrito de Pollo (+ Papas)', price: 230, category: 'Burritos' },
-  { id: 'b2s', name: 'Burrito de Res (Solo)', price: 220, category: 'Burritos' },
-  { id: 's1', name: 'Club Sándwich Tradicional', price: 150, category: 'Sándwiches' },
-  { id: 'y1', name: 'Yaroa Mediana', price: 250, category: 'Yaroas' }
+  // Sándwiches
+  { id: 's1', name: 'Sándwich de Jamón y Queso', price: 75, category: 'Sándwiches' },
+  { id: 's2', name: 'Sándwich de Pollo, Queso y Jamón', price: 125, category: 'Sándwiches' },
+  { id: 's3', name: 'Sándwich Pollo, Queso, Jamón, Toc.', price: 170, category: 'Sándwiches' },
+  { id: 's4', name: 'Club Sándwich Premium', price: 230, category: 'Sándwiches' },
+  
+  // Tostadas
+  { id: 't1', name: 'Tostada de Jamón y Queso', price: 50, category: 'Tostadas' },
+  { id: 't2', name: 'Tostada Jamón, Queso, Lech., Tom.', price: 75, category: 'Tostadas' },
+
+  // Burritos
+  { id: 'b1s', name: 'Burrito de Pollo (Sin papas)', price: 185, category: 'Burritos' },
+  { id: 'b1c', name: 'Burrito de Pollo (Con papas)', price: 230, category: 'Burritos' },
+  { id: 'b2s', name: 'Burrito de Res (Sin papas)', price: 220, category: 'Burritos' },
+  { id: 'b2c', name: 'Burrito de Res (Con papas)', price: 270, category: 'Burritos' },
+  { id: 'b3s', name: 'Burrito Mixto (Sin papas)', price: 250, category: 'Burritos' },
+  { id: 'b3c', name: 'Burrito Mixto (Con papas)', price: 290, category: 'Burritos' },
+  { id: 'b4s', name: 'Burrito Pollo con Tocineta (Sin papas)', price: 220, category: 'Burritos' },
+  { id: 'b4c', name: 'Burrito Pollo con Tocineta (Con papas)', price: 270, category: 'Burritos' },
+  { id: 'b5s', name: 'Burrito XXL (Sin papas)', price: 300, category: 'Burritos' },
+  { id: 'b5c', name: 'Burrito XXL (Con papas)', price: 350, category: 'Burritos' },
+
+  // Yaroas
+  { id: 'yp1', name: 'Yaroa de Pollo - Pequeña', price: 200, category: 'Yaroas' },
+  { id: 'yp2', name: 'Yaroa de Pollo - Mediana', price: 250, category: 'Yaroas' },
+  { id: 'yp3', name: 'Yaroa de Pollo - Grande', price: 350, category: 'Yaroas' },
+  { id: 'yr1', name: 'Yaroa de Res - Pequeña', price: 250, category: 'Yaroas' },
+  { id: 'yr2', name: 'Yaroa de Res - Mediana', price: 300, category: 'Yaroas' },
+  { id: 'yr3', name: 'Yaroa de Res - Grande', price: 390, category: 'Yaroas' },
+  { id: 'ym1', name: 'Yaroa Mixta - Pequeña', price: 250, category: 'Yaroas' },
+  { id: 'ym2', name: 'Yaroa Mixta - Mediana', price: 300, category: 'Yaroas' },
+  { id: 'ym3', name: 'Yaroa Mixta - Grande', price: 390, category: 'Yaroas' },
+  { id: 'yy1', name: 'Yaroa La Yaya - Pequeña', price: 280, category: 'Yaroas' },
+  { id: 'yy2', name: 'Yaroa La Yaya - Mediana', price: 350, category: 'Yaroas' }
 ];
 
 export default function XiaoKitchenPOS() {
@@ -72,78 +102,152 @@ export default function XiaoKitchenPOS() {
     localStorage.setItem('xiao_daily_sales', JSON.stringify(localSales));
   }, [localSales]);
 
-  // --- IMPRESIÓN TÉRMICA TIPO POS (ANDROID & WINDOWS) ---
-  const printReceipt = (sale) => {
+  // --- MOTOR DE IMPRESIÓN (RECIBOS Y CIERRES) ---
+  const printHTML = (htmlContent) => {
     const iframe = document.createElement('iframe');
     iframe.style.display = 'none';
     document.body.appendChild(iframe);
 
     const doc = iframe.contentWindow.document;
-    const itemsHtml = sale.items.map(item => `
-      <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 2px;">
-        <span style="flex:1;">${item.qty}x ${item.name}</span>
-        <span>$${item.finalPrice.toFixed(0)}</span>
-      </div>
-    `).join('');
-
-    const html = `
+    
+    // Plantilla base para ticket de 58mm profesional
+    const baseHtml = `
       <html>
         <head>
-          <title>Recibo</title>
+          <title>Impresión</title>
           <style>
             @page { margin: 0; size: 58mm auto; }
             body { 
-              font-family: monospace; 
+              font-family: 'Courier New', Courier, monospace; 
               width: 58mm; 
               margin: 0; 
               padding: 2mm; 
               color: #000;
-              font-size: 12px;
+              font-size: 11px;
             }
             .center { text-align: center; }
             .bold { font-weight: bold; }
-            .divider { border-bottom: 1px dashed #000; margin: 6px 0; }
-            h2 { margin: 0; font-size: 16px; font-weight: bold; }
-            p { margin: 2px 0; font-size: 11px; }
+            .divider { border-bottom: 1px dashed #000; margin: 5px 0; }
+            .flex-row { display: flex; justify-content: space-between; align-items: flex-start; }
+            h1 { margin: 0 0 2px 0; font-size: 18px; font-weight: 900; }
+            h2 { margin: 0; font-size: 14px; font-weight: bold; }
+            p { margin: 2px 0; font-size: 11px; line-height: 1.2; }
+            .item-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+            .item-name { width: 70%; word-break: break-word; }
+            .item-price { width: 30%; text-align: right; }
           </style>
         </head>
         <body>
-          <div class="center">
-            <h2>SUPERMERCADOS KOLMA</h2>
-            <p>Ticket de Orden #${sale.id.toString().slice(-4)}</p>
-            <p>${new Date(sale.date).toLocaleString('es-DO')}</p>
-          </div>
-          <div class="divider"></div>
-          <p class="bold">Tipo: ${sale.method === 'delivery' ? 'DELIVERY' : 'LOCAL'} - ${sale.type === 'credit' ? 'CRÉDITO' : 'EFECTIVO'}</p>
-          <p>Cliente: ${sale.customer}</p>
-          ${sale.method === 'delivery' ? `
-            <p>Tel: ${sale.phone}</p>
-            <p>Dir: ${sale.address}</p>
-          ` : ''}
-          <div class="divider"></div>
-          ${itemsHtml}
-          <div class="divider"></div>
-          <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: bold;">
-            <span>TOTAL:</span>
-            <span>RD$${sale.total.toFixed(2)}</span>
-          </div>
-          <div class="divider"></div>
-          <div class="center">
-            <p>¡Gracias por su preferencia!</p>
-          </div>
+          ${htmlContent}
         </body>
       </html>
     `;
 
     doc.open();
-    doc.write(html);
+    doc.write(baseHtml);
     doc.close();
 
     iframe.onload = () => {
       iframe.contentWindow.focus();
       iframe.contentWindow.print();
-      setTimeout(() => document.body.removeChild(iframe), 1000);
+      setTimeout(() => document.body.removeChild(iframe), 1500); // Limpiar iframe después de imprimir
     };
+  };
+
+  const printReceipt = (sale) => {
+    const itemsHtml = sale.items.map(item => `
+      <div class="item-row">
+        <span class="item-name">${item.qty}x ${item.name}</span>
+        <span class="item-price">$${item.finalPrice.toFixed(0)}</span>
+      </div>
+    `).join('');
+
+    const html = `
+      <div class="center">
+        <h1>XIIAO KITCHEN</h1>
+        <p class="bold">¡Sabores que te despiertan!</p>
+        <p>Tel: 829-855-8779</p>
+        <div class="divider"></div>
+        <h2>Orden #${sale.id.toString().slice(-4)}</h2>
+        <p>${new Date(sale.date).toLocaleString('es-DO')}</p>
+      </div>
+      <div class="divider"></div>
+      <p class="bold" style="font-size:12px; margin-bottom:4px;">
+        [${sale.method === 'delivery' ? 'DELIVERY' : 'LOCAL'}] - ${sale.type === 'credit' ? 'CRÉDITO' : 'EFECTIVO'}
+      </p>
+      <p><span class="bold">Cliente:</span> ${sale.customer}</p>
+      ${sale.method === 'delivery' ? `
+        <p><span class="bold">Tel:</span> ${sale.phone}</p>
+        <p><span class="bold">Dir:</span> ${sale.address}</p>
+      ` : ''}
+      <div class="divider"></div>
+      <p class="bold">CANT DESCRIPCIÓN        TOTAL</p>
+      <div class="divider"></div>
+      ${itemsHtml}
+      <div class="divider"></div>
+      <div class="flex-row bold" style="font-size: 14px; margin-top:5px;">
+        <span>TOTAL:</span>
+        <span>RD$${sale.total.toFixed(2)}</span>
+      </div>
+      <div class="divider"></div>
+      <div class="center">
+        <p class="bold">¡Gracias por preferirnos!</p>
+        <p>Vuelva pronto</p>
+      </div>
+      <br/><br/>
+    `;
+    printHTML(html);
+  };
+
+  const printZReport = (stats, validSales) => {
+    // Agrupar ventas por producto
+    const prodMap = {};
+    validSales.forEach(sale => {
+      if(sale.items) {
+        sale.items.forEach(item => {
+          if (!prodMap[item.name]) prodMap[item.name] = { qty: 0, revenue: 0 };
+          prodMap[item.name].qty += item.qty;
+          prodMap[item.name].revenue += item.finalPrice;
+        });
+      }
+    });
+    const sortedProducts = Object.entries(prodMap).sort((a, b) => b[1].qty - a[1].qty);
+
+    const itemsHtml = sortedProducts.map(([name, data]) => `
+      <div class="item-row">
+        <span class="item-name">${data.qty}x ${name}</span>
+        <span class="item-price">$${data.revenue.toFixed(0)}</span>
+      </div>
+    `).join('');
+
+    const html = `
+      <div class="center">
+        <h1>XIIAO KITCHEN</h1>
+        <h2>REPORTE Z (CIERRE)</h2>
+        <p>${new Date().toLocaleString('es-DO')}</p>
+      </div>
+      <div class="divider"></div>
+      <p class="center bold">-- RESUMEN FINANCIERO --</p>
+      <div class="flex-row"><span>Total Órdenes:</span><span>${stats.count}</span></div>
+      <div class="flex-row"><span>Efectivo (+):</span><span>$${stats.cash.toFixed(2)}</span></div>
+      <div class="flex-row"><span>Crédito (+):</span><span>$${stats.credit.toFixed(2)}</span></div>
+      <div class="divider"></div>
+      <div class="flex-row bold" style="font-size: 13px;">
+        <span>TOTAL VENTAS:</span>
+        <span>RD$${stats.total.toFixed(2)}</span>
+      </div>
+      <div class="divider"></div>
+      <br/>
+      <p class="center bold">-- PRODUCTOS VENDIDOS --</p>
+      <div class="divider"></div>
+      ${itemsHtml || '<p class="center">Sin ventas hoy</p>'}
+      <div class="divider"></div>
+      <div class="center">
+        <p>Fin del reporte Z</p>
+      </div>
+      <br/><br/>
+    `;
+    printHTML(html);
   };
 
   // --- ENVÍO A SHIPDAY ---
@@ -154,7 +258,7 @@ export default function XiaoKitchenPOS() {
         customerName: sale.customer,
         customerAddress: sale.address,
         customerPhoneNumber: sale.phone,
-        restaurantName: "Supermercado Kolma",
+        restaurantName: "XIIAO KITCHEN", // Actualizado aquí también
         expectedDeliveryDate: new Date().toISOString().split('T')[0],
         expectedDeliveryTime: new Date(Date.now() + 30 * 60000).toLocaleTimeString('en-US', { hour12: false }), // +30 mins
         orderItem: sale.items.map(item => ({
@@ -202,6 +306,7 @@ export default function XiaoKitchenPOS() {
     else setAuthModal({ isOpen: true, targetView: view, pinCode: '' });
   };
 
+  // --- CARRITO Y PRODUCTOS ---
   const filteredProducts = useMemo(() => {
     let filtered = products;
     if (activeCategory !== 'Todos') filtered = filtered.filter(p => p.category === activeCategory);
@@ -230,6 +335,7 @@ export default function XiaoKitchenPOS() {
     setCheckoutModal(true);
   };
 
+  // --- PROCESAR VENTA ---
   const ejecutarVenta = async () => {
     // Validaciones
     if (!customerData.name.trim()) return alert("El nombre del cliente es obligatorio.");
@@ -254,8 +360,9 @@ export default function XiaoKitchenPOS() {
     
     setLocalSales(prev => [newSale, ...prev]);
     
-    // Imprimir y Enviar a Shipday
+    // 1. Imprimir recibo
     printReceipt(newSale);
+    // 2. Enviar a Shipday si es delivery
     if (orderMethod === 'delivery') {
       await sendToShipday(newSale);
     }
@@ -274,6 +381,7 @@ export default function XiaoKitchenPOS() {
     }
   };
 
+  // --- ESTADÍSTICAS Y CIERRE ---
   const stats = useMemo(() => {
     let cash = 0, credit = 0;
     const validSales = localSales.filter(s => s.status === 'completed');
@@ -288,16 +396,21 @@ export default function XiaoKitchenPOS() {
     const validSales = localSales.filter(s => s.status === 'completed');
     if (validSales.length === 0) return alert("No hay ventas válidas registradas hoy.");
 
-    let txt = `CIERRE DE CAJA\nFecha: ${new Date().toLocaleString('es-DO')}\n\n`;
+    // 1. Imprimir Reporte Z en la térmica
+    printZReport(stats, validSales);
+
+    // 2. Opcional: Generar archivo txt como respaldo
+    let txt = `CIERRE DE CAJA - XIIAO KITCHEN\nFecha: ${new Date().toLocaleString('es-DO')}\n\n`;
     txt += `Total Efectivo: RD$ ${stats.cash.toFixed(2)}\nTotal Crédito:  RD$ ${stats.credit.toFixed(2)}\n`;
     txt += `TOTAL VENTAS:   RD$ ${stats.total.toFixed(2)}\n\n`;
 
     const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `Cierre_${new Date().toISOString().split('T')[0]}.txt`;
+    link.download = `Cierre_XIIAO_${new Date().toISOString().split('T')[0]}.txt`;
     link.click();
 
+    // 3. Limpiar Sesión y Caja
     localStorage.removeItem('xiao_daily_sales');
     localStorage.removeItem('xiao_pos_session');
     setLocalSales([]);
@@ -332,6 +445,7 @@ export default function XiaoKitchenPOS() {
   if (isInitializing) return <div className="h-screen bg-slate-900 flex items-center justify-center"><Loader size={48} className="text-red-500" /></div>;
   if (!isAuthenticated) return renderAuthModal();
 
+  // --- RENDERIZADO INTERFAZ ---
   return (
     <div className="flex h-screen bg-[#0f172a] font-sans text-slate-200 overflow-hidden relative">
       
@@ -443,7 +557,7 @@ export default function XiaoKitchenPOS() {
 
       {/* MENÚ LATERAL IZQUIERDO */}
       <div className="w-[80px] bg-[#1e293b] border-r border-slate-800 flex flex-col items-center py-6 z-20 shrink-0 hidden md:flex">
-        <div className="w-12 h-12 bg-red-600 text-white rounded-xl flex items-center justify-center font-black text-xl mb-8">SK</div>
+        <div className="w-12 h-12 bg-red-600 text-white rounded-xl flex items-center justify-center font-black text-xl mb-8">XK</div>
         <div className="flex flex-col gap-6 w-full">
           <button onClick={() => setActiveView('pos')} className={`flex flex-col items-center gap-1 ${activeView === 'pos' ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}><LayoutDashboard size={24} /><span className="text-[10px] font-bold">POS</span></button>
           <button onClick={() => requestAdminAccess('history')} className={`flex flex-col items-center gap-1 ${activeView === 'history' ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}><History size={24} /><span className="text-[10px] font-bold">Órdenes</span></button>
@@ -556,7 +670,7 @@ export default function XiaoKitchenPOS() {
                 </div>
               </div>
               <button onClick={generarCierre} className="w-full bg-red-600 hover:bg-red-500 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2">
-                <Download size={20}/> Cerrar Turno y Descargar Reporte
+                <Download size={20}/> Cerrar Turno e Imprimir Reporte Z
               </button>
             </div>
           </div>
