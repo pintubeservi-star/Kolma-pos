@@ -14,20 +14,19 @@ const Receipt = p => <Svg {...p}><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 
 const ShoppingCart = p => <Svg {...p}><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></Svg>;
 const Loader = ({ className='', ...p }) => <Svg {...p} className={`animate-spin ${className}`}><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></Svg>;
 const Download = p => <Svg {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></Svg>;
-const History = p => <Svg {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></Svg>;
+const HistoryIcon = p => <Svg {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></Svg>;
 const CheckCircle = p => <Svg {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></Svg>;
 const AlertCircle = p => <Svg {...p}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></Svg>;
 const Lock = p => <Svg {...p}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></Svg>;
 const Truck = p => <Svg {...p}><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></Svg>;
 const Store = p => <Svg {...p}><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h2v-4h8v4h2a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 9.7V7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2.7a2 2 0 0 1-.59 1.42l-1.63 1.63a2 2 0 0 1-2.83 0l-1.66-1.66a2 2 0 0 0-2.82 0l-1.66 1.66a2 2 0 0 1-2.83 0l-1.66-1.66a2 2 0 0 0-2.82 0l-1.63-1.63A2 2 0 0 1 2 9.7Z"/></Svg>;
-const Bot = p => <Svg {...p}><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></Svg>;
-const Send = p => <Svg {...p}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></Svg>;
+const Info = p => <Svg {...p}><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></Svg>;
 
 // --- CONFIGURACIÓN Y SEGURIDAD ---
 const ADMIN_PIN = (typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_ADMIN_PIN) ? process.env.NEXT_PUBLIC_ADMIN_PIN : "1221";
 const SHIPDAY_API_KEY = "fzKmvwy7mB.DgaRNOaMv19P28urcMEb";
 
-// --- MENÚ XIIAO KITCHEN (ACTUALIZADO) ---
+// --- MENÚ XIIAO KITCHEN COMPLETO ---
 const CATEGORIAS = ['Todos', 'Sándwiches', 'Tostadas', 'Burritos', 'Yaroas'];
 const RESTAURANT_MENU = [
   // SÁNDWICHES
@@ -81,25 +80,24 @@ export default function XiaoKitchenPOS() {
   const [searchTerm, setSearchTerm] = useState('');
   const [localSales, setLocalSales] = useState([]);
   
-  // UI States
+  // UI States (Checkout & Modals)
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [checkoutModal, setCheckoutModal] = useState(false);
   const [orderMethod, setOrderMethod] = useState('local'); // 'local' o 'delivery'
   const [paymentType, setPaymentType] = useState('cash'); // 'cash' o 'credit'
   const [customerData, setCustomerData] = useState({ name: '', phone: '', address: '' });
+  
+  // Error & Success Handling (Sin usar alerts)
   const [successToast, setSuccessToast] = useState(false);
+  const [generalError, setGeneralError] = useState('');
+  const [checkoutError, setCheckoutError] = useState('');
+  const [saleToVoid, setSaleToVoid] = useState(null); // ID de la venta a anular
+  
   const [isProcessing, setIsProcessing] = useState(false);
   
   // Security States
   const [authModal, setAuthModal] = useState({ isOpen: false, targetView: null, pinCode: '' });
   const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
-
-  // Estados para el Asistente IA
-  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
-  const [aiInput, setAiInput] = useState('');
-  const [aiMessages, setAiMessages] = useState([{ role: 'model', text: '¡Hola! Soy XiaoBot 🤖. Conozco el menú y las ventas del día. ¿En qué te ayudo?' }]);
-  const [isAiLoading, setIsAiLoading] = useState(false);
-  const chatScrollRef = useRef(null);
 
   const searchInputRef = useRef(null);
 
@@ -117,19 +115,12 @@ export default function XiaoKitchenPOS() {
     localStorage.setItem('xiao_daily_sales', JSON.stringify(localSales));
   }, [localSales]);
 
-  // Cierre Automático del Cajón
+  // Cierre Automático del Cajón si se vacía
   useEffect(() => {
     if (cart.length === 0) {
       setIsCartDrawerOpen(false);
     }
   }, [cart.length]);
-
-  // Scroll automático en el chat de IA
-  useEffect(() => {
-    if (chatScrollRef.current) {
-      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-    }
-  }, [aiMessages, isAiLoading, isAiModalOpen]);
 
   const stats = useMemo(() => {
     let cash = 0, credit = 0;
@@ -140,70 +131,6 @@ export default function XiaoKitchenPOS() {
     });
     return { cash, credit, total: cash + credit, count: validSales.length };
   }, [localSales]);
-
-  // --- ASISTENTE IA (GEMINI API) ---
-  const handleAskAI = async () => {
-    if (!aiInput.trim() || isAiLoading) return;
-    
-    const userText = aiInput.trim();
-    setAiInput('');
-    setAiMessages(prev => [...prev, { role: 'user', text: userText }]);
-    setIsAiLoading(true);
-
-    try {
-      const apiKey = ""; // Canvas provides this securely at runtime
-      // Fallback response if no API key is provided
-      if(!apiKey){
-         setTimeout(() => {
-             setAiMessages(prev => [...prev, { role: 'model', text: 'Simulación de IA: Para usar la IA real, la API Key debe ser inyectada por el entorno.' }]);
-             setIsAiLoading(false);
-         }, 1000);
-         return;
-      }
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-      
-      const systemPrompt = `Eres XiaoBot, el asistente inteligente de caja para el restaurante dominicano "XIIAO KITCHEN". 
-      Tu objetivo es ayudar al cajero respondiendo rápido y conciso.
-      Menú actual: ${JSON.stringify(RESTAURANT_MENU)}
-      Ventas de hoy (hasta ahora): Efectivo RD$${stats.cash}, Crédito RD$${stats.credit}, Total: RD$${stats.total}, Cantidad Órdenes: ${stats.count}.
-      Instrucciones:
-      - Responde siempre en español, de forma muy amigable, útil y en 1 o 2 párrafos cortos.
-      - Si preguntan por recomendaciones, basa tu respuesta en los ingredientes o tamaños del menú proporcionado.
-      - Si preguntan cómo va el día, usa las métricas de ventas proporcionadas.`;
-
-      const contents = aiMessages.map(msg => ({
-        role: msg.role,
-        parts: [{ text: msg.text }]
-      }));
-      contents.push({ role: 'user', parts: [{ text: userText }] });
-
-      const payload = {
-        contents,
-        systemInstruction: { parts: [{ text: systemPrompt }] }
-      };
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await response.json();
-      
-      if (data.candidates && data.candidates[0].content.parts[0].text) {
-        const botResponse = data.candidates[0].content.parts[0].text;
-        setAiMessages(prev => [...prev, { role: 'model', text: botResponse }]);
-      } else {
-        setAiMessages(prev => [...prev, { role: 'model', text: 'Lo siento, tuve un problema al procesar tu solicitud.' }]);
-      }
-    } catch (error) {
-      console.error(error);
-      setAiMessages(prev => [...prev, { role: 'model', text: 'Error de conexión con la IA.' }]);
-    }
-    
-    setIsAiLoading(false);
-  };
-
 
   // --- IMPRESIÓN TÉRMICA TIPO POS (ANDROID & WINDOWS) ---
   const printReceipt = (sale) => {
@@ -492,6 +419,7 @@ export default function XiaoKitchenPOS() {
 
   // --- PROCESAR VENTA ---
   const openCheckout = () => {
+    setCheckoutError('');
     setOrderMethod('local');
     setPaymentType('cash');
     setCustomerData({ name: '', phone: '', address: '' });
@@ -499,9 +427,16 @@ export default function XiaoKitchenPOS() {
   };
 
   const ejecutarVenta = async () => {
-    if (!customerData.name.trim()) return alert("El nombre del cliente es obligatorio.");
+    setCheckoutError('');
+    
+    // Validaciones personalizadas en UI (sin usar alert)
+    if (!customerData.name.trim()) {
+      setCheckoutError("El nombre del cliente es obligatorio.");
+      return;
+    }
     if (orderMethod === 'delivery' && (!customerData.phone.trim() || !customerData.address.trim())) {
-      return alert("Teléfono y Dirección son obligatorios para Delivery.");
+      setCheckoutError("Teléfono y Dirección son obligatorios para Delivery.");
+      return;
     }
 
     setIsProcessing(true);
@@ -539,16 +474,21 @@ export default function XiaoKitchenPOS() {
   };
 
   // --- HISTORIAL Y ANULACIONES ---
-  const anularVenta = (id) => {
-    if(window.confirm("¿Estás seguro de anular esta venta? Esto la descontará de la caja.")) {
-      setLocalSales(prev => prev.map(s => s.id === id ? { ...s, status: 'voided' } : s));
+  const confirmarAnulacion = () => {
+    if (saleToVoid) {
+      setLocalSales(prev => prev.map(s => s.id === saleToVoid ? { ...s, status: 'voided' } : s));
+      setSaleToVoid(null);
     }
   };
 
   // --- CIERRE DE CAJA ---
   const generarCierre = () => {
     const validSales = localSales.filter(s => s.status === 'completed');
-    if (validSales.length === 0) return alert("No hay ventas válidas registradas hoy.");
+    if (validSales.length === 0) {
+      setGeneralError("No hay ventas válidas registradas hoy para cerrar.");
+      setTimeout(() => setGeneralError(''), 4000);
+      return;
+    }
 
     // 1. Imprimir Reporte Z en impresora térmica
     printZReport(validSales, stats);
@@ -651,64 +591,43 @@ export default function XiaoKitchenPOS() {
         </div>
       )}
 
+      {/* TOAST DE ERROR GENERAL */}
+      {generalError && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] bg-red-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 font-bold animate-in slide-in-from-top-10">
+          <AlertCircle size={20}/> {generalError}
+        </div>
+      )}
+
       {/* PIN MODAL (INTERNO) */}
       {renderAuthModal()}
       
-      {/* MODAL IA XIAOBOT */}
-      {isAiModalOpen && (
-        <div className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#1e293b] border border-red-500/30 rounded-2xl shadow-2xl w-full max-w-md flex flex-col h-[500px] max-h-full overflow-hidden">
-            <div className="p-4 border-b border-slate-700 flex justify-between items-center bg-[#0f172a]">
-              <div className="flex items-center gap-2 text-white font-bold text-lg">
-                <Bot className="text-red-500" /> XiaoBot IA
-              </div>
-              <button onClick={() => setIsAiModalOpen(false)} className="text-slate-400 hover:text-white p-1 bg-slate-800 rounded-full"><X size={20}/></button>
-            </div>
-            
-            <div ref={chatScrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#1e293b] no-scrollbar">
-              {aiMessages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-red-600 text-white rounded-br-none' : 'bg-slate-700 text-slate-200 rounded-bl-none'}`}>
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-              {isAiLoading && (
-                <div className="flex justify-start">
-                  <div className="max-w-[85%] p-3 rounded-2xl bg-slate-700 text-slate-200 rounded-bl-none flex items-center gap-2">
-                    <Loader size={16} /> Escribiendo...
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            <div className="p-4 bg-[#0f172a] border-t border-slate-700 flex gap-2">
-              <input 
-                type="text" 
-                value={aiInput} 
-                onChange={e => setAiInput(e.target.value)} 
-                onKeyDown={e => e.key === 'Enter' && handleAskAI()}
-                placeholder="Pregunta sobre el menú o ventas..." 
-                className="flex-1 bg-[#1e293b] border border-slate-600 rounded-full px-4 py-2 text-sm text-white outline-none focus:border-red-500"
-              />
-              <button 
-                onClick={handleAskAI}
-                disabled={isAiLoading || !aiInput.trim()}
-                className="bg-red-600 text-white p-2 rounded-full hover:bg-red-500 disabled:opacity-50 disabled:hover:bg-red-600 transition-colors"
-              >
-                <Send size={20} />
-              </button>
-            </div>
+      {/* MODAL CONFIRMAR ANULACIÓN (Reemplaza a window.confirm) */}
+      {saleToVoid && (
+        <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#1e293b] border border-red-500/50 p-6 rounded-2xl w-full max-w-sm text-center shadow-2xl">
+             <AlertCircle size={48} className="mx-auto text-red-500 mb-4" />
+             <h3 className="text-xl font-bold text-white mb-2">¿Anular Venta?</h3>
+             <p className="text-slate-400 mb-6 text-sm">Esta acción marcará la orden como nula y la descontará del balance de la caja. No se puede deshacer.</p>
+             <div className="flex gap-3">
+               <button onClick={() => setSaleToVoid(null)} className="flex-1 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold transition-colors">Cancelar</button>
+               <button onClick={confirmarAnulacion} className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold transition-colors shadow-[0_4px_15px_rgba(239,68,68,0.3)]">Sí, Anular</button>
+             </div>
           </div>
         </div>
       )}
 
-      {/* MODAL CHECKOUT COMPLETO */}
+      {/* MODAL CHECKOUT COMPLETO (Corregido sin alert) */}
       {checkoutModal && (
         <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#1e293b] border border-slate-700 p-6 rounded-2xl shadow-2xl w-full max-w-md">
             <h3 className="text-xl font-bold text-white mb-4">Completar Orden</h3>
             
+            {checkoutError && (
+              <div className="bg-red-900/30 border border-red-500/50 text-red-400 p-3 rounded-lg flex items-center gap-2 text-sm font-bold mb-4">
+                <Info size={16} className="shrink-0" /> {checkoutError}
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-2 mb-4">
               <button onClick={() => setOrderMethod('local')} className={`py-3 rounded-lg flex items-center justify-center gap-2 font-bold transition-colors ${orderMethod === 'local' ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}>
                 <Store size={18}/> Local
@@ -730,18 +649,18 @@ export default function XiaoKitchenPOS() {
             <div className="space-y-4 mb-8">
               <div>
                 <label className="block text-xs font-bold text-slate-400 mb-1">NOMBRE DEL CLIENTE *</label>
-                <input type="text" autoFocus value={customerData.name} onChange={e=>setCustomerData({...customerData, name: e.target.value})} className="w-full bg-[#0f172a] border border-slate-600 rounded-lg px-4 py-3 text-white outline-none focus:border-red-500" placeholder="Ej. Juan Pérez"/>
+                <input type="text" autoFocus value={customerData.name} onChange={e=>{setCustomerData({...customerData, name: e.target.value}); setCheckoutError('');}} className={`w-full bg-[#0f172a] border ${checkoutError.includes("nombre") ? 'border-red-500' : 'border-slate-600'} rounded-lg px-4 py-3 text-white outline-none focus:border-red-500`} placeholder="Ej. Juan Pérez"/>
               </div>
               
               {orderMethod === 'delivery' && (
                 <>
                   <div>
                     <label className="block text-xs font-bold text-slate-400 mb-1">TELÉFONO *</label>
-                    <input type="tel" value={customerData.phone} onChange={e=>setCustomerData({...customerData, phone: e.target.value})} className="w-full bg-[#0f172a] border border-slate-600 rounded-lg px-4 py-3 text-white outline-none focus:border-blue-500" placeholder="Ej. 809-555-5555"/>
+                    <input type="tel" value={customerData.phone} onChange={e=>{setCustomerData({...customerData, phone: e.target.value}); setCheckoutError('');}} className={`w-full bg-[#0f172a] border ${checkoutError.includes("Teléfono") ? 'border-red-500' : 'border-slate-600'} rounded-lg px-4 py-3 text-white outline-none focus:border-blue-500`} placeholder="Ej. 809-555-5555"/>
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-400 mb-1">DIRECCIÓN DE ENTREGA *</label>
-                    <input type="text" value={customerData.address} onChange={e=>setCustomerData({...customerData, address: e.target.value})} className="w-full bg-[#0f172a] border border-slate-600 rounded-lg px-4 py-3 text-white outline-none focus:border-blue-500" placeholder="Calle, Número, Sector"/>
+                    <input type="text" value={customerData.address} onChange={e=>{setCustomerData({...customerData, address: e.target.value}); setCheckoutError('');}} className={`w-full bg-[#0f172a] border ${checkoutError.includes("Dirección") ? 'border-red-500' : 'border-slate-600'} rounded-lg px-4 py-3 text-white outline-none focus:border-blue-500`} placeholder="Calle, Número, Sector"/>
                   </div>
                 </>
               )}
@@ -807,22 +726,14 @@ export default function XiaoKitchenPOS() {
         </div>
       </div>
 
-      {/* MENÚ LATERAL IZQUIERDO */}
+      {/* MENÚ LATERAL IZQUIERDO (SIN BOT) */}
       <div className="w-[80px] bg-[#1e293b] border-r border-slate-800 flex flex-col items-center py-6 z-20 shrink-0 hidden md:flex">
         <div className="w-12 h-12 bg-red-600 text-white rounded-xl flex items-center justify-center font-black text-xl mb-8 shadow-[0_0_15px_rgba(239,68,68,0.4)]">XK</div>
         <div className="flex flex-col gap-6 w-full flex-1">
           <button onClick={() => setActiveView('pos')} className={`flex flex-col items-center gap-1 transition-colors ${activeView === 'pos' ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}><LayoutDashboard size={24} /><span className="text-[10px] font-bold">POS</span></button>
-          <button onClick={() => requestAdminAccess('history')} className={`flex flex-col items-center gap-1 transition-colors ${activeView === 'history' ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}><History size={24} /><span className="text-[10px] font-bold">Órdenes</span></button>
+          <button onClick={() => requestAdminAccess('history')} className={`flex flex-col items-center gap-1 transition-colors ${activeView === 'history' ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}><HistoryIcon size={24} /><span className="text-[10px] font-bold">Órdenes</span></button>
           <button onClick={() => requestAdminAccess('cierre')} className={`flex flex-col items-center gap-1 transition-colors ${activeView === 'cierre' ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}><Receipt size={24} /><span className="text-[10px] font-bold">Cierre</span></button>
         </div>
-        
-        {/* BOTÓN ASISTENTE IA */}
-        <button onClick={() => setIsAiModalOpen(true)} className="mt-auto flex flex-col items-center gap-1 text-red-400 hover:text-red-300 transition-colors">
-          <div className="bg-red-900/30 p-2 rounded-full border border-red-900/50">
-             <Bot size={22} />
-          </div>
-          <span className="text-[10px] font-bold">XiaoBot</span>
-        </button>
       </div>
 
       {/* ÁREA CENTRAL */}
@@ -893,7 +804,7 @@ export default function XiaoKitchenPOS() {
             <div className="max-w-4xl mx-auto space-y-4 pb-20">
               {localSales.length === 0 ? (
                  <div className="text-center flex flex-col items-center justify-center text-slate-500 mt-20 h-full">
-                   <History size={64} className="mb-4 opacity-20"/>
+                   <HistoryIcon size={64} className="mb-4 opacity-20"/>
                    <p className="text-xl font-bold text-slate-400">No hay órdenes hoy</p>
                    <p className="text-sm mt-2">Las órdenes procesadas aparecerán aquí.</p>
                  </div>
@@ -913,7 +824,7 @@ export default function XiaoKitchenPOS() {
                       {sale.status !== 'voided' && (
                         <div className="flex gap-2">
                           <button onClick={() => printReceipt(sale)} className="text-xs font-bold text-slate-300 border border-slate-600 px-4 py-2 rounded-lg hover:bg-slate-700 transition-colors">Reimprimir</button>
-                          <button onClick={() => anularVenta(sale.id)} className="text-xs font-bold text-red-400 border border-red-900/50 px-4 py-2 rounded-lg bg-red-900/20 hover:bg-red-900/40 transition-colors">Anular</button>
+                          <button onClick={() => setSaleToVoid(sale.id)} className="text-xs font-bold text-red-400 border border-red-900/50 px-4 py-2 rounded-lg bg-red-900/20 hover:bg-red-900/40 transition-colors">Anular</button>
                         </div>
                       )}
                       <p className={`font-black text-2xl ${sale.status === 'voided' ? 'text-slate-500 line-through' : 'text-emerald-400'}`}>RD${(sale.total||0).toFixed(0)}</p>
@@ -963,16 +874,11 @@ export default function XiaoKitchenPOS() {
         )}
       </div>
 
-      {/* NAVEGACIÓN MÓVIL */}
+      {/* NAVEGACIÓN MÓVIL (SIN BOT) */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 bg-[#1e293b]/95 backdrop-blur-md border-t border-slate-800 flex justify-around p-2 z-[20] pb-safe">
         <button onClick={() => setActiveView('pos')} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${activeView === 'pos' ? 'text-red-500 bg-red-500/10' : 'text-slate-500'}`}><LayoutDashboard size={20} /><span className="text-[10px] font-bold">POS</span></button>
-        <button onClick={() => requestAdminAccess('history')} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${activeView === 'history' ? 'text-red-500 bg-red-500/10' : 'text-slate-500'}`}><History size={20} /><span className="text-[10px] font-bold">Órdenes</span></button>
+        <button onClick={() => requestAdminAccess('history')} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${activeView === 'history' ? 'text-red-500 bg-red-500/10' : 'text-slate-500'}`}><HistoryIcon size={20} /><span className="text-[10px] font-bold">Órdenes</span></button>
         <button onClick={() => requestAdminAccess('cierre')} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${activeView === 'cierre' ? 'text-red-500 bg-red-500/10' : 'text-slate-500'}`}><Receipt size={20} /><span className="text-[10px] font-bold">Cierre</span></button>
-        
-        <button onClick={() => setIsAiModalOpen(true)} className="flex flex-col items-center gap-1 p-2 rounded-lg text-red-400">
-           <Bot size={20} />
-           <span className="text-[10px] font-bold">XiaoBot</span>
-        </button>
       </nav>
     </div>
   );
