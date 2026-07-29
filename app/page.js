@@ -1,885 +1,621 @@
-'use client'
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState } from 'react';
+import { 
+  UserCheck, FileText, FolderOpen, 
+  MessageSquare, Shield, CheckCircle, AlertTriangle, 
+  Upload, ChevronRight, Send, Search, Eye, X, Check, CreditCard
+} from 'lucide-react';
 
-// ==========================================
-// ÍCONOS SVG
-// ==========================================
-const Svg = ({ children, size=24, className='', strokeWidth=2, ...props }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>{children}</svg>;
-const Search = p => <Svg {...p}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></Svg>;
-const Plus = p => <Svg {...p}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></Svg>;
-const Minus = p => <Svg {...p}><line x1="5" y1="12" x2="19" y2="12"/></Svg>;
-const X = p => <Svg {...p}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Svg>;
-const LayoutDashboard = p => <Svg {...p}><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></Svg>;
-const Receipt = p => <Svg {...p}><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17V7"/></Svg>;
-const ShoppingCart = p => <Svg {...p}><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></Svg>;
-const Loader = ({ className='', ...p }) => <Svg {...p} className={`animate-spin ${className}`}><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></Svg>;
-const Download = p => <Svg {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></Svg>;
-const HistoryIcon = p => <Svg {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></Svg>;
-const CheckCircle = p => <Svg {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></Svg>;
-const AlertCircle = p => <Svg {...p}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></Svg>;
-const Lock = p => <Svg {...p}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></Svg>;
-const Truck = p => <Svg {...p}><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></Svg>;
-const Store = p => <Svg {...p}><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h2v-4h8v4h2a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 9.7V7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2.7a2 2 0 0 1-.59 1.42l-1.63 1.63a2 2 0 0 1-2.83 0l-1.66-1.66a2 2 0 0 0-2.82 0l-1.66 1.66a2 2 0 0 1-2.83 0l-1.66-1.66a2 2 0 0 0-2.82 0l-1.63-1.63A2 2 0 0 1 2 9.7Z"/></Svg>;
-const Info = p => <Svg {...p}><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></Svg>;
+export default function App() {
+  const [activeTab, setActiveTab] = useState('client-view'); // 'client-view' | 'consultant-panel'
+  const [clientStep, setClientStep] = useState('identification'); // 'identification' | 'services' | 'payment' | 'interview' | 'dashboard' | 'chat' | 'lookup'
+  
+  // Datos de Identificación (Teléfono como identificador principal)
+  const [clientInfo, setClientInfo] = useState({ fullName: '', phone: '', email: '', country: 'República Dominicana', city: '' });
+  const [lookupPhone, setLookupPhone] = useState('');
+  const [lookupResult, setLookupResult] = useState(null);
 
-// --- CONFIGURACIÓN Y SEGURIDAD ---
-const ADMIN_PIN = (typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_ADMIN_PIN) ? process.env.NEXT_PUBLIC_ADMIN_PIN : "1221";
-const SHIPDAY_API_KEY = "fzKmvwy7mB.DgaRNOaMv19P28urcMEb";
+  const [selectedService, setSelectedService] = useState(null);
+  const [interviewIndex, setInterviewIndex] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [currentInput, setCurrentInput] = useState('');
+  const [formspreeStatus, setFormspreeStatus] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-// --- MENÚ XIIAO KITCHEN COMPLETO ---
-const CATEGORIAS = ['Todos', 'Sándwiches', 'Tostadas', 'Burritos', 'Yaroas'];
-const RESTAURANT_MENU = [
-  // SÁNDWICHES
-  { id: 's1', name: 'Sándwich de Jamón y Queso', price: 75, category: 'Sándwiches' },
-  { id: 's2', name: 'Sándwich de Pollo, Queso y Jamón', price: 125, category: 'Sándwiches' },
-  { id: 's3', name: 'Sándwich de Pollo, Queso, Jamón y Tocineta', price: 170, category: 'Sándwiches' },
-  { id: 's4', name: 'Club Sándwich Premium', price: 230, category: 'Sándwiches' },
+  // Panel Consultor State
+  const [selectedClientDetail, setSelectedClientDetail] = useState(null);
   
-  // TOSTADAS
-  { id: 't1', name: 'Tostada de Jamón y Queso', price: 50, category: 'Tostadas' },
-  { id: 't2', name: 'Tostada de Jamón, Queso, Lechuga y Tomate', price: 75, category: 'Tostadas' },
-  
-  // BURRITOS
-  { id: 'b1', name: 'Burrito de Pollo (Sin papas)', price: 185, category: 'Burritos' },
-  { id: 'b1p', name: 'Burrito de Pollo (Con papas)', price: 230, category: 'Burritos' },
-  { id: 'b2', name: 'Burrito de Res (Sin papas)', price: 220, category: 'Burritos' },
-  { id: 'b2p', name: 'Burrito de Res (Con papas)', price: 270, category: 'Burritos' },
-  { id: 'b3', name: 'Burrito Mixto Pollo+Res (Sin papas)', price: 250, category: 'Burritos' },
-  { id: 'b3p', name: 'Burrito Mixto Pollo+Res (Con papas)', price: 290, category: 'Burritos' },
-  { id: 'b4', name: 'Burrito Pollo con Tocineta (Sin papas)', price: 220, category: 'Burritos' },
-  { id: 'b4p', name: 'Burrito Pollo con Tocineta (Con papas)', price: 270, category: 'Burritos' },
-  { id: 'b5', name: 'Burrito XXL (Sin papas)', price: 300, category: 'Burritos' },
-  { id: 'b5p', name: 'Burrito XXL (Con papas)', price: 350, category: 'Burritos' },
-  
-  // YAROAS
-  { id: 'y1p', name: 'Yaroa de Pollo (Pequeña)', price: 200, category: 'Yaroas' },
-  { id: 'y1m', name: 'Yaroa de Pollo (Mediana)', price: 250, category: 'Yaroas' },
-  { id: 'y1g', name: 'Yaroa de Pollo (Grande)', price: 350, category: 'Yaroas' },
-  
-  { id: 'y2p', name: 'Yaroa de Res (Pequeña)', price: 250, category: 'Yaroas' },
-  { id: 'y2m', name: 'Yaroa de Res (Mediana)', price: 300, category: 'Yaroas' },
-  { id: 'y2g', name: 'Yaroa de Res (Grande)', price: 390, category: 'Yaroas' },
-  
-  { id: 'y3p', name: 'Yaroa Mixta (Pequeña)', price: 250, category: 'Yaroas' },
-  { id: 'y3m', name: 'Yaroa Mixta (Mediana)', price: 300, category: 'Yaroas' },
-  { id: 'y3g', name: 'Yaroa Mixta (Grande)', price: 390, category: 'Yaroas' },
-  
-  { id: 'y4p', name: 'Yaroa La Yaya (Pequeña)', price: 280, category: 'Yaroas' },
-  { id: 'y4m', name: 'Yaroa La Yaya (Mediana)', price: 350, category: 'Yaroas' }
-];
-
-export default function XiaoKitchenPOS() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [activeView, setActiveView] = useState('pos');
-  
-  // Datos y Estados
-  const [products, setProducts] = useState(RESTAURANT_MENU);
-  const [activeCategory, setActiveCategory] = useState('Todos');
-  const [cart, setCart] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [localSales, setLocalSales] = useState([]);
-  
-  // UI States (Checkout & Modals)
-  const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
-  const [checkoutModal, setCheckoutModal] = useState(false);
-  const [orderMethod, setOrderMethod] = useState('local'); // 'local' o 'delivery'
-  const [paymentType, setPaymentType] = useState('cash'); // 'cash' o 'credit'
-  const [customerData, setCustomerData] = useState({ name: '', phone: '', address: '' });
-  
-  // Error & Success Handling (Sin usar alerts)
-  const [successToast, setSuccessToast] = useState(false);
-  const [generalError, setGeneralError] = useState('');
-  const [checkoutError, setCheckoutError] = useState('');
-  const [saleToVoid, setSaleToVoid] = useState(null); // ID de la venta a anular
-  
-  const [isProcessing, setIsProcessing] = useState(false);
-  
-  // Security States
-  const [authModal, setAuthModal] = useState({ isOpen: false, targetView: null, pinCode: '' });
-  const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
-
-  const searchInputRef = useRef(null);
-
-  // --- INICIALIZACIÓN ---
-  useEffect(() => {
-    const session = localStorage.getItem('xiao_pos_session');
-    const savedSales = JSON.parse(localStorage.getItem('xiao_daily_sales') || '[]');
-    
-    if (session === 'active') setIsAuthenticated(true);
-    setLocalSales(savedSales);
-    setIsInitializing(false);
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('xiao_daily_sales', JSON.stringify(localSales));
-  }, [localSales]);
-
-  // Cierre Automático del Cajón si se vacía
-  useEffect(() => {
-    if (cart.length === 0) {
-      setIsCartDrawerOpen(false);
+  // Chat conversacional inteligente con el Gestor Migratorio Experto
+  const [messages, setMessages] = useState([
+    { 
+      sender: 'consultant', 
+      text: 'Saludos. Soy su gestor y consultor migratorio experto en procesos hacia Estados Unidos desde la República Dominicana. Estoy aquí para guiarle con absoluta precisión, responder cualquier inquietud sobre su visado, residencia o petición, y asegurar que su expediente cumpla con todos los estándares consulares antes de nuestra revisión final. ¿En qué le puedo asistir hoy?' 
     }
-  }, [cart.length]);
+  ]);
+  const [newMessageText, setNewMessageText] = useState('');
 
-  const stats = useMemo(() => {
-    let cash = 0, credit = 0;
-    const validSales = localSales.filter(s => s.status === 'completed');
-    validSales.forEach(s => { 
-      if (s.type === 'cash') cash += (s.total || 0); 
-      else credit += (s.total || 0); 
-    });
-    return { cash, credit, total: cash + credit, count: validSales.length };
-  }, [localSales]);
+  const servicesList = [
+    { id: 'evaluacion', title: 'Evaluación Migratoria Profesional', price: 10, desc: 'Análisis inicial de elegibilidad y perfil migratorio.', form: 'N/A' },
+    { id: 'turista', title: 'Gestión Completa Visa de Turista', price: 50, desc: 'Incluye entrevista, expediente y formulario DS-160.', form: 'DS-160' },
+    { id: 'peticion', title: 'Petición Familiar', price: 120, desc: 'Acompañamiento, documentación y formularios hasta la entrevista.', form: 'I-130' },
+    { id: 'prometido', title: 'Visa de Prometido(a)', price: 120, desc: 'Preparación documental, organización y acompañamiento oficial.', form: 'I-129F' }
+  ];
 
-  // --- IMPRESIÓN TÉRMICA TIPO POS (ANDROID & WINDOWS) ---
-  const printReceipt = (sale) => {
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-
-    const doc = iframe.contentWindow.document;
-    const itemsHtml = sale.items.map(item => `
-      <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
-        <span style="flex:1; padding-right: 8px;">${item.qty}x ${item.name}</span>
-        <span style="font-weight: bold;">$${item.finalPrice.toFixed(0)}</span>
-      </div>
-    `).join('');
-
-    const html = `
-      <html>
-        <head>
-          <title>Recibo XIIAO KITCHEN</title>
-          <style>
-            @page { margin: 0; size: 58mm auto; }
-            body { 
-              font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-              width: 58mm; 
-              margin: 0; 
-              padding: 4mm 2mm; 
-              color: #000;
-              font-size: 12px;
-              line-height: 1.2;
-            }
-            .center { text-align: center; }
-            .bold { font-weight: bold; }
-            .divider { border-bottom: 1px dashed #000; margin: 8px 0; }
-            .divider-solid { border-bottom: 2px solid #000; margin: 10px 0; }
-            h2 { margin: 0 0 4px 0; font-size: 20px; font-weight: 900; letter-spacing: -0.5px; }
-            .slogan { font-size: 10px; font-style: italic; margin-bottom: 8px; }
-            p { margin: 3px 0; }
-            .total-row { display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; margin-top: 5px; }
-          </style>
-        </head>
-        <body>
-          <div class="center">
-            <h2>XIIAO KITCHEN</h2>
-            <div class="slogan">Fresco, Rápido y Delicioso</div>
-            <p>WhatsApp: 829-855-8779</p>
-            <div class="divider"></div>
-            <p class="bold" style="font-size: 14px;">TICKET #${sale.id.toString().slice(-4)}</p>
-            <p>${new Date(sale.date).toLocaleString('es-DO')}</p>
-          </div>
-          <div class="divider-solid"></div>
-          
-          <p class="bold" style="font-size: 14px; text-transform: uppercase;">TIPO: ${sale.method === 'delivery' ? 'DELIVERY' : 'LOCAL'}</p>
-          <p class="bold">PAGO: ${sale.type === 'credit' ? 'CRÉDITO' : 'EFECTIVO'}</p>
-          <div style="margin-top: 5px;">
-            <p><strong>Cliente:</strong> ${sale.customer}</p>
-            ${sale.method === 'delivery' ? `
-              <p><strong>Tel:</strong> ${sale.phone}</p>
-              <p><strong>Dir:</strong> ${sale.address}</p>
-            ` : ''}
-          </div>
-          
-          <div class="divider-solid"></div>
-          <p class="bold" style="margin-bottom: 6px;">DETALLE DE ORDEN:</p>
-          ${itemsHtml}
-          
-          <div class="divider-solid"></div>
-          <div class="total-row">
-            <span>TOTAL:</span>
-            <span>RD$${sale.total.toFixed(2)}</span>
-          </div>
-          <div class="divider-solid"></div>
-          
-          <div class="center" style="margin-top: 15px;">
-            <p class="bold">¡Gracias por preferirnos!</p>
-            <p style="font-size: 10px;">¡Sabores que te despiertan!</p>
-          </div>
-        </body>
-      </html>
-    `;
-
-    doc.open();
-    doc.write(html);
-    doc.close();
-
-    iframe.onload = () => {
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
-      setTimeout(() => document.body.removeChild(iframe), 1500);
-    };
-  };
-
-  const printZReport = (validSales, currentStats) => {
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-
-    const doc = iframe.contentWindow.document;
-    
-    // Calcular productos vendidos
-    const prodMap = {};
-    validSales.forEach(sale => {
-      if(sale.items) {
-        sale.items.forEach(item => {
-          if (!prodMap[item.name]) prodMap[item.name] = { qty: 0, revenue: 0 };
-          prodMap[item.name].qty += item.qty;
-          prodMap[item.name].revenue += item.finalPrice;
-        });
-      }
-    });
-    
-    const sortedProducts = Object.entries(prodMap).sort((a, b) => b[1].qty - a[1].qty);
-
-    const productsHtml = sortedProducts.map(([name, data]) => `
-      <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
-        <span style="flex: 0 0 20px;">${data.qty}</span>
-        <span style="flex:1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 5px;">${name}</span>
-        <span>$${data.revenue.toFixed(0)}</span>
-      </div>
-    `).join('');
-
-    const html = `
-      <html>
-        <head>
-          <title>Reporte Z - XIIAO KITCHEN</title>
-          <style>
-            @page { margin: 0; size: 58mm auto; }
-            body { 
-              font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-              width: 58mm; 
-              margin: 0; 
-              padding: 4mm 2mm; 
-              color: #000;
-              font-size: 12px;
-              line-height: 1.2;
-            }
-            .center { text-align: center; }
-            .bold { font-weight: bold; }
-            .divider { border-bottom: 1px dashed #000; margin: 6px 0; }
-            .divider-solid { border-bottom: 2px solid #000; margin: 8px 0; }
-            h2 { margin: 0 0 4px 0; font-size: 18px; font-weight: 900; }
-            p { margin: 3px 0; }
-          </style>
-        </head>
-        <body>
-          <div class="center">
-            <h2>XIIAO KITCHEN</h2>
-            <p class="bold" style="font-size: 14px;">REPORTE Z (CIERRE)</p>
-            <p>${new Date().toLocaleString('es-DO')}</p>
-          </div>
-          
-          <div class="divider-solid"></div>
-          <p class="bold">RESUMEN FINANCIERO</p>
-          <div class="divider"></div>
-          <div style="display: flex; justify-content: space-between;"><span>Órdenes:</span> <span>${currentStats.count}</span></div>
-          <div style="display: flex; justify-content: space-between;"><span>Efectivo:</span> <span>RD$${currentStats.cash.toFixed(2)}</span></div>
-          <div style="display: flex; justify-content: space-between;"><span>Crédito:</span> <span>RD$${currentStats.credit.toFixed(2)}</span></div>
-          <div class="divider"></div>
-          <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 900;">
-            <span>TOTAL VENTAS:</span>
-            <span>RD$${currentStats.total.toFixed(2)}</span>
-          </div>
-          
-          <div class="divider-solid"></div>
-          <p class="bold">DESGLOSE DE PRODUCTOS</p>
-          <div class="divider"></div>
-          <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: bold; margin-bottom: 4px;">
-            <span style="flex: 0 0 20px;">CANT</span>
-            <span style="flex:1;">PRODUCTO</span>
-            <span>TOTAL</span>
-          </div>
-          ${productsHtml || '<p class="center" style="font-size:10px;">Sin productos vendidos</p>'}
-          
-          <div class="divider-solid"></div>
-          <div class="center" style="margin-top: 15px;">
-            <p>--- FIN DEL REPORTE ---</p>
-          </div>
-        </body>
-      </html>
-    `;
-
-    doc.open();
-    doc.write(html);
-    doc.close();
-
-    iframe.onload = () => {
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
-      setTimeout(() => document.body.removeChild(iframe), 1500);
-    };
-  };
-
-  // --- ENVÍO A SHIPDAY ---
-  const sendToShipday = async (sale) => {
-    try {
-      const orderData = {
-        orderNumber: `ORD-${sale.id.toString().slice(-6)}`,
-        customerName: sale.customer,
-        customerAddress: sale.address,
-        customerPhoneNumber: sale.phone,
-        restaurantName: "XIIAO KITCHEN",
-        expectedDeliveryDate: new Date().toISOString().split('T')[0],
-        expectedDeliveryTime: new Date(Date.now() + 30 * 60000).toLocaleTimeString('en-US', { hour12: false }), // +30 mins
-        orderItem: sale.items.map(item => ({
-          name: item.name,
-          unitPrice: item.price,
-          quantity: item.qty
-        }))
-      };
-
-      await fetch('https://api.shipday.com/orders', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Basic ${SHIPDAY_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(orderData)
-      });
-      console.log('Enviado a Shipday exitosamente');
-    } catch (error) {
-      console.error('Error enviando a Shipday:', error);
+  const getInterviewFlow = (serviceId) => {
+    switch(serviceId) {
+      case 'evaluacion':
+      case 'turista':
+        return [
+          { id: 'civilStatus', question: '¿Cuál es su estado civil actual?', type: 'select', options: ['Soltero/a', 'Casado/a', 'Divorciado/a', 'Unión libre'] },
+          { id: 'children', question: '¿Tiene hijos? Indique cantidad y edades aproximadas.', type: 'text' },
+          { id: 'employment', question: '¿Cuál es su ocupación actual, empresa y tiempo laborando?', type: 'text' },
+          { id: 'income', question: '¿Cuál es su ingreso mensual aproximado en DOP o USD?', type: 'text' },
+          { id: 'travelHistory', question: '¿Ha viajado fuera de la República Dominicana en los últimos 5 años?', type: 'select', options: ['Sí, a EE.UU. u otro país', 'No, nunca he salido del país'] }
+        ];
+      case 'peticion':
+      case 'prometido':
+        return [
+          { id: 'petitionerRelation', question: '¿Cuál es la relación exacta con su familiar o peticionario en EE.UU.?', type: 'text' },
+          { id: 'petitionerStatus', question: '¿Qué estatus migratorio posee su peticionario en EE.UU.?', type: 'select', options: ['Ciudadano Americano', 'Residente Permanente (Green Card)'] },
+          { id: 'priorVisa', question: '¿Ha tenido visas o solicitudes migratorias previas?', type: 'text' }
+        ];
+      default:
+        return [
+          { id: 'details', question: 'Describa brevemente su objetivo migratorio principal.', type: 'text' }
+        ];
     }
   };
 
-  // --- SEGURIDAD Y NAVEGACIÓN ---
-  const handleAuthPinInput = (num) => {
-    const newPin = authModal.pinCode + num;
-    setAuthModal(prev => ({ ...prev, pinCode: newPin }));
-    
-    if (newPin === ADMIN_PIN) {
-      setTimeout(() => { 
-        if(!isAuthenticated) {
-            localStorage.setItem('xiao_pos_session', 'active');
-            setIsAuthenticated(true);
-        } else {
-            setIsAdminUnlocked(true);
-            setActiveView(authModal.targetView);
-        }
-        setAuthModal({ isOpen: false, targetView: null, pinCode: '' });
-      }, 200);
-    } else if (newPin.length === 4) {
-      setTimeout(() => setAuthModal(prev => ({ ...prev, pinCode: '' })), 400);
-    }
+  const handleIdentificationSubmit = (e) => {
+    e.preventDefault();
+    if (!clientInfo.fullName || !clientInfo.phone || !clientInfo.city) return;
+    setClientStep('services');
   };
 
-  const requestAdminAccess = (view) => {
-    if (isAdminUnlocked) {
-      setActiveView(view);
+  const handleSelectService = (service) => {
+    setSelectedService(service);
+    setClientStep('payment');
+  };
+
+  const handleConfirmPayment = () => {
+    setInterviewIndex(0);
+    setAnswers({});
+    setClientStep('interview');
+  };
+
+  const handleAnswerSubmit = (val) => {
+    const flow = getInterviewFlow(selectedService.id);
+    const currentQ = flow[interviewIndex];
+    const updatedAnswers = { ...answers, [currentQ.id]: val };
+    setAnswers(updatedAnswers);
+    setCurrentInput('');
+
+    if (interviewIndex < flow.length - 1) {
+      setInterviewIndex(interviewIndex + 1);
     } else {
-      setAuthModal({ isOpen: true, targetView: view, pinCode: '' });
+      submitExpedienteToFormspree(updatedAnswers);
+      setClientStep('dashboard');
     }
   };
 
-  // --- CARRITO ---
-  const filteredProducts = useMemo(() => {
-    let filtered = products;
-    if (activeCategory !== 'Todos') {
-      filtered = filtered.filter(p => p.category === activeCategory);
-    }
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(p => p.name.toLowerCase().includes(term));
-    }
-    return filtered;
-  }, [products, searchTerm, activeCategory]);
+  const submitExpedienteToFormspree = async (finalAnswers) => {
+    setIsSubmitting(true);
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const fileName = `${clientInfo.phone}_EXP_${dateStr}.pdf`;
 
-  const handleProductClick = (product) => {
-    addToCart(product, 1);
-    setSearchTerm('');
-    searchInputRef.current?.focus();
-  };
-
-  const addToCart = (product, quantity) => {
-    setCart(prev => {
-      const existing = prev.find(item => item.id === product.id);
-      if (existing) {
-        return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + quantity, finalPrice: item.price * (item.qty + quantity) } : item);
-      } else {
-        return [...prev, { ...product, cartId: Date.now(), qty: quantity, finalPrice: product.price * quantity }];
-      }
-    });
-  };
-
-  const updateQty = (id, delta) => setCart(prev => prev.map(i => i.id === id ? { ...i, qty: i.qty + delta, finalPrice: i.price * (i.qty + delta) } : i).filter(i => i.qty > 0));
-  const removeCartItem = (cartId) => setCart(prev => prev.filter(i => i.cartId !== cartId));
-  const total = cart.reduce((acc, item) => acc + item.finalPrice, 0);
-
-  // --- PROCESAR VENTA ---
-  const openCheckout = () => {
-    setCheckoutError('');
-    setOrderMethod('local');
-    setPaymentType('cash');
-    setCustomerData({ name: '', phone: '', address: '' });
-    setCheckoutModal(true);
-  };
-
-  const ejecutarVenta = async () => {
-    setCheckoutError('');
-    
-    // Validaciones personalizadas en UI (sin usar alert)
-    if (!customerData.name.trim()) {
-      setCheckoutError("El nombre del cliente es obligatorio.");
-      return;
-    }
-    if (orderMethod === 'delivery' && (!customerData.phone.trim() || !customerData.address.trim())) {
-      setCheckoutError("Teléfono y Dirección son obligatorios para Delivery.");
-      return;
-    }
-
-    setIsProcessing(true);
-
-    const newSale = {
-      id: Date.now(),
-      type: paymentType,
-      method: orderMethod,
-      customer: customerData.name,
-      phone: customerData.phone,
-      address: customerData.address,
-      total: total,
-      items: [...cart],
-      date: new Date().toISOString(),
-      status: 'completed'
+    const payload = {
+      name: clientInfo.fullName,
+      phone: clientInfo.phone,
+      email: clientInfo.email || 'No proporcionado',
+      ubicacion: `${clientInfo.city}, ${clientInfo.country}`,
+      proceso: selectedService.title,
+      formulario: selectedService.form,
+      estadoExpediente: 'Entrevista Completada - Pendiente Revisión Consultor',
+      nombreArchivoSugerido: fileName,
+      destinatarioInterno: 'pintubeservi@gmail.com',
+      respuestasEntrevista: JSON.stringify(finalAnswers, null, 2)
     };
-    
-    setLocalSales(prev => [newSale, ...prev]);
-    
-    // 1. Imprimir Recibo
-    printReceipt(newSale);
-    
-    // 2. Enviar a Shipday si es delivery
-    if (orderMethod === 'delivery') {
-      await sendToShipday(newSale);
-    }
 
-    setCart([]);
-    setCheckoutModal(false);
-    setIsCartDrawerOpen(false);
-    
-    setSuccessToast(true);
-    setTimeout(() => setSuccessToast(false), 3000);
-    setIsProcessing(false);
-  };
-
-  // --- HISTORIAL Y ANULACIONES ---
-  const confirmarAnulacion = () => {
-    if (saleToVoid) {
-      setLocalSales(prev => prev.map(s => s.id === saleToVoid ? { ...s, status: 'voided' } : s));
-      setSaleToVoid(null);
-    }
-  };
-
-  // --- CIERRE DE CAJA ---
-  const generarCierre = () => {
-    const validSales = localSales.filter(s => s.status === 'completed');
-    if (validSales.length === 0) {
-      setGeneralError("No hay ventas válidas registradas hoy para cerrar.");
-      setTimeout(() => setGeneralError(''), 4000);
-      return;
-    }
-
-    // 1. Imprimir Reporte Z en impresora térmica
-    printZReport(validSales, stats);
-
-    // 2. Generar archivo .txt de respaldo (opcional pero seguro)
-    const prodMap = {};
-    validSales.forEach(sale => {
-      if(sale.items) {
-        sale.items.forEach(item => {
-          if (!prodMap[item.name]) prodMap[item.name] = { qty: 0, revenue: 0 };
-          prodMap[item.name].qty += item.qty;
-          prodMap[item.name].revenue += item.finalPrice;
-        });
+    try {
+      const response = await fetch('https://formspree.io/f/xlgveqlp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (response.ok) {
+        setFormspreeStatus('Expediente generado y enviado a pintubeservi@gmail.com con éxito.');
+      } else {
+        setFormspreeStatus('Error al enviar expediente automático.');
       }
-    });
-
-    const sortedProducts = Object.entries(prodMap).sort((a, b) => b[1].qty - a[1].qty);
-
-    let txt = `======================================\n`;
-    txt += `     XIIAO KITCHEN - CIERRE DE CAJA   \n`;
-    txt += `======================================\n`;
-    txt += `Fecha: ${new Date().toLocaleString('es-DO')}\n\n`;
-    txt += `--- RESUMEN FINANCIERO ---\n`;
-    txt += `Órdenes Procesadas: ${stats.count}\n`;
-    txt += `Total Efectivo: RD$ ${stats.cash.toFixed(2)}\n`;
-    txt += `Total Crédito:  RD$ ${stats.credit.toFixed(2)}\n`;
-    txt += `TOTAL VENTAS:   RD$ ${stats.total.toFixed(2)}\n\n`;
-
-    txt += `--- PLATOS VENDIDOS ---\n`;
-    txt += `CANT | PRODUCTO | TOTAL RD$\n`;
-    txt += `--------------------------------------\n`;
-    sortedProducts.forEach(([name, data]) => {
-      txt += `${data.qty.toString().padEnd(4)} | ${name.substring(0, 20).padEnd(20)} | $${data.revenue.toFixed(2)}\n`;
-    });
-    
-    txt += `\n--- DETALLE DE CRÉDITOS ---\n`;
-    const credits = validSales.filter(s => s.type === 'credit');
-    if(credits.length === 0) txt += "Sin créditos hoy.\n";
-    credits.forEach(c => txt += `Cliente: ${c.customer} - Monto: RD$${(c.total||0).toFixed(2)}\n`);
-
-    const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `Cierre_Xiao_${new Date().toISOString().split('T')[0]}.txt`;
-    link.click();
-
-    // 3. Limpiar estado y volver al login
-    localStorage.removeItem('xiao_daily_sales');
-    localStorage.removeItem('xiao_pos_session');
-    setLocalSales([]);
-    setIsAuthenticated(false);
-    setIsAdminUnlocked(false);
-    setActiveView('pos');
+    } catch (error) {
+      setFormspreeStatus('Error de red al conectar con el servidor.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // ==========================================
-  // RENDER MODALES GLOBALES
-  // ==========================================
-  const renderAuthModal = () => {
-    if (!authModal.isOpen && isAuthenticated) return null;
-    const isLogin = !isAuthenticated;
-    return (
-      <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center font-sans text-slate-200">
-        <div className="bg-[#1e293b] border border-red-900/50 p-8 rounded-2xl shadow-2xl text-center w-[360px]">
-          {isLogin ? (
-            <div className="w-16 h-16 bg-red-600 text-white rounded-xl flex items-center justify-center font-black text-3xl mx-auto mb-4">XK</div>
-          ) : (
-            <div className="w-14 h-14 bg-slate-800 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4"><Lock size={28}/></div>
-          )}
-          <h2 className="text-xl font-bold text-white mb-1">{isLogin ? 'Xiiao Kitchen POS' : 'Administrador'}</h2>
-          <p className="text-slate-400 text-xs mb-6">{isLogin ? 'Inicia sesión para continuar' : 'Ingresa el PIN para acceder'}</p>
-          
-          <div className="flex justify-center gap-3 mb-8">
-            {[0, 1, 2, 3].map(i => <div key={i} className={`w-3 h-3 rounded-full ${authModal.pinCode.length > i ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'bg-slate-600'}`} />)}
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-              <button key={num} onClick={() => handleAuthPinInput(num.toString())} className="h-14 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xl active:scale-95 transition-transform">{num}</button>
-            ))}
-            {!isLogin && <button onClick={() => setAuthModal({isOpen: false, targetView: null, pinCode: ''})} className="col-start-1 h-14 rounded-xl flex items-center justify-center text-slate-400 hover:text-white active:scale-95"><X size={24}/></button>}
-            <button onClick={() => handleAuthPinInput('0')} className={`${isLogin ? 'col-start-2' : ''} w-full h-14 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xl active:scale-95 transition-transform`}>0</button>
-            <button onClick={() => setAuthModal(prev => ({...prev, pinCode: prev.pinCode.slice(0, -1)}))} className="w-full h-14 rounded-xl flex items-center justify-center text-slate-400 hover:text-white active:scale-95"><Minus size={24}/></button>
-          </div>
-        </div>
-      </div>
-    );
+  const handlePhoneLookup = (e) => {
+    e.preventDefault();
+    if (!lookupPhone) return;
+    if (lookupPhone === clientInfo.phone || lookupPhone.length >= 8) {
+      setLookupResult({
+        name: clientInfo.fullName || 'Carlos Martínez',
+        phone: lookupPhone,
+        service: selectedService?.title || 'Gestión Completa Visa de Turista',
+        status: 'En revisión por consultor experto',
+        progress: '85%',
+        pendingDocs: ['Fotografía Digital (Fondo Blanco)']
+      });
+    } else {
+      setLookupResult({ notFound: true });
+    }
   };
 
-  if (isInitializing) return <div className="h-screen bg-slate-900 flex items-center justify-center"><Loader size={48} className="text-red-500" /></div>;
-  if (!isAuthenticated) return renderAuthModal();
+  const sendClientMessage = () => {
+    if (!newMessageText.trim()) return;
+    const userMsg = newMessageText;
+    const updatedMessages = [...messages, { sender: 'client', text: userMsg }];
+    setMessages(updatedMessages);
+    setNewMessageText('');
+
+    setTimeout(() => {
+      let expertReply = "He tomado nota de su consulta. Como gestor experto en procesos hacia EE.UU. desde República Dominicana, le recomiendo mantener su expediente actualizado con soportes claros. Nuestro equipo revisará este detalle antes de proceder formalmente.";
+      
+      const lower = userMsg.toLowerCase();
+      if (lower.includes('costo') || lower.includes('precio') || lower.includes('pago') || lower.includes('cuánto')) {
+        expertReply = "Nuestros honorarios varían según el trámite: Evaluación profesional por $10 USD, Visa de Turista por $50 USD, y Petición Familiar o Visa de Prometido(a) por $120 USD. Recuerde que las tasas consulares de la Embajada de EE.UU. se pagan de forma independiente en el banco autorizado.";
+      } else if (lower.includes('tiempo') || lower.includes('tarda') || lower.includes('duración') || lower.includes('demora')) {
+        expertReply = "Los tiempos varían según el proceso consular. Para visas de turista B1/B2, dependemos de la disponibilidad de citas en la Embajada de EE.UU. en Santo Domingo. En peticiones familiares, los plazos están sujetos a los boletines de visas del Departamento de Estado.";
+      } else if (lower.includes('requisito') || lower.includes('documento') || lower.includes('papel') || lower.includes('pasaporte')) {
+        expertReply = "Para su expediente requerimos obligatoriamente su pasaporte vigente con al menos 6 meses de validez, soportes laborales o comerciales sólidos en la República Dominicana, y cumplir con cada parámetro de nuestra entrevista guiada.";
+      } else if (lower.includes('entrevista') || lower.includes('embajada')) {
+        expertReply = "La preparación para la entrevista consular es clave. Una vez nuestro equipo revise su formulario DS-160 o petición y apruebe su expediente, realizaremos simulacros y pautas precisas para su presentación en la Embajada.";
+      }
+
+      setMessages([...updatedMessages, { sender: 'consultant', text: expertReply }]);
+    }, 1000);
+  };
 
   return (
-    <div className="flex h-screen bg-[#0f172a] font-sans text-slate-200 overflow-hidden relative">
-      
-      {/* TOAST DE ÉXITO */}
-      {successToast && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] bg-emerald-500 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 font-bold animate-in slide-in-from-top-10">
-          <CheckCircle size={20}/> Orden registrada e impresa
-        </div>
-      )}
-
-      {/* TOAST DE ERROR GENERAL */}
-      {generalError && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] bg-red-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 font-bold animate-in slide-in-from-top-10">
-          <AlertCircle size={20}/> {generalError}
-        </div>
-      )}
-
-      {/* PIN MODAL (INTERNO) */}
-      {renderAuthModal()}
-      
-      {/* MODAL CONFIRMAR ANULACIÓN (Reemplaza a window.confirm) */}
-      {saleToVoid && (
-        <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#1e293b] border border-red-500/50 p-6 rounded-2xl w-full max-w-sm text-center shadow-2xl">
-             <AlertCircle size={48} className="mx-auto text-red-500 mb-4" />
-             <h3 className="text-xl font-bold text-white mb-2">¿Anular Venta?</h3>
-             <p className="text-slate-400 mb-6 text-sm">Esta acción marcará la orden como nula y la descontará del balance de la caja. No se puede deshacer.</p>
-             <div className="flex gap-3">
-               <button onClick={() => setSaleToVoid(null)} className="flex-1 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold transition-colors">Cancelar</button>
-               <button onClick={confirmarAnulacion} className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold transition-colors shadow-[0_4px_15px_rgba(239,68,68,0.3)]">Sí, Anular</button>
-             </div>
+    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans flex flex-col">
+      <header className="bg-slate-950 border-b border-slate-800 px-6 py-4 flex justify-between items-center sticky top-0 z-50 shadow-md">
+        <div className="flex items-center gap-3">
+          <div className="bg-blue-600 text-white p-2 rounded-xl font-bold flex items-center justify-center shadow-lg shadow-blue-600/30">
+            <Shield className="w-5 h-5" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold tracking-tight text-white">MigraRD <span className="text-blue-500">Pro</span></h1>
+            <p className="text-xs text-slate-400">Oficina de Gestión Migratoria Especializada EE.UU. &bull; RD</p>
           </div>
         </div>
-      )}
 
-      {/* MODAL CHECKOUT COMPLETO (Corregido sin alert) */}
-      {checkoutModal && (
-        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#1e293b] border border-slate-700 p-6 rounded-2xl shadow-2xl w-full max-w-md">
-            <h3 className="text-xl font-bold text-white mb-4">Completar Orden</h3>
-            
-            {checkoutError && (
-              <div className="bg-red-900/30 border border-red-500/50 text-red-400 p-3 rounded-lg flex items-center gap-2 text-sm font-bold mb-4">
-                <Info size={16} className="shrink-0" /> {checkoutError}
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              <button onClick={() => setOrderMethod('local')} className={`py-3 rounded-lg flex items-center justify-center gap-2 font-bold transition-colors ${orderMethod === 'local' ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}>
-                <Store size={18}/> Local
-              </button>
-              <button onClick={() => setOrderMethod('delivery')} className={`py-3 rounded-lg flex items-center justify-center gap-2 font-bold transition-colors ${orderMethod === 'delivery' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.3)]' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}>
-                <Truck size={18}/> Delivery
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 mb-6">
-              <button onClick={() => setPaymentType('cash')} className={`py-2 rounded-lg text-sm font-bold border transition-colors ${paymentType === 'cash' ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400' : 'border-slate-700 text-slate-400 hover:border-slate-500'}`}>
-                Efectivo
-              </button>
-              <button onClick={() => setPaymentType('credit')} className={`py-2 rounded-lg text-sm font-bold border transition-colors ${paymentType === 'credit' ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-slate-700 text-slate-400 hover:border-slate-500'}`}>
-                Crédito
-              </button>
-            </div>
-
-            <div className="space-y-4 mb-8">
-              <div>
-                <label className="block text-xs font-bold text-slate-400 mb-1">NOMBRE DEL CLIENTE *</label>
-                <input type="text" autoFocus value={customerData.name} onChange={e=>{setCustomerData({...customerData, name: e.target.value}); setCheckoutError('');}} className={`w-full bg-[#0f172a] border ${checkoutError.includes("nombre") ? 'border-red-500' : 'border-slate-600'} rounded-lg px-4 py-3 text-white outline-none focus:border-red-500`} placeholder="Ej. Juan Pérez"/>
-              </div>
-              
-              {orderMethod === 'delivery' && (
-                <>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-400 mb-1">TELÉFONO *</label>
-                    <input type="tel" value={customerData.phone} onChange={e=>{setCustomerData({...customerData, phone: e.target.value}); setCheckoutError('');}} className={`w-full bg-[#0f172a] border ${checkoutError.includes("Teléfono") ? 'border-red-500' : 'border-slate-600'} rounded-lg px-4 py-3 text-white outline-none focus:border-blue-500`} placeholder="Ej. 809-555-5555"/>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-400 mb-1">DIRECCIÓN DE ENTREGA *</label>
-                    <input type="text" value={customerData.address} onChange={e=>{setCustomerData({...customerData, address: e.target.value}); setCheckoutError('');}} className={`w-full bg-[#0f172a] border ${checkoutError.includes("Dirección") ? 'border-red-500' : 'border-slate-600'} rounded-lg px-4 py-3 text-white outline-none focus:border-blue-500`} placeholder="Calle, Número, Sector"/>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="flex justify-between items-center mb-6">
-              <span className="text-slate-400 font-bold">Total a Pagar</span>
-              <span className="text-3xl font-black text-emerald-400">RD${total.toFixed(0)}</span>
-            </div>
-
-            <div className="flex gap-3">
-              <button onClick={() => setCheckoutModal(false)} className="flex-1 py-3 bg-slate-700 rounded-lg font-bold hover:bg-slate-600 text-white">Cancelar</button>
-              <button onClick={ejecutarVenta} disabled={isProcessing} className="flex-1 py-3 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-500 flex justify-center items-center gap-2 disabled:opacity-50 transition-colors">
-                {isProcessing ? <Loader size={20}/> : <><CheckCircle size={18}/> Confirmar</>}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TICKET DRAWER */}
-      {isCartDrawerOpen && <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setIsCartDrawerOpen(false)}></div>}
-      <div className={`fixed inset-y-0 right-0 w-full sm:w-[380px] bg-[#1e293b] border-l border-slate-700 z-50 shadow-2xl transform transition-transform duration-300 flex flex-col ${isCartDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="h-[70px] border-b border-slate-800 flex items-center justify-between px-6 bg-[#0f172a] shrink-0">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2"><ShoppingCart size={20}/> Comanda</h2>
-          <button onClick={() => setIsCartDrawerOpen(false)} className="text-slate-400 hover:text-white p-2 bg-slate-800 rounded-full"><X size={18}/></button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar">
-          {cart.map(item => (
-            <div key={item.cartId} className="bg-[#0f172a] border border-slate-700 rounded-xl p-4 shadow-sm">
-              <div className="flex justify-between items-start mb-2">
-                <h4 className="font-bold text-sm text-slate-200 pr-2 leading-tight">{item.name}</h4>
-                <button onClick={() => removeCartItem(item.cartId)} className="text-slate-500 hover:text-red-400 bg-slate-800 p-1 rounded-md"><X size={14}/></button>
-              </div>
-              <div className="flex items-center justify-between mt-4">
-                <div className="flex items-center gap-2 bg-[#1e293b] rounded-lg py-1 px-2 border border-slate-700">
-                  <button onClick={() => updateQty(item.id, -1)} className="text-slate-400 p-1 hover:text-white hover:bg-slate-700 rounded"><Minus size={14} /></button>
-                  <span className="text-sm font-bold w-6 text-center">{item.qty}</span>
-                  <button onClick={() => updateQty(item.id, 1)} className="text-slate-400 p-1 hover:text-white hover:bg-slate-700 rounded"><Plus size={14}/></button>
-                </div>
-                <span className="font-black text-base text-white">RD${item.finalPrice.toFixed(0)}</span>
-              </div>
-            </div>
-          ))}
-          {cart.length === 0 && (
-            <div className="text-center flex flex-col items-center justify-center text-slate-500 h-full mt-20">
-              <ShoppingCart size={48} className="mb-4 opacity-30"/>
-              <span className="text-sm font-bold">Sin platos agregados</span>
-              <p className="text-xs mt-2 text-slate-600">Selecciona productos del menú</p>
-            </div>
-          )}
-        </div>
-
-        <div className="p-6 bg-[#1e293b] border-t border-slate-800 shrink-0">
-          <div className="flex justify-between items-end mb-4">
-            <span className="text-slate-400 text-sm font-bold">Total a Pagar</span>
-            <span className="text-3xl font-black text-emerald-400">RD$ {total.toFixed(0)}</span>
-          </div>
-          <button onClick={openCheckout} disabled={cart.length === 0} className="w-full py-4 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold flex justify-center items-center gap-2 disabled:opacity-50 disabled:hover:bg-red-600 transition-colors shadow-[0_4px_15px_rgba(239,68,68,0.3)]">
-            Proceder al Pago
+        <div className="flex items-center gap-2 bg-slate-900 p-1.5 rounded-xl border border-slate-800">
+          <button 
+            onClick={() => setActiveTab('client-view')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'client-view' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
+            Portal del Cliente
+          </button>
+          <button 
+            onClick={() => setActiveTab('consultant-panel')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'consultant-panel' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
+            Panel del Consultor
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* MENÚ LATERAL IZQUIERDO (SIN BOT) */}
-      <div className="w-[80px] bg-[#1e293b] border-r border-slate-800 flex flex-col items-center py-6 z-20 shrink-0 hidden md:flex">
-        <div className="w-12 h-12 bg-red-600 text-white rounded-xl flex items-center justify-center font-black text-xl mb-8 shadow-[0_0_15px_rgba(239,68,68,0.4)]">XK</div>
-        <div className="flex flex-col gap-6 w-full flex-1">
-          <button onClick={() => setActiveView('pos')} className={`flex flex-col items-center gap-1 transition-colors ${activeView === 'pos' ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}><LayoutDashboard size={24} /><span className="text-[10px] font-bold">POS</span></button>
-          <button onClick={() => requestAdminAccess('history')} className={`flex flex-col items-center gap-1 transition-colors ${activeView === 'history' ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}><HistoryIcon size={24} /><span className="text-[10px] font-bold">Órdenes</span></button>
-          <button onClick={() => requestAdminAccess('cierre')} className={`flex flex-col items-center gap-1 transition-colors ${activeView === 'cierre' ? 'text-red-500' : 'text-slate-500 hover:text-slate-300'}`}><Receipt size={24} /><span className="text-[10px] font-bold">Cierre</span></button>
-        </div>
-      </div>
-
-      {/* ÁREA CENTRAL */}
-      <div className="flex-1 flex flex-col min-w-0 relative">
-        <div className="h-[70px] border-b border-slate-800 flex items-center justify-between px-4 md:px-6 bg-[#0f172a] shrink-0">
-          <div className="relative w-full max-w-[250px] md:max-w-md">
-            {activeView === 'pos' && (
-              <>
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                <input ref={searchInputRef} type="text" placeholder="Buscar plato..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-[#1e293b] border border-slate-700 focus:border-red-500 rounded-full py-2 pl-10 pr-4 text-white outline-none text-sm transition-colors"/>
-              </>
-            )}
-            {activeView === 'history' && <h2 className="text-xl font-bold">Historial de Órdenes</h2>}
-            {activeView === 'cierre' && <h2 className="text-xl font-bold">Cierre de Caja</h2>}
-          </div>
-          
-          <div className="flex items-center gap-4 hidden sm:flex">
-            <div className="text-right">
-              <p className="text-[10px] font-bold text-slate-500 uppercase">Caja Actual</p>
-              <p className="font-black text-lg text-emerald-400 leading-none">RD$ {stats.total.toFixed(0)}</p>
-            </div>
-            {isAdminUnlocked && <button onClick={() => setIsAdminUnlocked(false)} className="ml-4 text-slate-500 hover:text-amber-500 flex items-center gap-1 text-xs font-bold bg-slate-800 px-3 py-1.5 rounded-lg transition-colors"><Lock size={14}/> Bloquear Admin</button>}
-          </div>
-        </div>
-
-        {activeView === 'pos' && (
-          <div className="px-4 md:px-6 py-4 bg-[#0f172a] border-b border-slate-800/50 flex gap-2 overflow-x-auto no-scrollbar shrink-0">
-            {CATEGORIAS.map(cat => (
-              <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${activeCategory === cat ? 'bg-red-600 text-white shadow-md' : 'bg-[#1e293b] text-slate-400 hover:bg-slate-700 hover:text-white'}`}>
-                {cat}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* CONTENIDO PRINCIPAL SCROLLABLE */}
-        {activeView === 'pos' && (
-          <div className="flex-1 overflow-y-auto p-4 md:p-6 no-scrollbar pb-[100px]">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-              {filteredProducts.map(p => (
-                <div key={p.id} onClick={() => handleProductClick(p)} className="bg-[#1e293b] rounded-2xl p-4 border border-slate-700/60 hover:border-red-500 cursor-pointer flex flex-col transition-all active:scale-95 hover:shadow-[0_0_15px_rgba(239,68,68,0.15)] min-h-[130px] group">
-                  <div className="flex justify-between items-start mb-2">
-                     <span className="text-[9px] font-black uppercase tracking-wider text-red-500/80 bg-red-500/10 px-2 py-0.5 rounded">{p.category}</span>
-                     <Plus size={16} className="text-slate-600 group-hover:text-red-500 transition-colors" />
-                  </div>
-                  <h3 className="font-bold text-sm text-slate-200 leading-snug mb-2 flex-1 mt-1">{p.name}</h3>
-                  <p className="font-black text-lg text-emerald-400 mt-auto">RD${p.price.toFixed(0)}</p>
+      <main className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-8 flex flex-col">
+        {activeTab === 'client-view' && (
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex-1 flex flex-col">
+            {clientStep === 'lookup' && (
+              <div className="flex-1 flex flex-col justify-center p-8 max-w-md mx-auto my-auto text-center space-y-6 w-full">
+                <div className="w-16 h-16 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto border border-blue-500/20">
+                  <Search className="w-8 h-8 text-blue-500" />
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeView === 'pos' && (
-          <div className="absolute bottom-0 left-0 right-0 bg-[#1e293b]/90 backdrop-blur-md border-t border-slate-700 p-4 flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.5)] md:pb-4 pb-20 z-10">
-            <div className="flex flex-col">
-               <span className="text-xs font-bold text-slate-400 uppercase">{cart.length} Artículos</span>
-               <span className="text-2xl font-black text-emerald-400">RD$ {total.toFixed(0)}</span>
-            </div>
-            <button onClick={() => setIsCartDrawerOpen(true)} className="bg-red-600 hover:bg-red-500 text-white px-8 py-3.5 rounded-xl font-bold flex items-center gap-2 shadow-[0_4px_15px_rgba(239,68,68,0.3)] active:scale-95 transition-all">
-               Comanda <ShoppingCart size={20}/>
-            </button>
-          </div>
-        )}
-
-        {activeView === 'history' && (
-          <div className="flex-1 overflow-y-auto p-4 md:p-8">
-            <div className="max-w-4xl mx-auto space-y-4 pb-20">
-              {localSales.length === 0 ? (
-                 <div className="text-center flex flex-col items-center justify-center text-slate-500 mt-20 h-full">
-                   <HistoryIcon size={64} className="mb-4 opacity-20"/>
-                   <p className="text-xl font-bold text-slate-400">No hay órdenes hoy</p>
-                   <p className="text-sm mt-2">Las órdenes procesadas aparecerán aquí.</p>
-                 </div>
-              ) : (
-                localSales.map(sale => (
-                  <div key={sale.id} className={`bg-[#1e293b] border rounded-2xl p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-4 transition-colors ${sale.status === 'voided' ? 'border-red-900/50 opacity-50 bg-red-900/5' : 'border-slate-700 hover:border-slate-500'}`}>
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider ${sale.method === 'delivery' ? 'bg-blue-900/50 text-blue-400' : 'bg-purple-900/50 text-purple-400'}`}>{sale.method}</span>
-                        <span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider ${sale.type === 'cash' ? 'bg-emerald-900/50 text-emerald-400' : 'bg-amber-900/50 text-amber-400'}`}>{sale.type}</span>
-                        {sale.status === 'voided' && <span className="px-2 py-1 rounded bg-red-900/80 text-white text-[10px] font-black uppercase">Anulada</span>}
-                        <span className="text-xs text-slate-400 font-medium ml-1">{new Date(sale.date).toLocaleTimeString('es-DO', {hour: '2-digit', minute:'2-digit'})}</span>
-                      </div>
-                      <p className="font-bold text-white text-base">{sale.customer} <span className="text-slate-500 text-sm font-normal ml-2">• {sale.items?.length || 0} platos</span></p>
-                    </div>
-                    <div className="flex flex-row-reverse sm:flex-row items-center gap-4 sm:gap-6 justify-between sm:justify-end">
-                      {sale.status !== 'voided' && (
-                        <div className="flex gap-2">
-                          <button onClick={() => printReceipt(sale)} className="text-xs font-bold text-slate-300 border border-slate-600 px-4 py-2 rounded-lg hover:bg-slate-700 transition-colors">Reimprimir</button>
-                          <button onClick={() => setSaleToVoid(sale.id)} className="text-xs font-bold text-red-400 border border-red-900/50 px-4 py-2 rounded-lg bg-red-900/20 hover:bg-red-900/40 transition-colors">Anular</button>
-                        </div>
-                      )}
-                      <p className={`font-black text-2xl ${sale.status === 'voided' ? 'text-slate-500 line-through' : 'text-emerald-400'}`}>RD${(sale.total||0).toFixed(0)}</p>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
-
-        {activeView === 'cierre' && (
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center pb-20">
-            <div className="bg-[#1e293b] border border-slate-700 p-6 md:p-8 rounded-3xl w-full max-w-2xl mt-4 shadow-xl">
-              <div className="flex items-center justify-between mb-8 pb-6 border-b border-slate-700/50">
                 <div>
-                  <h2 className="text-2xl font-black text-white">Resumen del Día</h2>
-                  <p className="text-slate-400 text-sm mt-1">{new Date().toLocaleDateString('es-DO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                  <h3 className="text-2xl font-bold text-white mb-1">Consultar mi Expediente</h3>
+                  <p className="text-slate-400 text-sm">Ingrese su número telefónico registrado para consultar el estado del proceso.</p>
                 </div>
-                <div className="bg-slate-800 p-3 rounded-xl border border-slate-700">
-                   <Receipt size={32} className="text-slate-400" />
+                <form onSubmit={handlePhoneLookup} className="space-y-4">
+                  <input 
+                    type="tel" 
+                    placeholder="Ej. 8095551234"
+                    value={lookupPhone}
+                    onChange={(e) => setLookupPhone(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 text-center font-mono text-lg"
+                    required
+                  />
+                  <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-sm font-medium transition-all shadow">
+                    Consultar Estado
+                  </button>
+                </form>
+
+                {lookupResult && !lookupResult.notFound && (
+                  <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl text-left space-y-2 mt-4 text-sm">
+                    <p className="font-bold text-white">{lookupResult.name}</p>
+                    <p className="text-slate-400">Trámite: <span className="text-white">{lookupResult.service}</span></p>
+                    <p className="text-slate-400">Estado: <span className="text-amber-400 font-medium">{lookupResult.status}</span></p>
+                    <p className="text-slate-400">Avance: <span className="text-emerald-400 font-bold">{lookupResult.progress}</span></p>
+                  </div>
+                )}
+                {lookupResult && lookupResult.notFound && (
+                  <p className="text-rose-400 text-xs">No se encontró ningún expediente con ese número telefónico.</p>
+                )}
+
+                <button onClick={() => setClientStep('identification')} className="text-xs text-blue-400 hover:underline">
+                  &larr; Volver al inicio
+                </button>
+              </div>
+            )}
+
+            {clientStep === 'identification' && (
+              <div className="flex-1 flex flex-col justify-center p-8 max-w-lg mx-auto my-auto space-y-6 w-full">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto border border-blue-500/20 mb-3">
+                    <UserCheck className="w-8 h-8 text-blue-500" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-white mb-1">Identificación del Solicitante</h2>
+                  <p className="text-slate-400 text-sm">Su número de teléfono será el identificador principal de su expediente y clave de acceso para gestiones migratorias hacia EE.UU.</p>
+                </div>
+
+                <form onSubmit={handleIdentificationSubmit} className="space-y-4">
+                  <div>
+                    <label className="text-xs text-slate-400 block mb-1">Nombre Completo *</label>
+                    <input 
+                      type="text" 
+                      value={clientInfo.fullName}
+                      onChange={(e) => setClientInfo({...clientInfo, fullName: e.target.value})}
+                      placeholder="Ej. Juan Pérez"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 block mb-1">Número de Teléfono (Identificador) *</label>
+                    <input 
+                      type="tel" 
+                      value={clientInfo.phone}
+                      onChange={(e) => setClientInfo({...clientInfo, phone: e.target.value})}
+                      placeholder="Ej. 8095551234"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 font-mono"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 block mb-1">Correo Electrónico (Opcional)</label>
+                    <input 
+                      type="email" 
+                      value={clientInfo.email}
+                      onChange={(e) => setClientInfo({...clientInfo, email: e.target.value})}
+                      placeholder="correo@ejemplo.com"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-slate-400 block mb-1">País de Residencia</label>
+                      <input 
+                        type="text" 
+                        value={clientInfo.country}
+                        onChange={(e) => setClientInfo({...clientInfo, country: e.target.value})}
+                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-400 block mb-1">Ciudad *</label>
+                      <input 
+                        type="text" 
+                        value={clientInfo.city}
+                        onChange={(e) => setClientInfo({...clientInfo, city: e.target.value})}
+                        placeholder="Ej. Santo Domingo"
+                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-xl text-sm font-medium transition-all shadow-lg mt-2">
+                    Continuar a Servicios
+                  </button>
+                </form>
+
+                <div className="text-center pt-2 border-t border-slate-800/80">
+                  <button onClick={() => setClientStep('lookup')} className="text-xs text-slate-400 hover:text-white">
+                    ¿Ya tienes un expediente iniciado? <span className="text-blue-400 font-medium">Consúltalo aquí</span>
+                  </button>
                 </div>
               </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                <div className="bg-[#0f172a] p-6 rounded-2xl border border-slate-800 flex flex-col justify-center">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Efectivo Recibido</p>
-                  <p className="text-4xl font-black text-emerald-400">RD${stats.cash.toFixed(0)}</p>
+            )}
+
+            {clientStep === 'services' && (
+              <div className="flex-1 flex flex-col justify-center p-8 max-w-3xl mx-auto my-auto text-center space-y-6">
+                <div>
+                  <h2 className="text-3xl font-bold text-white mb-2">Selecciona tu Servicio Migratorio</h2>
+                  <p className="text-slate-400 text-sm">Expediente especializado EE.UU. a nombre de <strong className="text-white">{clientInfo.fullName}</strong> ({clientInfo.phone})</p>
                 </div>
-                <div className="bg-[#0f172a] p-6 rounded-2xl border border-slate-800 flex flex-col justify-center">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-amber-500"></div> Créditos Otorgados</p>
-                  <p className="text-4xl font-black text-amber-500">RD${stats.credit.toFixed(0)}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                  {servicesList.map((srv) => (
+                    <div 
+                      key={srv.id}
+                      onClick={() => handleSelectService(srv)}
+                      className="bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-blue-500/50 p-5 rounded-xl flex flex-col justify-between transition-all cursor-pointer group">
+                      <div>
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-semibold text-white group-hover:text-blue-400 transition-colors">{srv.title}</h4>
+                          <span className="text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-1 rounded-lg text-sm">${srv.price} USD</span>
+                        </div>
+                        <p className="text-xs text-slate-400 mb-4">{srv.desc}</p>
+                      </div>
+                      <div className="flex justify-between items-center pt-3 border-t border-slate-800 text-xs">
+                        <span className="text-slate-500">Formulario: <strong className="text-slate-300">{srv.form}</strong></span>
+                        <span className="text-blue-400 flex items-center gap-1 font-medium">Seleccionar <ChevronRight className="w-3.5 h-3.5" /></span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-              
-              <div className="bg-[#0f172a] p-6 rounded-2xl border border-slate-800 flex justify-between items-center mb-8">
-                  <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Total Ventas</span>
-                  <span className="text-3xl font-black text-white">RD${stats.total.toFixed(0)}</span>
+            )}
+
+            {clientStep === 'payment' && selectedService && (
+              <div className="flex-1 flex flex-col justify-center p-8 max-w-lg mx-auto my-auto text-center space-y-6">
+                <div className="w-16 h-16 bg-emerald-600/10 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20">
+                  <CreditCard className="w-8 h-8 text-emerald-400" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-white mb-1">Confirmación de Gestión EE.UU.</h3>
+                  <p className="text-slate-400 text-sm">{selectedService.title}</p>
+                </div>
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl text-left space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-400">Honorarios del servicio:</span>
+                    <span className="font-bold text-white">${selectedService.price} USD</span>
+                  </div>
+                  <div className="flex justify-between text-sm border-t border-slate-800 pt-3">
+                    <span className="text-slate-400">Tasas consulares oficiales:</span>
+                    <span className="text-slate-300 text-xs italic">Se pagan por separado ante la Embajada</span>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => setClientStep('services')} className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-3 rounded-xl text-sm font-medium">
+                    Regresar
+                  </button>
+                  <button onClick={handleConfirmPayment} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-sm font-medium shadow-lg">
+                    Pagar y Comenzar Entrevista
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {clientStep === 'interview' && (
+              <div className="flex-1 flex flex-col h-[650px]">
+                <div className="bg-slate-900 border-b border-slate-800 p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white">AI</div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-white">Gestor Experto Migratorio EE.UU.</h3>
+                      <p className="text-xs text-emerald-400 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Entrevista técnica en curso</p>
+                    </div>
+                  </div>
+                  <span className="text-xs bg-slate-800 text-slate-300 px-3 py-1 rounded-full">
+                    Pregunta {interviewIndex + 1} de {getInterviewFlow(selectedService.id).length}
+                  </span>
+                </div>
+
+                <div className="flex-1 p-6 overflow-y-auto space-y-4 flex flex-col justify-end">
+                  <div className="flex items-start gap-3 max-w-xl">
+                    <div className="w-8 h-8 rounded-full bg-blue-600 flex-shrink-0 flex items-center justify-center text-xs font-bold text-white">AI</div>
+                    <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl rounded-tl-none text-slate-200">
+                      <p className="text-sm leading-relaxed">{getInterviewFlow(selectedService.id)[interviewIndex].question}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-slate-900 border-t border-slate-800">
+                  {getInterviewFlow(selectedService.id)[interviewIndex].type === 'select' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {getInterviewFlow(selectedService.id)[interviewIndex].options.map((opt, idx) => (
+                        <button key={idx} onClick={() => handleAnswerSubmit(opt)} className="bg-slate-800 hover:bg-blue-600 hover:text-white border border-slate-700 p-3 rounded-xl text-left text-sm font-medium">
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input 
+                        type="text"
+                        value={currentInput}
+                        onChange={(e) => setCurrentInput(e.target.value)}
+                        placeholder="Escriba su respuesta con precisión..."
+                        className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500"
+                        onKeyDown={(e) => e.key === 'Enter' && currentInput && handleAnswerSubmit(currentInput)}
+                      />
+                      <button onClick={() => currentInput && handleAnswerSubmit(currentInput)} disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-500 text-white px-6 rounded-xl flex items-center justify-center">
+                        <Send className="w-5 h-5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {clientStep === 'dashboard' && (
+              <div className="flex-1 p-6 md:p-8 space-y-6 overflow-y-auto">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-900 border border-slate-800 p-6 rounded-2xl gap-4">
+                  <div>
+                    <span className="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full font-medium">Expediente EE.UU. Generado Automáticamente</span>
+                    <h3 className="text-2xl font-bold text-white mt-2">Expediente: {clientInfo.phone}_EXP_{new Date().toISOString().slice(0, 10).replace(/-/g, '')}.pdf</h3>
+                    <p className="text-slate-400 text-sm mt-1">{formspreeStatus || 'Enviado automáticamente a pintubeservi@gmail.com'}</p>
+                  </div>
+                  <button onClick={() => setClientStep('chat')} className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 shadow-lg">
+                    <MessageSquare className="w-4 h-4" /> Consultar al Gestor Experto
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                    <h4 className="font-semibold text-white flex items-center gap-2"><FolderOpen className="w-5 h-5 text-blue-500" /> Documentos Consulares</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 bg-slate-800/50 border border-slate-700 rounded-xl">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="w-5 h-5 text-emerald-400" />
+                          <span className="text-sm font-medium">Pasaporte Vigente EE.UU. / RD</span>
+                        </div>
+                        <span className="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded">Verificado</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                    <h4 className="font-semibold text-white flex items-center gap-2"><FileText className="w-5 h-5 text-blue-500" /> Resumen del Expediente</h4>
+                    <div className="space-y-2 text-sm text-slate-300 bg-slate-800/40 p-4 rounded-xl border border-slate-700 max-h-48 overflow-y-auto">
+                      <p><strong>Titular:</strong> {clientInfo.fullName}</p>
+                      <p><strong>Teléfono ID:</strong> {clientInfo.phone}</p>
+                      <p><strong>Ubicación:</strong> {clientInfo.city}, {clientInfo.country}</p>
+                      {Object.entries(answers).map(([key, val], idx) => (
+                        <div key={idx} className="border-t border-slate-700/50 pt-1 mt-1">
+                          <span className="text-slate-400 capitalize">{key}:</span> <span className="text-white">{val}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {clientStep === 'chat' && (
+              <div className="flex-1 flex flex-col h-[650px]">
+                <div className="bg-slate-900 border-b border-slate-800 p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white">GM</div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-white">Gestor y Consultor Experto EE.UU.</h3>
+                      <p className="text-xs text-emerald-400 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Disponible para responder cualquier inquietud</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setClientStep('dashboard')} className="text-xs bg-slate-800 text-white px-3 py-1.5 rounded-lg">Regresar al Expediente</button>
+                </div>
+
+                <div className="flex-1 p-6 overflow-y-auto space-y-4 flex flex-col">
+                  {messages.map((m, idx) => (
+                    <div key={idx} className={`flex ${m.sender === 'client' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-xl p-4 rounded-2xl text-sm leading-relaxed ${m.sender === 'client' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none'}`}>
+                        {m.text}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-4 bg-slate-900 border-t border-slate-800 flex gap-2">
+                  <input 
+                    type="text"
+                    value={newMessageText}
+                    onChange={(e) => setNewMessageText(e.target.value)}
+                    placeholder="Consulte sobre visados, tiempos, costos, requisitos o citas consulares..."
+                    className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500"
+                    onKeyDown={(e) => e.key === 'Enter' && sendClientMessage()}
+                  />
+                  <button onClick={sendClientMessage} className="bg-blue-600 text-white px-6 rounded-xl flex items-center justify-center"><Send className="w-5 h-5" /></button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'consultant-panel' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-slate-950 border border-slate-800 p-5 rounded-2xl">
+                <p className="text-xs text-slate-400 font-medium">Expedientes Activos</p>
+                <p className="text-3xl font-bold text-white mt-1">42</p>
+              </div>
+              <div className="bg-slate-950 border border-slate-800 p-5 rounded-2xl">
+                <p className="text-xs text-slate-400 font-medium">Por Aprobar</p>
+                <p className="text-3xl font-bold text-amber-400 mt-1">8</p>
+              </div>
+              <div className="bg-slate-950 border border-slate-800 p-5 rounded-2xl">
+                <p className="text-xs text-slate-400 font-medium">Enviados a Formspree</p>
+                <p className="text-3xl font-bold text-emerald-400 mt-1">24</p>
+              </div>
+              <div className="bg-slate-950 border border-slate-800 p-5 rounded-2xl">
+                <p className="text-xs text-slate-400 font-medium">Ingresos Mes</p>
+                <p className="text-3xl font-bold text-blue-400 mt-1">$4,320 USD</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 space-y-6">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h3 className="text-lg font-bold text-white">Panel de Control y Búsqueda por Teléfono</h3>
+                <div className="relative w-full md:w-72">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
+                  <input 
+                    type="text" 
+                    placeholder="Buscar por teléfono o nombre..." 
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
               </div>
 
-              <button onClick={generarCierre} className="w-full bg-red-600 hover:bg-red-500 text-white py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-colors shadow-[0_4px_20px_rgba(239,68,68,0.25)]">
-                <Download size={24}/> Imprimir Cierre y Descargar
-              </button>
-              <p className="text-center text-xs text-slate-500 mt-4">Esta acción reiniciará la caja a cero.</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-800 text-xs text-slate-400 uppercase">
+                      <th className="py-3 px-4">Teléfono (ID)</th>
+                      <th className="py-3 px-4">Cliente</th>
+                      <th className="py-3 px-4">Trámite EE.UU.</th>
+                      <th className="py-3 px-4">Estado PDF</th>
+                      <th className="py-3 px-4 text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm divide-y divide-slate-800/60">
+                    <tr>
+                      <td className="py-4 px-4 font-mono text-blue-400">8095551234</td>
+                      <td className="py-4 px-4 font-medium text-white">Carlos Martínez</td>
+                      <td className="py-4 px-4 text-slate-300">Visa de Turista (<span className="text-blue-400 font-mono text-xs">DS-160</span>)</td>
+                      <td className="py-4 px-4"><span className="bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full text-xs">Enviado Formspree</span></td>
+                      <td className="py-4 px-4 text-right">
+                        <button onClick={() => setSelectedClientDetail({ name: 'Carlos Martínez', phone: '8095551234', form: 'DS-160' })} className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium inline-flex items-center gap-1">
+                          <Eye className="w-3.5 h-3.5" /> Revisar
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
-      </div>
+      </main>
 
-      {/* NAVEGACIÓN MÓVIL (SIN BOT) */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-[#1e293b]/95 backdrop-blur-md border-t border-slate-800 flex justify-around p-2 z-[20] pb-safe">
-        <button onClick={() => setActiveView('pos')} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${activeView === 'pos' ? 'text-red-500 bg-red-500/10' : 'text-slate-500'}`}><LayoutDashboard size={20} /><span className="text-[10px] font-bold">POS</span></button>
-        <button onClick={() => requestAdminAccess('history')} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${activeView === 'history' ? 'text-red-500 bg-red-500/10' : 'text-slate-500'}`}><HistoryIcon size={20} /><span className="text-[10px] font-bold">Órdenes</span></button>
-        <button onClick={() => requestAdminAccess('cierre')} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${activeView === 'cierre' ? 'text-red-500 bg-red-500/10' : 'text-slate-500'}`}><Receipt size={20} /><span className="text-[10px] font-bold">Cierre</span></button>
-      </nav>
+      {selectedClientDetail && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-950 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-6 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+              <div>
+                <h3 className="text-lg font-bold text-white">Expediente: {selectedClientDetail.phone}</h3>
+                <p className="text-xs text-slate-400">Titular: {selectedClientDetail.name}</p>
+              </div>
+              <button onClick={() => setSelectedClientDetail(null)} className="text-slate-400 hover:text-white p-1"><X className="w-5 h-5" /></button>
+            </div>
+
+            <div className="space-y-4 text-sm text-slate-300">
+              <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                <p className="text-xs text-slate-400 font-medium">Archivo PDF generado:</p>
+                <p className="font-mono text-xs text-emerald-400">{selectedClientDetail.phone}_EXP_20260729.pdf</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button className="bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 p-2.5 rounded-lg text-xs font-medium hover:bg-emerald-600 hover:text-white flex items-center justify-center gap-1">
+                  <Check className="w-4 h-4" /> Aprobar Expediente
+                </button>
+                <button className="bg-blue-600/20 text-blue-400 border border-blue-500/30 p-2.5 rounded-lg text-xs font-medium hover:bg-blue-600 hover:text-white flex items-center justify-center gap-1">
+                  <FileText className="w-4 h-4" /> Ver Formulario
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button onClick={() => setSelectedClientDetail(null)} className="bg-slate-800 text-white px-5 py-2 rounded-xl text-sm font-medium">Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
