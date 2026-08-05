@@ -4,28 +4,23 @@ import React, { useState } from 'react';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loginForm, setLoginForm] = useState({ name: '', password: '', role: 'cajero' });
+  const [loginForm, setLoginForm] = useState({ name: '', password: '', role: 'cajero', openingBalance: '2500' });
   const [currentUser, setCurrentUser] = useState({ name: '', role: 'cajero' });
 
   const [activeTab, setActiveTab] = useState('pos');
   const [shiftOpen, setShiftOpen] = useState(true);
   
   const [cashRegister, setCashRegister] = useState({
-    openingBalance: 2500,
-    cashSales: 4850,
-    cardSales: 3200,
-    cashIn: 1000,
-    cashOut: 650
+    openingBalance: 0,
+    cashSales: 0,
+    cardSales: 0,
+    cashIn: 0,
+    cashOut: 0
   });
 
-  const [cashMovements, setCashMovements] = useState([
-    { id: 1, type: 'IN', amount: 1000, reason: 'Aporte para cambio de sencillo', time: '09:15 AM' },
-    { id: 2, type: 'OUT', amount: 650, reason: 'Pago de hielo y suministro urgente', time: '11:40 AM' }
-  ]);
-  
+  const [cashMovements, setCashMovements] = useState([]);
   const [movementForm, setMovementForm] = useState({ type: 'IN', amount: '', reason: '' });
   const [showShiftModal, setShowShiftModal] = useState(false);
-  const [adminPasswordInput, setAdminPasswordInput] = useState('');
 
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,44 +38,37 @@ export default function App() {
 
   const [cart, setCart] = useState([]);
   const [orderType, setOrderType] = useState('Para Comer Aquí');
-  
-  const [kitchenOrders, setKitchenOrders] = useState([
-    {
-      id: 101,
-      orderType: 'Para Comer Aquí',
-      items: [
-        { name: 'Yaroa Mixta Especial', qty: 1 },
-        { name: 'Refresco Botella 20oz', qty: 1 }
-      ],
-      status: 'En Preparación',
-      time: '12:04 PM',
-      total: 410,
-      cashier: 'Ana Pérez'
-    }
-  ]);
-
+  const [kitchenOrders, setKitchenOrders] = useState([]);
   const [orderHistory, setOrderHistory] = useState([]);
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (!loginForm.name.trim() || !loginForm.password.trim()) {
-      alert('Por favor ingresa tu nombre y contraseña');
+    if (!loginForm.name.trim() || !loginForm.password.trim() || !loginForm.openingBalance) {
+      alert('Por favor completa todos los campos, incluyendo el fondo inicial.');
       return;
     }
 
     if (loginForm.role === 'admin' && loginForm.password !== '1221') {
-      alert('Contraseña de Administrador incorrecta (Debe ser 1221)');
+      alert('Contraseña de Administrador incorrecta.');
       return;
-    }
-
-    if (loginForm.role === 'cajero' && loginForm.password !== '1221' && loginForm.password !== '1234') {
-      // Permitir cualquier contraseña o fijarla si se prefiere
     }
 
     setCurrentUser({
       name: loginForm.name,
       role: loginForm.role
     });
+
+    setCashRegister({
+      openingBalance: parseFloat(loginForm.openingBalance) || 0,
+      cashSales: 0,
+      cardSales: 0,
+      cashIn: 0,
+      cashOut: 0
+    });
+
+    setCashMovements([]);
+    setOrderHistory([]);
+    setKitchenOrders([]);
     setIsLoggedIn(true);
   };
 
@@ -115,7 +103,8 @@ export default function App() {
       status: 'Pendiente',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       total: cartTotal,
-      cashier: currentUser.name
+      cashier: currentUser.name,
+      paymentMethod
     };
 
     setKitchenOrders([newOrder, ...kitchenOrders]);
@@ -154,7 +143,7 @@ export default function App() {
   };
 
   const handleDeleteOrder = (orderId) => {
-    const pwd = prompt('Ingrese la contraseña de Administrador (1221) para eliminar el ticket:');
+    const pwd = prompt('Ingrese la contraseña de Administrador para eliminar el ticket:');
     if (pwd === '1221') {
       setKitchenOrders(kitchenOrders.filter(o => o.id !== orderId));
       alert('Ticket eliminado correctamente.');
@@ -165,10 +154,15 @@ export default function App() {
 
   const handleTriggerShiftClosure = () => {
     if (currentUser.role !== 'admin') {
-      alert('Acceso denegado. Solo el Administrador puede generar el cierre de turno.');
+      const pwd = prompt('Acceso restringido. Ingrese contraseña de Administrador para generar el cierre:');
+      if (pwd === '1221') {
+        setShowShiftModal(true);
+      } else if (pwd !== null) {
+        alert('Contraseña incorrecta.');
+      }
       return;
     }
-    const pwd = prompt('Ingrese contraseña de Administrador (1221) para confirmar el Cierre de Turno:');
+    const pwd = prompt('Ingrese contraseña de Administrador para confirmar el Cierre de Turno:');
     if (pwd === '1221') {
       setShowShiftModal(true);
     } else if (pwd !== null) {
@@ -187,16 +181,17 @@ export default function App() {
 
   const sendWhatsAppClosure = () => {
     const message = encodeURIComponent(
-      `*REPORTE CIERRE DE TURNO - XIIAO KITCHEN*\n\n` +
-      `👤 Administrador/Cajero: ${currentUser.name}\n` +
+      `*REPORTE DE CIERRE DE TURNO - XIIAO KITCHEN*\n\n` +
+      `👤 Cajera/Operador: ${currentUser.name}\n` +
       `📅 Fecha: ${new Date().toLocaleDateString()}\n\n` +
-      `• Fondo Inicial: RD$ ${cashRegister.openingBalance}\n` +
-      `• Ventas Efectivo: RD$ ${cashRegister.cashSales}\n` +
-      `• Ventas Tarjeta: RD$ ${cashRegister.cardSales}\n` +
-      `• Entradas Extra: RD$ ${cashRegister.cashIn}\n` +
+      `• Fondo Inicial de Caja: RD$ ${cashRegister.openingBalance}\n` +
+      `• Ventas en Efectivo: RD$ ${cashRegister.cashSales}\n` +
+      `• Ventas con Tarjeta: RD$ ${cashRegister.cardSales}\n` +
+      `• Entradas Extra de Efectivo: RD$ ${cashRegister.cashIn}\n` +
       `• Salidas / Retiros: RD$ ${cashRegister.cashOut}\n` +
-      `• *TOTAL ESPERADO EN CAJA: RD$ ${expectedCashInBox}*\n` +
-      `• *VENTAS TOTALES: RD$ ${totalShiftSales}*`
+      `• *EFECTIVO ESPERADO EN CAJA: RD$ ${expectedCashInBox}*\n` +
+      `• *VENTAS TOTALES DEL TURNO: RD$ ${totalShiftSales}*\n` +
+      `• Total de Órdenes Atendidas: ${orderHistory.length}`
     );
     window.open(`https://wa.me/18298558779?text=${message}`, '_blank');
   };
@@ -218,7 +213,7 @@ export default function App() {
           <div style={{ textAlign: 'center', marginBottom: '20px' }}>
             <div style={{ fontSize: '40px', marginBottom: '10px' }}>🍽️</div>
             <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 'bold' }}>Xiiao <span style={{ color: '#f97316' }}>Kitchen POS</span></h1>
-            <p style={{ color: '#94a3b8', fontSize: '13px', marginTop: '5px' }}>Ingrese su nombre y clave para iniciar turno</p>
+            <p style={{ color: '#94a3b8', fontSize: '13px', marginTop: '5px' }}>Configure su turno de caja para iniciar</p>
           </div>
 
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
@@ -235,18 +230,30 @@ export default function App() {
             </div>
 
             <div>
+              <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '5px' }}>Fondo Inicial en Caja (RD$)</label>
+              <input
+                type="number"
+                placeholder="2500"
+                value={loginForm.openingBalance}
+                onChange={(e) => setLoginForm({ ...loginForm, openingBalance: e.target.value })}
+                style={s.input}
+                required
+              />
+            </div>
+
+            <div>
               <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '5px' }}>Rol en el Sistema</label>
               <select
                 value={loginForm.role}
                 onChange={(e) => setLoginForm({ ...loginForm, role: e.target.value })}
                 style={s.input}>
                 <option value="cajero">Cajero / Operador</option>
-                <option value="admin">Administrador (Clave: 1221)</option>
+                <option value="admin">Administrador</option>
               </select>
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '5px' }}>Contraseña (Admin usa 1221)</label>
+              <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '5px' }}>Contraseña de Acceso</label>
               <input
                 type="password"
                 placeholder="••••"
@@ -417,7 +424,7 @@ export default function App() {
 
                       <button
                         onClick={() => handleDeleteOrder(order.id)}
-                        title="Eliminar ticket (Requiere Admin 1221)"
+                        title="Eliminar ticket (Requiere Admin)"
                         style={{ backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
                         🗑️
                       </button>
@@ -436,11 +443,7 @@ export default function App() {
                 <h2 style={{ margin: 0, fontSize: '18px' }}>Control de Caja & Cierre de Turno</h2>
                 <p style={{ margin: '3px 0 0 0', color: '#94a3b8', fontSize: '12px' }}>Gestión de efectivo y arqueo en tiempo real</p>
               </div>
-              {currentUser.role === 'admin' ? (
-                <button onClick={handleTriggerShiftClosure} style={{ ...s.btnPrimary, width: 'auto', padding: '10px 15px', fontSize: '13px' }}>Generar Cierre de Turno</button>
-              ) : (
-                <button onClick={handleTriggerShiftClosure} style={{ backgroundColor: '#334155', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer' }}>🔐 Generar Cierre (Admin 1221)</button>
-              )}
+              <button onClick={handleTriggerShiftClosure} style={{ ...s.btnPrimary, width: 'auto', padding: '10px 15px', fontSize: '13px' }}>Generar Cierre de Turno</button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', marginBottom: '15px' }}>
@@ -474,11 +477,14 @@ export default function App() {
               <div style={{ ...s.card, gridColumn: 'span 2' }}>
                 <h3 style={{ marginTop: 0, fontSize: '15px' }}>Historial de Órdenes y Movimientos del Turno</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto' }}>
+                  {orderHistory.length === 0 && cashMovements.length === 0 && (
+                    <p style={{ color: '#64748b', fontSize: '12px', textAlign: 'center', margin: '20px 0' }}>No hay registros en este turno todavía.</p>
+                  )}
                   {orderHistory.map(ord => (
                     <div key={ord.id} style={{ backgroundColor: '#0f172a', padding: '8px 12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
-                        <div style={{ fontSize: '12px', fontWeight: 'bold' }}>Ticket #{ord.id} ({ord.orderType}) - {ord.cashier}</div>
-                        <span style={{ fontSize: '10px', color: '#64748b' }}>{ord.time}</span>
+                        <div style={{ fontSize: '12px', fontWeight: 'bold' }}>Ticket #{ord.id} ({ord.orderType}) - Pago: {ord.paymentMethod}</div>
+                        <span style={{ fontSize: '10px', color: '#64748b' }}>{ord.time} | Cajero: {ord.cashier}</span>
                       </div>
                       <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#22c55e' }}>+RD$ {ord.total}</span>
                     </div>
@@ -504,7 +510,7 @@ export default function App() {
           <div style={{ flex: 1, padding: '15px', overflowY: 'auto' }}>
             <div style={s.card}>
               <h2 style={{ marginTop: 0, fontSize: '18px' }}>Panel de Administración</h2>
-              <p style={{ color: '#94a3b8', fontSize: '13px' }}>Contraseña administrativa activa: <b>1221</b></p>
+              <p style={{ color: '#94a3b8', fontSize: '13px' }}>Control de privilegios y auditoría de turno.</p>
               <table style={{ width: '100%', marginTop: '15px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #334155', color: '#94a3b8', fontSize: '11px' }}>
@@ -517,7 +523,7 @@ export default function App() {
                   <tr style={{ borderBottom: '1px solid #334155' }}>
                     <td style={{ padding: '8px', fontWeight: 'bold' }}>{currentUser.name}</td>
                     <td style={{ padding: '8px' }}><span style={{ backgroundColor: '#f97316', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>Admin</span></td>
-                    <td style={{ padding: '8px', color: '#94a3b8' }}>Acceso a Cierre de Turno y Eliminación de Tickets (Clave 1221)</td>
+                    <td style={{ padding: '8px', color: '#94a3b8' }}>Acceso total a Cierre de Turno, Historial y Eliminación de Tickets</td>
                   </tr>
                 </tbody>
               </table>
@@ -529,25 +535,26 @@ export default function App() {
       {showShiftModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '15px' }}>
           <div style={{ ...s.card, width: '100%', maxWidth: '420px', backgroundColor: '#0f172a', border: '1px solid #334155' }}>
-            <h3 style={{ marginTop: 0, borderBottom: '1px solid #334155', paddingBottom: '10px', fontSize: '16px' }}>Cierre de Turno & WhatsApp</h3>
+            <h3 style={{ marginTop: 0, borderBottom: '1px solid #334155', paddingBottom: '10px', fontSize: '16px' }}>Reporte de Cierre de Turno & WhatsApp</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', margin: '12px 0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Usuario:</span> <b>{currentUser.name}</b></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Cajera/Operador:</span> <b>{currentUser.name}</b></div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Fondo Inicial:</span> <b>RD$ {cashRegister.openingBalance}</b></div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Ventas Efectivo:</span> <b style={{ color: '#f97316' }}>+ RD$ {cashRegister.cashSales}</b></div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Ventas Tarjeta:</span> <b>+ RD$ {cashRegister.cardSales}</b></div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Entradas / Salidas:</span> <b>+{cashRegister.cashIn} / -{cashRegister.cashOut}</b></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Total Órdenes:</span> <b>{orderHistory.length} tickets</b></div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #334155', paddingTop: '8px', fontSize: '15px' }}>
-                <span>TOTAL ESPERADO:</span> <b style={{ color: '#f97316' }}>RD$ {expectedCashInBox}</b>
+                <span>EFECTIVO ESPERADO:</span> <b style={{ color: '#f97316' }}>RD$ {expectedCashInBox}</b>
               </div>
             </div>
-            <p style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '15px' }}>Se enviará este reporte automáticamente vía WhatsApp al número <b>8298558779</b>.</p>
+            <p style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '15px' }}>Se enviará el reporte completo vía WhatsApp al número <b>8298558779</b>.</p>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={() => setShowShiftModal(false)} style={{ ...s.btnPrimary, backgroundColor: '#334155', padding: '10px', fontSize: '13px' }}>Cancelar</button>
               <button onClick={() => {
                 sendWhatsAppClosure();
                 setShiftOpen(false);
                 setShowShiftModal(false);
-                alert('¡Cierre generado y enviado a WhatsApp!');
+                alert('¡Cierre generado y enviado a WhatsApp exitosamente!');
               }} style={{ ...s.btnPrimary, backgroundColor: '#22c55e', padding: '10px', fontSize: '13px' }}>Enviar a WhatsApp</button>
             </div>
           </div>
