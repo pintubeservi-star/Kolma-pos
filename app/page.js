@@ -1,9 +1,6 @@
+'use client';
+
 import React, { useState } from 'react';
-import { 
-  Utensils, ShoppingCart, DollarSign, Clock, Shield, User, 
-  Plus, Minus, Trash2, Check, AlertCircle, LogOut, 
-  ArrowUpRight, ArrowDownRight, Printer, Lock, Search, Grid, List
-} from 'lucide-react';
 
 export default function App() {
   // SESIÓN Y USUARIOS
@@ -160,8 +157,8 @@ export default function App() {
       {/* HEADER PRINCIPAL */}
       <header className="bg-neutral-950 border-b border-neutral-800 px-6 py-4 flex justify-between items-center sticky top-0 z-50 shadow-lg">
         <div className="flex items-center gap-3">
-          <div className="bg-orange-600 text-white p-2.5 rounded-xl font-bold flex items-center justify-center shadow-lg shadow-orange-600/30">
-            <Utensils className="w-6 h-6" />
+          <div className="bg-orange-600 text-white p-2.5 rounded-xl font-bold flex items-center justify-center shadow-lg shadow-orange-600/30 text-lg">
+            🍽️
           </div>
           <div>
             <h1 className="text-xl font-black tracking-tight text-white uppercase">
@@ -202,7 +199,7 @@ export default function App() {
             <button 
               onClick={() => setActiveTab('admin')}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1 ${activeTab === 'admin' ? 'bg-orange-600 text-white shadow-md' : 'text-neutral-400 hover:text-white'}`}>
-              <Shield className="w-3.5 h-3.5" /> Admin
+              🛡️ Admin
             </button>
           )}
         </div>
@@ -210,7 +207,7 @@ export default function App() {
         {/* SELECTOR DE USUARIO Y ROLES */}
         <div className="flex items-center gap-3">
           <div className="bg-neutral-900 border border-neutral-800 px-3 py-1.5 rounded-xl flex items-center gap-2">
-            <User className="w-4 h-4 text-orange-500" />
+            <span className="text-orange-500 text-sm">👤</span>
             <select
               value={currentUser.role}
               onChange={(e) => {
@@ -256,7 +253,7 @@ export default function App() {
 
                 {/* BUSCADOR */}
                 <div className="relative w-full md:w-64">
-                  <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-3" />
+                  <span className="absolute left-3 top-2.5 text-neutral-400">🔍</span>
                   <input
                     type="text"
                     placeholder="Buscar plato..."
@@ -298,11 +295,11 @@ export default function App() {
               <div className="flex flex-col gap-4 overflow-hidden flex-1">
                 <div className="flex justify-between items-center pb-3 border-b border-neutral-800">
                   <h3 className="font-bold text-lg text-white flex items-center gap-2">
-                    <ShoppingCart className="w-5 h-5 text-orange-500" /> Orden Actual
+                    🛒 Orden Actual
                   </h3>
                   {cart.length > 0 && (
-                    <button onClick={clearCart} className="text-xs text-neutral-500 hover:text-orange-400 flex items-center gap-1">
-                      <Trash2 className="w-3.5 h-3.5" /> Limpiar
+                    <button onClick={clearCart} className="text-xs text-neutral-500 hover:text-orange-400">
+                      🗑️ Limpiar
                     </button>
                   )}
                 </div>
@@ -323,7 +320,7 @@ export default function App() {
                 <div className="flex-1 overflow-y-auto space-y-3 pr-1">
                   {cart.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-neutral-600 text-center space-y-2">
-                      <Utensils className="w-10 h-10 stroke-1" />
+                      <div className="text-4xl">🍽️</div>
                       <p className="text-sm">Selecciona productos del catálogo para armar la orden</p>
                     </div>
                   ) : (
@@ -390,7 +387,7 @@ export default function App() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {kitchenOrders.length === 0 ? (
                 <div className="col-span-full py-20 text-center text-neutral-600">
-                  <Check className="w-12 h-12 mx-auto mb-2 stroke-1" />
+                  <div className="text-4xl mb-2">✔️</div>
                   <p className="text-base font-semibold">No hay órdenes pendientes en cocina</p>
                 </div>
               ) : (
@@ -406,8 +403,8 @@ export default function App() {
                           </span>
                           <p className="text-xs text-orange-500 font-bold mt-2">{order.orderType}</p>
                         </div>
-                        <span className="text-xs text-neutral-400 flex items-center gap-1 font-mono">
-                          <Clock className="w-3.5 h-3.5" /> {order.time}
+                        <span className="text-xs text-neutral-400 font-mono">
+                          🕒 {order.time}
                         </span>
                       </div>
 
@@ -466,7 +463,7 @@ export default function App() {
               <button
                 onClick={() => setShowShiftModal(true)}
                 className="bg-orange-600 hover:bg-orange-500 text-white font-bold px-6 py-3 rounded-xl text-sm shadow-lg shadow-orange-600/20 flex items-center gap-2">
-                <Printer className="w-4 h-4" /> Generar Cierre de Turno
+                🖨️ Generar Cierre de Turno
               </button>
             </div>
 
@@ -552,8 +549,8 @@ export default function App() {
                     {cashMovements.map(m => (
                       <div key={m.id} className="bg-neutral-950 border border-neutral-800 p-4 rounded-xl flex justify-between items-center">
                         <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg ${m.type === 'IN' ? 'bg-white text-black' : 'bg-orange-600/20 text-orange-500'}`}>
-                            {m.type === 'IN' ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                          <div className={`p-2 rounded-lg font-bold text-xs ${m.type === 'IN' ? 'bg-white text-black' : 'bg-orange-600/20 text-orange-500'}`}>
+                            {m.type === 'IN' ? '↗' : '↘'}
                           </div>
                           <div>
                             <p className="text-sm font-semibold text-white">{m.reason}</p>
