@@ -3,13 +3,10 @@
 import React, { useState } from 'react';
 
 export default function App() {
-  // ESTADO DE AUTENTICACIÓN Y SESIÓN
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loginForm, setLoginForm] = useState({ name: '', password: '', role: 'cajero' });
-
   const [currentUser, setCurrentUser] = useState({ name: '', role: 'cajero' });
 
-  // NAVEGACIÓN
   const [activeTab, setActiveTab] = useState('pos');
   const [shiftOpen, setShiftOpen] = useState(true);
   
@@ -28,6 +25,7 @@ export default function App() {
   
   const [movementForm, setMovementForm] = useState({ type: 'IN', amount: '', reason: '' });
   const [showShiftModal, setShowShiftModal] = useState(false);
+  const [adminPasswordInput, setAdminPasswordInput] = useState('');
 
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,9 +54,12 @@ export default function App() {
       ],
       status: 'En Preparación',
       time: '12:04 PM',
-      total: 410
+      total: 410,
+      cashier: 'Ana Pérez'
     }
   ]);
+
+  const [orderHistory, setOrderHistory] = useState([]);
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -67,10 +68,13 @@ export default function App() {
       return;
     }
 
-    // Validación de contraseña para Admin
-    if (loginForm.role === 'admin' && loginForm.password !== 'admin123') {
-      alert('Contraseña de Administrador incorrecta (Usa: admin123)');
+    if (loginForm.role === 'admin' && loginForm.password !== '1221') {
+      alert('Contraseña de Administrador incorrecta (Debe ser 1221)');
       return;
+    }
+
+    if (loginForm.role === 'cajero' && loginForm.password !== '1221' && loginForm.password !== '1234') {
+      // Permitir cualquier contraseña o fijarla si se prefiere
     }
 
     setCurrentUser({
@@ -110,10 +114,12 @@ export default function App() {
       items: cart.map(item => ({ name: item.name, qty: item.qty })),
       status: 'Pendiente',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      total: cartTotal
+      total: cartTotal,
+      cashier: currentUser.name
     };
 
     setKitchenOrders([newOrder, ...kitchenOrders]);
+    setOrderHistory([newOrder, ...orderHistory]);
 
     if (paymentMethod === 'Efectivo') {
       setCashRegister(prev => ({ ...prev, cashSales: prev.cashSales + cartTotal }));
@@ -147,6 +153,29 @@ export default function App() {
     setMovementForm({ type: 'IN', amount: '', reason: '' });
   };
 
+  const handleDeleteOrder = (orderId) => {
+    const pwd = prompt('Ingrese la contraseña de Administrador (1221) para eliminar el ticket:');
+    if (pwd === '1221') {
+      setKitchenOrders(kitchenOrders.filter(o => o.id !== orderId));
+      alert('Ticket eliminado correctamente.');
+    } else if (pwd !== null) {
+      alert('Contraseña incorrecta.');
+    }
+  };
+
+  const handleTriggerShiftClosure = () => {
+    if (currentUser.role !== 'admin') {
+      alert('Acceso denegado. Solo el Administrador puede generar el cierre de turno.');
+      return;
+    }
+    const pwd = prompt('Ingrese contraseña de Administrador (1221) para confirmar el Cierre de Turno:');
+    if (pwd === '1221') {
+      setShowShiftModal(true);
+    } else if (pwd !== null) {
+      alert('Contraseña incorrecta.');
+    }
+  };
+
   const expectedCashInBox = cashRegister.openingBalance + cashRegister.cashSales + cashRegister.cashIn - cashRegister.cashOut;
   const totalShiftSales = cashRegister.cashSales + cashRegister.cardSales;
 
@@ -159,7 +188,7 @@ export default function App() {
   const sendWhatsAppClosure = () => {
     const message = encodeURIComponent(
       `*REPORTE CIERRE DE TURNO - XIIAO KITCHEN*\n\n` +
-      `👤 Cajera/Operador: ${currentUser.name}\n` +
+      `👤 Administrador/Cajero: ${currentUser.name}\n` +
       `📅 Fecha: ${new Date().toLocaleDateString()}\n\n` +
       `• Fondo Inicial: RD$ ${cashRegister.openingBalance}\n` +
       `• Ventas Efectivo: RD$ ${cashRegister.cashSales}\n` +
@@ -182,7 +211,6 @@ export default function App() {
     btnPrimary: { backgroundColor: '#f97316', color: '#ffffff', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', width: '100%' }
   };
 
-  // PANTALLA DE LOGIN
   if (!isLoggedIn) {
     return (
       <div style={{ ...s.app, justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
@@ -190,12 +218,12 @@ export default function App() {
           <div style={{ textAlign: 'center', marginBottom: '20px' }}>
             <div style={{ fontSize: '40px', marginBottom: '10px' }}>🍽️</div>
             <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 'bold' }}>Xiiao <span style={{ color: '#f97316' }}>Kitchen POS</span></h1>
-            <p style={{ color: '#94a3b8', fontSize: '13px', marginTop: '5px' }}>Inicia turno ingresando tus datos</p>
+            <p style={{ color: '#94a3b8', fontSize: '13px', marginTop: '5px' }}>Ingrese su nombre y clave para iniciar turno</p>
           </div>
 
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             <div>
-              <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '5px' }}>Tu Nombre / Cajera</label>
+              <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '5px' }}>Nombre del Operador / Cajera</label>
               <input
                 type="text"
                 placeholder="Ej: Ana Pérez"
@@ -213,15 +241,15 @@ export default function App() {
                 onChange={(e) => setLoginForm({ ...loginForm, role: e.target.value })}
                 style={s.input}>
                 <option value="cajero">Cajero / Operador</option>
-                <option value="admin">Administrador</option>
+                <option value="admin">Administrador (Clave: 1221)</option>
               </select>
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '5px' }}>Contraseña (admin123 para Admin)</label>
+              <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '5px' }}>Contraseña (Admin usa 1221)</label>
               <input
                 type="password"
-                placeholder="••••••••"
+                placeholder="••••"
                 value={loginForm.password}
                 onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
                 style={s.input}
@@ -238,7 +266,6 @@ export default function App() {
 
   return (
     <div style={s.app}>
-      {/* HEADER */}
       <header style={s.header}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ backgroundColor: '#f97316', color: 'white', padding: '8px', borderRadius: '8px', fontSize: '18px' }}>🍽️</div>
@@ -248,11 +275,10 @@ export default function App() {
           </div>
         </div>
 
-        {/* NAVEGACIÓN RESPONSIVE */}
         <div style={{ display: 'flex', gap: '5px', backgroundColor: '#0f172a', padding: '4px', borderRadius: '8px', border: '1px solid #334155', flexWrap: 'wrap' }}>
-          <button onClick={() => setActiveTab('pos')} style={s.navBtn(activeTab === 'pos')}>POS</button>
-          <button onClick={() => setActiveTab('cocina')} style={s.navBtn(activeTab === 'cocina')}>Cocina ({kitchenOrders.length})</button>
-          <button onClick={() => setActiveTab('caja')} style={s.navBtn(activeTab === 'caja')}>Caja</button>
+          <button onClick={() => setActiveTab('pos')} style={s.navBtn(activeTab === 'pos')}>Shopfront POS</button>
+          <button onClick={() => setActiveTab('cocina')} style={s.navBtn(activeTab === 'cocina')}>Cocina KDS ({kitchenOrders.length})</button>
+          <button onClick={() => setActiveTab('caja')} style={s.navBtn(activeTab === 'caja')}>Caja & Turno</button>
           {currentUser.role === 'admin' && (
             <button onClick={() => setActiveTab('admin')} style={s.navBtn(activeTab === 'admin')}>Admin</button>
           )}
@@ -260,17 +286,14 @@ export default function App() {
 
         <div>
           <button onClick={() => setIsLoggedIn(false)} style={{ backgroundColor: '#334155', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>
-            Salir
+            Cerrar Sesión
           </button>
         </div>
       </header>
 
-      {/* CONTENIDO PRINCIPAL */}
       <main style={{ ...s.main, flexDirection: 'column' }}>
-        {/* VISTA 1: POS */}
         {activeTab === 'pos' && (
           <div style={{ display: 'flex', flex: 1, flexDirection: 'column', overflow: 'hidden' }} className="md:flex-row">
-            {/* CATÁLOGO */}
             <div style={{ flex: 1, padding: '15px', overflowY: 'auto' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '15px' }} className="md:flex-row md:justify-between">
                 <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '5px' }}>
@@ -299,7 +322,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* CARRITO */}
             <div style={{ width: '100%', maxWidth: '350px', backgroundColor: '#1e293b', borderTop: '1px solid #334155', display: 'flex', flexDirection: 'column', padding: '15px', justifyContent: 'space-between' }} className="md:border-t-0 md:border-l">
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #334155', paddingBottom: '8px' }}>
@@ -350,7 +372,6 @@ export default function App() {
           </div>
         )}
 
-        {/* VISTA 2: COCINA (KDS) */}
         {activeTab === 'cocina' && (
           <div style={{ flex: 1, padding: '15px', overflowY: 'auto' }}>
             <h2 style={{ marginTop: 0, fontSize: '18px' }}>Pantalla de Cocina (KDS)</h2>
@@ -365,7 +386,10 @@ export default function App() {
                         <span style={{ fontWeight: 'bold', backgroundColor: '#0f172a', padding: '3px 6px', borderRadius: '4px', fontSize: '12px' }}>#ORD-{order.id}</span>
                         <span style={{ fontSize: '11px', color: '#94a3b8' }}>{order.time}</span>
                       </div>
-                      <p style={{ color: '#f97316', fontSize: '11px', fontWeight: 'bold' }}>{order.orderType}</p>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '8px' }}>
+                        <span style={{ color: '#f97316', fontWeight: 'bold' }}>{order.orderType}</span>
+                        <span style={{ color: '#cbd5e1' }}>Cajero: {order.cashier}</span>
+                      </div>
                       <div style={{ margin: '10px 0' }}>
                         {order.items.map((it, idx) => (
                           <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
@@ -381,22 +405,22 @@ export default function App() {
                         onClick={() => {
                           if (order.status === 'Pendiente') {
                             setKitchenOrders(kitchenOrders.map(o => o.id === order.id ? { ...o, status: 'En Preparación' } : o));
-                          } else {
+                          } else if (order.status === 'En Preparación') {
                             setKitchenOrders(kitchenOrders.map(o => o.id === order.id ? { ...o, status: 'Listo para Servir' } : o));
+                          } else {
+                            setKitchenOrders(kitchenOrders.filter(o => o.id !== order.id));
                           }
                         }}
-                        style={{ ...s.btnPrimary, flex: 1, padding: '8px', fontSize: '12px', backgroundColor: order.status === 'Pendiente' ? '#3b82f6' : '#22c55e' }}>
-                        {order.status === 'Pendiente' ? 'Preparar' : 'Listo'}
+                        style={{ ...s.btnPrimary, flex: 1, padding: '8px', fontSize: '12px', backgroundColor: order.status === 'Pendiente' ? '#3b82f6' : order.status === 'En Preparación' ? '#f59e0b' : '#22c55e' }}>
+                        {order.status === 'Pendiente' ? 'Preparar' : order.status === 'En Preparación' ? 'Marcar Listo' : 'Entregado (Quitar)'}
                       </button>
 
-                      {/* SOLO ADMIN PUEDE ELIMINAR / QUITAR TIKET */}
-                      {currentUser.role === 'admin' && (
-                        <button
-                          onClick={() => setKitchenOrders(kitchenOrders.filter(o => o.id !== order.id))}
-                          style={{ backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
-                          🗑️
-                        </button>
-                      )}
+                      <button
+                        onClick={() => handleDeleteOrder(order.id)}
+                        title="Eliminar ticket (Requiere Admin 1221)"
+                        style={{ backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
+                        🗑️
+                      </button>
                     </div>
                   </div>
                 ))
@@ -405,18 +429,17 @@ export default function App() {
           </div>
         )}
 
-        {/* VISTA 3: CAJA */}
         {activeTab === 'caja' && (
           <div style={{ flex: 1, padding: '15px', overflowY: 'auto' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', justifyContent: 'space-between', alignItems: 'flex-start', ...s.card, marginBottom: '15px' }} className="md:flex-row md:items-center">
               <div>
-                <h2 style={{ margin: 0, fontSize: '18px' }}>Control de Caja & Cierre</h2>
-                <p style={{ margin: '3px 0 0 0', color: '#94a3b8', fontSize: '12px' }}>Gestión de efectivo y arqueo final de turno</p>
+                <h2 style={{ margin: 0, fontSize: '18px' }}>Control de Caja & Cierre de Turno</h2>
+                <p style={{ margin: '3px 0 0 0', color: '#94a3b8', fontSize: '12px' }}>Gestión de efectivo y arqueo en tiempo real</p>
               </div>
               {currentUser.role === 'admin' ? (
-                <button onClick={() => setShowShiftModal(true)} style={{ ...s.btnPrimary, width: 'auto', padding: '10px 15px', fontSize: '13px' }}>Generar Cierre de Turno</button>
+                <button onClick={handleTriggerShiftClosure} style={{ ...s.btnPrimary, width: 'auto', padding: '10px 15px', fontSize: '13px' }}>Generar Cierre de Turno</button>
               ) : (
-                <span style={{ fontSize: '12px', color: '#f59e0b', backgroundColor: '#f59e0b20', padding: '6px 10px', borderRadius: '6px' }}>🔒 Solo el Administrador puede generar cierre de turno</span>
+                <button onClick={handleTriggerShiftClosure} style={{ backgroundColor: '#334155', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer' }}>🔐 Generar Cierre (Admin 1221)</button>
               )}
             </div>
 
@@ -449,12 +472,21 @@ export default function App() {
               </form>
 
               <div style={{ ...s.card, gridColumn: 'span 2' }}>
-                <h3 style={{ marginTop: 0, fontSize: '15px' }}>Historial de Movimientos</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto' }}>
+                <h3 style={{ marginTop: 0, fontSize: '15px' }}>Historial de Órdenes y Movimientos del Turno</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto' }}>
+                  {orderHistory.map(ord => (
+                    <div key={ord.id} style={{ backgroundColor: '#0f172a', padding: '8px 12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontSize: '12px', fontWeight: 'bold' }}>Ticket #{ord.id} ({ord.orderType}) - {ord.cashier}</div>
+                        <span style={{ fontSize: '10px', color: '#64748b' }}>{ord.time}</span>
+                      </div>
+                      <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#22c55e' }}>+RD$ {ord.total}</span>
+                    </div>
+                  ))}
                   {cashMovements.map(m => (
                     <div key={m.id} style={{ backgroundColor: '#0f172a', padding: '8px 12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
-                        <div style={{ fontSize: '12px', fontWeight: 'bold' }}>{m.reason}</div>
+                        <div style={{ fontSize: '12px', fontWeight: 'bold' }}>Movimiento: {m.reason}</div>
                         <span style={{ fontSize: '10px', color: '#64748b' }}>{m.time}</span>
                       </div>
                       <span style={{ fontWeight: 'bold', fontSize: '13px', color: m.type === 'IN' ? '#22c55e' : '#ef4444' }}>
@@ -468,25 +500,24 @@ export default function App() {
           </div>
         )}
 
-        {/* VISTA 4: ADMIN */}
         {activeTab === 'admin' && currentUser.role === 'admin' && (
           <div style={{ flex: 1, padding: '15px', overflowY: 'auto' }}>
             <div style={s.card}>
               <h2 style={{ marginTop: 0, fontSize: '18px' }}>Panel de Administración</h2>
-              <p style={{ color: '#94a3b8', fontSize: '13px' }}>Control de permisos de usuarios y parámetros del sistema.</p>
+              <p style={{ color: '#94a3b8', fontSize: '13px' }}>Contraseña administrativa activa: <b>1221</b></p>
               <table style={{ width: '100%', marginTop: '15px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #334155', color: '#94a3b8', fontSize: '11px' }}>
-                    <th style={{ padding: '8px' }}>Usuario Activo</th>
+                    <th style={{ padding: '8px' }}>Usuario Actual</th>
                     <th style={{ padding: '8px' }}>Rol</th>
-                    <th style={{ padding: '8px' }}>Acceso</th>
+                    <th style={{ padding: '8px' }}>Privilegios</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr style={{ borderBottom: '1px solid #334155' }}>
                     <td style={{ padding: '8px', fontWeight: 'bold' }}>{currentUser.name}</td>
                     <td style={{ padding: '8px' }}><span style={{ backgroundColor: '#f97316', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>Admin</span></td>
-                    <td style={{ padding: '8px', color: '#94a3b8' }}>Acceso Total (Cierre de Turno y Eliminación de Tickets)</td>
+                    <td style={{ padding: '8px', color: '#94a3b8' }}>Acceso a Cierre de Turno y Eliminación de Tickets (Clave 1221)</td>
                   </tr>
                 </tbody>
               </table>
@@ -495,21 +526,21 @@ export default function App() {
         )}
       </main>
 
-      {/* MODAL DE CIERRE DE TURNO */}
-      {showShiftModal && currentUser.role === 'admin' && (
+      {showShiftModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '15px' }}>
           <div style={{ ...s.card, width: '100%', maxWidth: '420px', backgroundColor: '#0f172a', border: '1px solid #334155' }}>
             <h3 style={{ marginTop: 0, borderBottom: '1px solid #334155', paddingBottom: '10px', fontSize: '16px' }}>Cierre de Turno & WhatsApp</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', margin: '12px 0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Cajera/Operador:</span> <b>{currentUser.name}</b></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Usuario:</span> <b>{currentUser.name}</b></div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Fondo Inicial:</span> <b>RD$ {cashRegister.openingBalance}</b></div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Ventas Efectivo:</span> <b style={{ color: '#f97316' }}>+ RD$ {cashRegister.cashSales}</b></div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Ventas Tarjeta:</span> <b>+ RD$ {cashRegister.cardSales}</b></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Entradas / Salidas:</span> <b>+{cashRegister.cashIn} / -{cashRegister.cashOut}</b></div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #334155', paddingTop: '8px', fontSize: '15px' }}>
                 <span>TOTAL ESPERADO:</span> <b style={{ color: '#f97316' }}>RD$ {expectedCashInBox}</b>
               </div>
             </div>
-            <p style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '15px' }}>Al confirmar, se abrirá WhatsApp para enviar este reporte automáticamente al número <b>8298558779</b>.</p>
+            <p style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '15px' }}>Se enviará este reporte automáticamente vía WhatsApp al número <b>8298558779</b>.</p>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={() => setShowShiftModal(false)} style={{ ...s.btnPrimary, backgroundColor: '#334155', padding: '10px', fontSize: '13px' }}>Cancelar</button>
               <button onClick={() => {
