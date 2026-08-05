@@ -1,24 +1,44 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loginForm, setLoginForm] = useState({ name: '', password: '', role: 'cajero', openingBalance: '2500' });
-  const [currentUser, setCurrentUser] = useState({ name: '', role: 'cajero' });
-
-  const [activeTab, setActiveTab] = useState('pos');
-  const [shiftOpen, setShiftOpen] = useState(true);
-  
-  const [cashRegister, setCashRegister] = useState({
-    openingBalance: 0,
-    cashSales: 0,
-    cardSales: 0,
-    cashIn: 0,
-    cashOut: 0
+  // PERSISTENCIA CON LOCALSTORAGE PARA QUE NO SE PIERDA AL RECARGAR
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('xiiao_logged') === 'true';
+    }
+    return false;
   });
 
-  const [cashMovements, setCashMovements] = useState([]);
+  const [currentUser, setCurrentUser] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('xiiao_user');
+      return saved ? JSON.parse(saved) : { name: '', role: 'cajero' };
+    }
+    return { name: '', role: 'cajero' };
+  });
+
+  const [loginForm, setLoginForm] = useState({ name: '', password: '', role: 'cajero', openingBalance: '2500' });
+
+  const [activeTab, setActiveTab] = useState('pos');
+  
+  const [cashRegister, setCashRegister] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('xiiao_cash');
+      return saved ? JSON.parse(saved) : { openingBalance: 0, cashSales: 0, cardSales: 0, cashIn: 0, cashOut: 0 };
+    }
+    return { openingBalance: 0, cashSales: 0, cardSales: 0, cashIn: 0, cashOut: 0 };
+  });
+
+  const [cashMovements, setCashMovements] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('xiiao_movements');
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
+
   const [movementForm, setMovementForm] = useState({ type: 'IN', amount: '', reason: '' });
   const [showShiftModal, setShowShiftModal] = useState(false);
 
@@ -37,14 +57,43 @@ export default function App() {
   ]);
 
   const [cart, setCart] = useState([]);
-  const [orderType, setOrderType] = useState('Para Comer Aquí');
-  const [kitchenOrders, setKitchenOrders] = useState([]);
-  const [orderHistory, setOrderHistory] = useState([]);
+  const [orderType, setOrderType] = useState('Para Comer Aquí'); // 'Para Comer Aquí' | 'Para Llevar' | 'Delivery'
+  
+  // DATOS ADICIONALES PARA SHIPDAY (Retirada y Delivery)
+  const [customerInfo, setCustomerInfo] = useState({ name: '', phone: '', address: '' });
+
+  const [kitchenOrders, setKitchenOrders] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('xiiao_kitchen');
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
+
+  const [orderHistory, setOrderHistory] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('xiiao_history');
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
+
+  // SINCRONIZAR CON LOCALSTORAGE
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('xiiao_logged', isLoggedIn);
+      localStorage.setItem('xiiao_user', JSON.stringify(currentUser));
+      localStorage.setItem('xiiao_cash', JSON.stringify(cashRegister));
+      localStorage.setItem('xiiao_movements', JSON.stringify(cashMovements));
+      localStorage.setItem('xiiao_kitchen', JSON.stringify(kitchenOrders));
+      localStorage.setItem('xiiao_history', JSON.stringify(orderHistory));
+    }
+  }, [isLoggedIn, currentUser, cashRegister, cashMovements, kitchenOrders, orderHistory]);
 
   const handleLogin = (e) => {
     e.preventDefault();
     if (!loginForm.name.trim() || !loginForm.password.trim() || !loginForm.openingBalance) {
-      alert('Por favor completa todos los campos, incluyendo el fondo inicial.');
+      alert('Por favor completa todos los campos.');
       return;
     }
 
@@ -53,11 +102,7 @@ export default function App() {
       return;
     }
 
-    setCurrentUser({
-      name: loginForm.name,
-      role: loginForm.role
-    });
-
+    setCurrentUser({ name: loginForm.name, role: loginForm.role });
     setCashRegister({
       openingBalance: parseFloat(loginForm.openingBalance) || 0,
       cashSales: 0,
@@ -65,10 +110,6 @@ export default function App() {
       cashIn: 0,
       cashOut: 0
     });
-
-    setCashMovements([]);
-    setOrderHistory([]);
-    setKitchenOrders([]);
     setIsLoggedIn(true);
   };
 
@@ -91,14 +132,33 @@ export default function App() {
     }).filter(Boolean));
   };
 
-  const clearCart = () => setCart([]);
+  const clearCart = () => {
+    setCart([]);
+    setCustomerInfo({ name: '', phone: '', address: '' });
+  };
+
   const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
 
   const sendOrderToKitchen = (paymentMethod = 'Efectivo') => {
     if (cart.length === 0) return;
+
+    // VALIDACIONES SEGÚN TIPO DE ORDEN (Preparado para Shipday)
+    if (orderType === 'Para Llevar' && !customerInfo.name.trim()) {
+      alert('Por favor ingrese el nombre del cliente para órdenes de retirada.');
+      return;
+    }
+
+    if (orderType === 'Delivery') {
+      if (!customerInfo.name.trim() || !customerInfo.phone.trim() || !customerInfo.address.trim()) {
+        alert('Para Delivery es obligatorio el Nombre, Teléfono y Ubicación/Dirección del cliente.');
+        return;
+      }
+    }
+
     const newOrder = {
       id: Math.floor(100 + Math.random() * 900),
       orderType,
+      customer: { ...customerInfo },
       items: cart.map(item => ({ name: item.name, qty: item.qty })),
       status: 'Pendiente',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -143,7 +203,7 @@ export default function App() {
   };
 
   const handleDeleteOrder = (orderId) => {
-    const pwd = prompt('Ingrese la contraseña de Administrador para eliminar el ticket:');
+    const pwd = prompt('Ingrese la contraseña de Administrador (1221) para eliminar el ticket:');
     if (pwd === '1221') {
       setKitchenOrders(kitchenOrders.filter(o => o.id !== orderId));
       alert('Ticket eliminado correctamente.');
@@ -153,16 +213,7 @@ export default function App() {
   };
 
   const handleTriggerShiftClosure = () => {
-    if (currentUser.role !== 'admin') {
-      const pwd = prompt('Acceso restringido. Ingrese contraseña de Administrador para generar el cierre:');
-      if (pwd === '1221') {
-        setShowShiftModal(true);
-      } else if (pwd !== null) {
-        alert('Contraseña incorrecta.');
-      }
-      return;
-    }
-    const pwd = prompt('Ingrese contraseña de Administrador para confirmar el Cierre de Turno:');
+    const pwd = prompt('Ingrese contraseña de Administrador (1221) para generar el cierre de turno:');
     if (pwd === '1221') {
       setShowShiftModal(true);
     } else if (pwd !== null) {
@@ -292,7 +343,12 @@ export default function App() {
         </div>
 
         <div>
-          <button onClick={() => setIsLoggedIn(false)} style={{ backgroundColor: '#334155', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>
+          <button onClick={() => {
+            if (confirm('¿Desea cerrar sesión y finalizar el turno actual?')) {
+              setIsLoggedIn(false);
+              localStorage.clear();
+            }
+          }} style={{ backgroundColor: '#334155', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>
             Cerrar Sesión
           </button>
         </div>
@@ -336,17 +392,35 @@ export default function App() {
                   {cart.length > 0 && <button onClick={clearCart} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '12px' }}>Limpiar</button>}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', margin: '10px 0' }}>
-                  {['Para Comer Aquí', 'Para Llevar'].map(type => (
-                    <button key={type} onClick={() => setOrderType(type)} style={{ padding: '6px', fontSize: '11px', fontWeight: 'bold', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: orderType === type ? '#f97316' : '#0f172a', color: '#fff' }}>
+                {/* SELECTOR DE TIPO DE ORDEN */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px', margin: '10px 0' }}>
+                  {['Para Comer Aquí', 'Para Llevar', 'Delivery'].map(type => (
+                    <button key={type} onClick={() => setOrderType(type)} style={{ padding: '6px 2px', fontSize: '10px', fontWeight: 'bold', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: orderType === type ? '#f97316' : '#0f172a', color: '#fff' }}>
                       {type}
                     </button>
                   ))}
                 </div>
 
-                <div style={{ maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {/* CAMPOS DINÁMICOS PARA SHIPDAY (Retirada y Delivery) */}
+                {orderType === 'Para Llevar' && (
+                  <div style={{ marginBottom: '10px', backgroundColor: '#0f172a', padding: '8px', borderRadius: '8px', border: '1px solid #334155' }}>
+                    <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '3px' }}>Nombre del Cliente (Retirada)*</label>
+                    <input type="text" placeholder="Nombre completo" value={customerInfo.name} onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })} style={{ ...s.input, padding: '6px', fontSize: '12px' }} />
+                  </div>
+                )}
+
+                {orderType === 'Delivery' && (
+                  <div style={{ marginBottom: '10px', backgroundColor: '#0f172a', padding: '8px', borderRadius: '8px', border: '1px solid #334155', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <span style={{ fontSize: '11px', color: '#f97316', fontWeight: 'bold' }}> Datos para Delivery (Shipday)</span>
+                    <input type="text" placeholder="Nombre del cliente*" value={customerInfo.name} onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })} style={{ ...s.input, padding: '6px', fontSize: '12px' }} />
+                    <input type="text" placeholder="Teléfono del cliente*" value={customerInfo.phone} onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })} style={{ ...s.input, padding: '6px', fontSize: '12px' }} />
+                    <input type="text" placeholder="Ubicación / Dirección*" value={customerInfo.address} onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })} style={{ ...s.input, padding: '6px', fontSize: '12px' }} />
+                  </div>
+                )}
+
+                <div style={{ maxHeight: '140px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {cart.length === 0 ? (
-                    <p style={{ textAlign: 'center', color: '#64748b', fontSize: '12px', marginTop: '20px' }}>Selecciona productos para armar la orden</p>
+                    <p style={{ textAlign: 'center', color: '#64748b', fontSize: '12px', marginTop: '10px' }}>Selecciona productos para armar la orden</p>
                   ) : (
                     cart.map(item => (
                       <div key={item.id} style={{ backgroundColor: '#0f172a', padding: '8px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -393,10 +467,24 @@ export default function App() {
                         <span style={{ fontWeight: 'bold', backgroundColor: '#0f172a', padding: '3px 6px', borderRadius: '4px', fontSize: '12px' }}>#ORD-{order.id}</span>
                         <span style={{ fontSize: '11px', color: '#94a3b8' }}>{order.time}</span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
                         <span style={{ color: '#f97316', fontWeight: 'bold' }}>{order.orderType}</span>
                         <span style={{ color: '#cbd5e1' }}>Cajero: {order.cashier}</span>
                       </div>
+                      
+                      {/* DETALLES DE CLIENTE PARA SHIPDAY */}
+                      {order.orderType !== 'Para Comer Aquí' && (
+                        <div style={{ backgroundColor: '#0f172a', padding: '6px', borderRadius: '6px', margin: '6px 0', fontSize: '11px', border: '1px solid #334155' }}>
+                          <div><b>Cliente:</b> {order.customer.name || 'N/A'}</div>
+                          {order.orderType === 'Delivery' && (
+                            <>
+                              <div><b>Tel:</b> {order.customer.phone || 'N/A'}</div>
+                              <div><b>Ubicación:</b> {order.customer.address || 'N/A'}</div>
+                            </>
+                          )}
+                        </div>
+                      )}
+
                       <div style={{ margin: '10px 0' }}>
                         {order.items.map((it, idx) => (
                           <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
@@ -424,7 +512,7 @@ export default function App() {
 
                       <button
                         onClick={() => handleDeleteOrder(order.id)}
-                        title="Eliminar ticket (Requiere Admin)"
+                        title="Eliminar ticket (Requiere Admin 1221)"
                         style={{ backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
                         🗑️
                       </button>
@@ -484,7 +572,7 @@ export default function App() {
                     <div key={ord.id} style={{ backgroundColor: '#0f172a', padding: '8px 12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
                         <div style={{ fontSize: '12px', fontWeight: 'bold' }}>Ticket #{ord.id} ({ord.orderType}) - Pago: {ord.paymentMethod}</div>
-                        <span style={{ fontSize: '10px', color: '#64748b' }}>{ord.time} | Cajero: {ord.cashier}</span>
+                        <span style={{ fontSize: '10px', color: '#64748b' }}>{ord.time} | Cajero: {ord.cashier} {ord.customer.name ? `| Cliente: ${ord.customer.name}` : ''}</span>
                       </div>
                       <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#22c55e' }}>+RD$ {ord.total}</span>
                     </div>
@@ -510,7 +598,7 @@ export default function App() {
           <div style={{ flex: 1, padding: '15px', overflowY: 'auto' }}>
             <div style={s.card}>
               <h2 style={{ marginTop: 0, fontSize: '18px' }}>Panel de Administración</h2>
-              <p style={{ color: '#94a3b8', fontSize: '13px' }}>Control de privilegios y auditoría de turno.</p>
+              <p style={{ color: '#94a3b8', fontSize: '13px' }}>Contraseña administrativa activa: <b>1221</b></p>
               <table style={{ width: '100%', marginTop: '15px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #334155', color: '#94a3b8', fontSize: '11px' }}>
@@ -523,7 +611,7 @@ export default function App() {
                   <tr style={{ borderBottom: '1px solid #334155' }}>
                     <td style={{ padding: '8px', fontWeight: 'bold' }}>{currentUser.name}</td>
                     <td style={{ padding: '8px' }}><span style={{ backgroundColor: '#f97316', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>Admin</span></td>
-                    <td style={{ padding: '8px', color: '#94a3b8' }}>Acceso total a Cierre de Turno, Historial y Eliminación de Tickets</td>
+                    <td style={{ padding: '8px', color: '#94a3b8' }}>Acceso total a Cierre de Turno, Historial y Eliminación de Tickets (Clave 1221)</td>
                   </tr>
                 </tbody>
               </table>
@@ -552,10 +640,11 @@ export default function App() {
               <button onClick={() => setShowShiftModal(false)} style={{ ...s.btnPrimary, backgroundColor: '#334155', padding: '10px', fontSize: '13px' }}>Cancelar</button>
               <button onClick={() => {
                 sendWhatsAppClosure();
-                setShiftOpen(false);
                 setShowShiftModal(false);
-                alert('¡Cierre generado y enviado a WhatsApp exitosamente!');
-              }} style={{ ...s.btnPrimary, backgroundColor: '#22c55e', padding: '10px', fontSize: '13px' }}>Enviar a WhatsApp</button>
+                setIsLoggedIn(false);
+                localStorage.clear();
+                alert('¡Cierre generado, enviado a WhatsApp y turno finalizado correctamente!');
+              }} style={{ ...s.btnPrimary, backgroundColor: '#22c55e', padding: '10px', fontSize: '13px' }}>Enviar a WhatsApp & Finalizar</button>
             </div>
           </div>
         </div>
