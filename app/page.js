@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import './globals.css';
 
 export default function App() {
   // SESIÓN Y USUARIOS
