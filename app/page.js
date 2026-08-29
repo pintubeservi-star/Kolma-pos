@@ -1,654 +1,339 @@
-'use client';
-
-import React, { useState, useEffect } from 'react';
-
-export default function App() {
-  // PERSISTENCIA CON LOCALSTORAGE PARA QUE NO SE PIERDA AL RECARGAR
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('xiiao_logged') === 'true';
-    }
-    return false;
-  });
-
-  const [currentUser, setCurrentUser] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('xiiao_user');
-      return saved ? JSON.parse(saved) : { name: '', role: 'cajero' };
-    }
-    return { name: '', role: 'cajero' };
-  });
-
-  const [loginForm, setLoginForm] = useState({ name: '', password: '', role: 'cajero', openingBalance: '2500' });
-
-  const [activeTab, setActiveTab] = useState('pos');
-  
-  const [cashRegister, setCashRegister] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('xiiao_cash');
-      return saved ? JSON.parse(saved) : { openingBalance: 0, cashSales: 0, cardSales: 0, cashIn: 0, cashOut: 0 };
-    }
-    return { openingBalance: 0, cashSales: 0, cardSales: 0, cashIn: 0, cashOut: 0 };
-  });
-
-  const [cashMovements, setCashMovements] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('xiiao_movements');
-      return saved ? JSON.parse(saved) : [];
-    }
-    return [];
-  });
-
-  const [movementForm, setMovementForm] = useState({ type: 'IN', amount: '', reason: '' });
-  const [showShiftModal, setShowShiftModal] = useState(false);
-
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  const [products] = useState([
-    { id: 1, name: 'Yaroa Mixta Especial', price: 350, category: 'platos', img: '🍟' },
-    { id: 2, name: 'Hot Dog Dominicano', price: 150, category: 'platos', img: '🌭' },
-    { id: 3, name: 'Tostada Dominicana', price: 120, category: 'platos', img: '🥪' },
-    { id: 4, name: 'Chimi de Res Premium', price: 280, category: 'platos', img: '🍔' },
-    { id: 5, name: 'Queso Frito Bites (8 uds)', price: 220, category: 'entradas', img: '🧀' },
-    { id: 6, name: 'Papas Fritas con Cheddar', price: 180, category: 'entradas', img: '🍟' },
-    { id: 7, name: 'Refresco Botella 20oz', price: 60, category: 'bebidas', img: '🥤' },
-    { id: 8, name: 'Jugo Natural de Chinola', price: 90, category: 'bebidas', img: '🍹' }
-  ]);
-
-  const [cart, setCart] = useState([]);
-  const [orderType, setOrderType] = useState('Para Comer Aquí'); // 'Para Comer Aquí' | 'Para Llevar' | 'Delivery'
-  
-  // DATOS ADICIONALES PARA SHIPDAY (Retirada y Delivery)
-  const [customerInfo, setCustomerInfo] = useState({ name: '', phone: '', address: '' });
-
-  const [kitchenOrders, setKitchenOrders] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('xiiao_kitchen');
-      return saved ? JSON.parse(saved) : [];
-    }
-    return [];
-  });
-
-  const [orderHistory, setOrderHistory] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('xiiao_history');
-      return saved ? JSON.parse(saved) : [];
-    }
-    return [];
-  });
-
-  // SINCRONIZAR CON LOCALSTORAGE
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('xiiao_logged', isLoggedIn);
-      localStorage.setItem('xiiao_user', JSON.stringify(currentUser));
-      localStorage.setItem('xiiao_cash', JSON.stringify(cashRegister));
-      localStorage.setItem('xiiao_movements', JSON.stringify(cashMovements));
-      localStorage.setItem('xiiao_kitchen', JSON.stringify(kitchenOrders));
-      localStorage.setItem('xiiao_history', JSON.stringify(orderHistory));
-    }
-  }, [isLoggedIn, currentUser, cashRegister, cashMovements, kitchenOrders, orderHistory]);
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (!loginForm.name.trim() || !loginForm.password.trim() || !loginForm.openingBalance) {
-      alert('Por favor completa todos los campos.');
-      return;
-    }
-
-    if (loginForm.role === 'admin' && loginForm.password !== '1221') {
-      alert('Contraseña de Administrador incorrecta.');
-      return;
-    }
-
-    setCurrentUser({ name: loginForm.name, role: loginForm.role });
-    setCashRegister({
-      openingBalance: parseFloat(loginForm.openingBalance) || 0,
-      cashSales: 0,
-      cardSales: 0,
-      cashIn: 0,
-      cashOut: 0
-    });
-    setIsLoggedIn(true);
-  };
-
-  const addToCart = (product) => {
-    const existing = cart.find(item => item.id === product.id);
-    if (existing) {
-      setCart(cart.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item));
-    } else {
-      setCart([...cart, { ...product, qty: 1 }]);
-    }
-  };
-
-  const updateQty = (id, delta) => {
-    setCart(cart.map(item => {
-      if (item.id === id) {
-        const newQty = item.qty + delta;
-        return newQty > 0 ? { ...item, qty: newQty } : null;
-      }
-      return item;
-    }).filter(Boolean));
-  };
-
-  const clearCart = () => {
-    setCart([]);
-    setCustomerInfo({ name: '', phone: '', address: '' });
-  };
-
-  const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-
-  const sendOrderToKitchen = (paymentMethod = 'Efectivo') => {
-    if (cart.length === 0) return;
-
-    // VALIDACIONES SEGÚN TIPO DE ORDEN (Preparado para Shipday)
-    if (orderType === 'Para Llevar' && !customerInfo.name.trim()) {
-      alert('Por favor ingrese el nombre del cliente para órdenes de retirada.');
-      return;
-    }
-
-    if (orderType === 'Delivery') {
-      if (!customerInfo.name.trim() || !customerInfo.phone.trim() || !customerInfo.address.trim()) {
-        alert('Para Delivery es obligatorio el Nombre, Teléfono y Ubicación/Dirección del cliente.');
-        return;
-      }
-    }
-
-    const newOrder = {
-      id: Math.floor(100 + Math.random() * 900),
-      orderType,
-      customer: { ...customerInfo },
-      items: cart.map(item => ({ name: item.name, qty: item.qty })),
-      status: 'Pendiente',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      total: cartTotal,
-      cashier: currentUser.name,
-      paymentMethod
-    };
-
-    setKitchenOrders([newOrder, ...kitchenOrders]);
-    setOrderHistory([newOrder, ...orderHistory]);
-
-    if (paymentMethod === 'Efectivo') {
-      setCashRegister(prev => ({ ...prev, cashSales: prev.cashSales + cartTotal }));
-    } else {
-      setCashRegister(prev => ({ ...prev, cardSales: prev.cardSales + cartTotal }));
-    }
-    clearCart();
-  };
-
-  const handleAddMovement = (e) => {
-    e.preventDefault();
-    if (!movementForm.amount || !movementForm.reason) return;
-    const amountNum = parseFloat(movementForm.amount);
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>migraRD | Preparación Profesional</title>
     
-    const newMove = {
-      id: Date.now(),
-      type: movementForm.type,
-      amount: amountNum,
-      reason: movementForm.reason,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1e3a8a">
+    <meta name="description" content="Servicio privado de asistencia y preparación de solicitudes de visa americana.">
+    <link rel="manifest" href="manifest.json">
 
-    setCashMovements([newMove, ...cashMovements]);
+    <!-- Estilos y Animaciones Optimizadas -->
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #2563eb;
+            --emerald: #059669;
+            --slate-dark: #0f172a;
+        }
 
-    if (movementForm.type === 'IN') {
-      setCashRegister(prev => ({ ...prev, cashIn: prev.cashIn + amountNum }));
-    } else {
-      setCashRegister(prev => ({ ...prev, cashOut: prev.cashOut + amountNum }));
-    }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: #f8fafc; color: #1e293b; line-height: 1.6; overflow-x: hidden; }
 
-    setMovementForm({ type: 'IN', amount: '', reason: '' });
-  };
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(37, 99, 235, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-  const handleDeleteOrder = (orderId) => {
-    const pwd = prompt('Ingrese la contraseña de Administrador (1221) para eliminar el ticket:');
-    if (pwd === '1221') {
-      setKitchenOrders(kitchenOrders.filter(o => o.id !== orderId));
-      alert('Ticket eliminado correctamente.');
-    } else if (pwd !== null) {
-      alert('Contraseña incorrecta.');
-    }
-  };
+        .animate-float { animation: float 4s ease-in-out infinite; }
+        .animate-pulse-btn { animation: pulseGlow 2s infinite; }
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
 
-  const handleTriggerShiftClosure = () => {
-    const pwd = prompt('Ingrese contraseña de Administrador (1221) para generar el cierre de turno:');
-    if (pwd === '1221') {
-      setShowShiftModal(true);
-    } else if (pwd !== null) {
-      alert('Contraseña incorrecta.');
-    }
-  };
+        header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #e2e8f0; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 40; }
+        .logo { font-weight: 800; font-size: 1.25rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; }
+        .logo-icon { background: var(--primary); color: white; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 1.1rem; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3); }
+        
+        .btn { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; border: none; padding: 0.85rem 1.75rem; font-weight: 700; border-radius: 14px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; text-align: center; transition: all 0.3s ease; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5); background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); }
 
-  const expectedCashInBox = cashRegister.openingBalance + cashRegister.cashSales + cashRegister.cashIn - cashRegister.cashOut;
-  const totalShiftSales = cashRegister.cashSales + cashRegister.cardSales;
+        /* Hero */
+        .hero { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: white; padding: 5rem 1.5rem; text-align: center; position: relative; overflow: hidden; }
+        .flags-banner { display: flex; justify-content: center; gap: 1rem; font-size: 2.5rem; margin-bottom: 1.5rem; }
+        .hero h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 800; margin-bottom: 1.2rem; letter-spacing: -0.025em; line-height: 1.2; }
+        .hero h1 span { background: linear-gradient(to right, #60a5fa, #93c5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { color: #cbd5e1; max-width: 680px; margin: 0 auto 2.5rem; font-size: 1.15rem; font-weight: 300; }
 
-  const filteredProducts = products.filter(p => {
-    const matchesCat = selectedCategory === 'all' || p.category === selectedCategory;
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCat && matchesSearch;
-  });
+        /* PVU Cards */
+        .pvu-section { max-width: 1200px; margin: -3rem auto 0; padding: 0 1.5rem; position: relative; z-index: 20; }
+        .pvu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+        .pvu-card { background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; transition: transform 0.3s ease; }
+        .pvu-card:hover { transform: translateY(-5px); }
+        .pvu-icon { width: 50px; height: 50px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.2rem; font-weight: bold; }
+        .pvu-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--slate-dark); }
+        .pvu-card p { font-size: 0.9rem; color: #64748b; }
 
-  const sendWhatsAppClosure = () => {
-    const message = encodeURIComponent(
-      `*REPORTE DE CIERRE DE TURNO - XIIAO KITCHEN*\n\n` +
-      `👤 Cajera/Operador: ${currentUser.name}\n` +
-      `📅 Fecha: ${new Date().toLocaleDateString()}\n\n` +
-      `• Fondo Inicial de Caja: RD$ ${cashRegister.openingBalance}\n` +
-      `• Ventas en Efectivo: RD$ ${cashRegister.cashSales}\n` +
-      `• Ventas con Tarjeta: RD$ ${cashRegister.cardSales}\n` +
-      `• Entradas Extra de Efectivo: RD$ ${cashRegister.cashIn}\n` +
-      `• Salidas / Retiros: RD$ ${cashRegister.cashOut}\n` +
-      `• *EFECTIVO ESPERADO EN CAJA: RD$ ${expectedCashInBox}*\n` +
-      `• *VENTAS TOTALES DEL TURNO: RD$ ${totalShiftSales}*\n` +
-      `• Total de Órdenes Atendidas: ${orderHistory.length}`
-    );
-    window.open(`https://wa.me/18298558779?text=${message}`, '_blank');
-  };
+        /* Planes */
+        .container { max-width: 1200px; margin: 0 auto; padding: 5rem 1.5rem; }
+        .section-header { text-align: center; max-width: 700px; margin: 0 auto 3.5rem; }
+        .section-header h2 { font-size: clamp(2rem, 3vw, 2.75rem); font-weight: 800; color: var(--slate-dark); margin-bottom: 1rem; }
+        .section-header p { color: #64748b; font-size: 1.1rem; }
 
-  const s = {
-    app: { fontFamily: 'sans-serif', backgroundColor: '#0f172a', color: '#f8fafc', minHeight: '100vh', display: 'flex', flexDirection: 'column' },
-    header: { backgroundColor: '#1e293b', borderBottom: '1px solid #334155', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' },
-    navBtn: (active) => ({ padding: '8px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', backgroundColor: active ? '#f97316' : 'transparent', color: active ? '#ffffff' : '#94a3b8' }),
-    main: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
-    card: { backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '15px' },
-    input: { width: '100%', backgroundColor: '#0f172a', border: '1px solid #475569', borderRadius: '8px', padding: '10px', color: '#ffffff', outline: 'none', boxSizing: 'border-box' },
-    btnPrimary: { backgroundColor: '#f97316', color: '#ffffff', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', width: '100%' }
-  };
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; align-items: stretch; }
+        .card { background: white; border: 1px solid #e2e8f0; border-radius: 28px; padding: 2.5rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); transition: all 0.3s ease; position: relative; }
+        .card:hover { box-shadow: 0 20px 35px -10px rgba(0,0,0,0.08); border-color: #cbd5e1; }
+        .card.popular { border: 2px solid #2563eb; box-shadow: 0 15px 30px -5px rgba(37,99,235,0.15); }
+        
+        .badge { background: #f1f5f9; color: #475569; font-size: 0.75rem; font-weight: 800; padding: 0.35rem 1rem; border-radius: 9999px; width: fit-content; margin-bottom: 1.25rem; text-transform: uppercase; }
+        .popular-badge { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; position: absolute; top: -16px; left: 50%; transform: translateX(-50%); box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
+        
+        .price-box { margin: 1.5rem 0; display: flex; align-items: baseline; gap: 0.5rem; }
+        .price { font-size: 3rem; font-weight: 800; color: var(--slate-dark); }
+        .price-period { color: #64748b; font-size: 0.875rem; font-weight: 500; }
+        
+        .features { list-style: none; margin: 2rem 0; font-size: 0.95rem; color: #475569; }
+        .features li { margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.75rem; }
+        .features li::before { content: "✓"; color: var(--emerald); font-weight: 900; background: #ecfdf5; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.75rem; }
 
-  if (!isLoggedIn) {
-    return (
-      <div style={{ ...s.app, justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
-        <div style={{ ...s.card, width: '100%', maxWidth: '400px', backgroundColor: '#1e293b' }}>
-          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-            <div style={{ fontSize: '40px', marginBottom: '10px' }}>🍽️</div>
-            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 'bold' }}>Xiiao <span style={{ color: '#f97316' }}>Kitchen POS</span></h1>
-            <p style={{ color: '#94a3b8', fontSize: '13px', marginTop: '5px' }}>Configure su turno de caja para iniciar</p>
-          </div>
+        /* Mensaje Inspirador */
+        .inspire-box { background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%); border: 1px solid #bfdbfe; border-radius: 20px; padding: 2.5rem; text-align: center; margin-top: 5rem; }
+        .inspire-box h3 { font-size: 1.5rem; font-weight: 800; color: var(--primary); margin-bottom: 0.75rem; }
+        .inspire-box p { color: #1e40af; max-width: 700px; margin: 0 auto; font-size: 1.05rem; }
 
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            <div>
-              <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '5px' }}>Nombre del Operador / Cajera</label>
-              <input
-                type="text"
-                placeholder="Ej: Ana Pérez"
-                value={loginForm.name}
-                onChange={(e) => setLoginForm({ ...loginForm, name: e.target.value })}
-                style={s.input}
-                required
-              />
-            </div>
+        /* MODAL (Forzar visualización con display flex cuando esté activo) */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px); z-index: 1000; align-items: center; justify-content: center; padding: 1rem; }
+        .modal.active { display: flex !important; }
+        .modal-content { background: white; border-radius: 32px; width: 100%; max-width: 580px; padding: 2.5rem; max-height: 95vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); animation: fadeIn 0.3s ease-out; }
+        
+        .form-section-title { font-size: 0.85rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 1rem; border-bottom: 2px solid #eff6ff; padding-bottom: 0.3rem; letter-spacing: 0.05em; }
+        .form-group { margin-bottom: 1.25rem; text-align: left; }
+        .form-group label { display: block; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.4rem; color: #475569; letter-spacing: 0.05em; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.8rem 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; background: #f8fafc; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary-light); background: white; }
+        
+        .close-btn { background: #f1f5f9; border: none; padding: 0.75rem; border-radius: 12px; cursor: pointer; font-weight: 700; color: #475569; width: 100%; margin-top: 0.75rem; transition: background 0.2s; }
+        .close-btn:hover { background: #e2e8f0; }
 
-            <div>
-              <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '5px' }}>Fondo Inicial en Caja (RD$)</label>
-              <input
-                type="number"
-                placeholder="2500"
-                value={loginForm.openingBalance}
-                onChange={(e) => setLoginForm({ ...loginForm, openingBalance: e.target.value })}
-                style={s.input}
-                required
-              />
-            </div>
+        /* Tarjeta de Asistencia WhatsApp en Formulario */
+        .whatsapp-notice { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 2px solid #34d399; border-radius: 18px; padding: 1.5rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: flex-start; text-align: left; }
+        .whatsapp-notice-icon { font-size: 2rem; background: #059669; color: white; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 10px rgba(5,150,105,0.3); }
+    </style>
+</head>
+<body>
 
-            <div>
-              <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '5px' }}>Rol en el Sistema</label>
-              <select
-                value={loginForm.role}
-                onChange={(e) => setLoginForm({ ...loginForm, role: e.target.value })}
-                style={s.input}>
-                <option value="cajero">Cajero / Operador</option>
-                <option value="admin">Administrador</option>
-              </select>
-            </div>
-
-            <div>
-              <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '5px' }}>Contraseña de Acceso</label>
-              <input
-                type="password"
-                placeholder="••••"
-                value={loginForm.password}
-                onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                style={s.input}
-                required
-              />
-            </div>
-
-            <button type="submit" style={{ ...s.btnPrimary, marginTop: '10px' }}>Iniciar Turno</button>
-          </form>
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <div class="logo-icon animate-float">🇺🇸</div>
+            <span>migraRD</span>
         </div>
-      </div>
-    );
-  }
+        <a href="#planes" class="btn" style="padding: 0.6rem 1.25rem; font-size: 0.875rem;">Ver Planes</a>
+    </header>
 
-  return (
-    <div style={s.app}>
-      <header style={s.header}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ backgroundColor: '#f97316', color: 'white', padding: '8px', borderRadius: '8px', fontSize: '18px' }}>🍽️</div>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>Xiiao <span style={{ color: '#f97316' }}>Kitchen</span></h1>
-            <span style={{ fontSize: '11px', color: '#34d399' }}>● {currentUser.name} ({currentUser.role})</span>
-          </div>
+    <!-- Hero -->
+    <section class="hero">
+        <div class="flags-banner">
+            <span class="flag-item animate-float" style="animation-delay: 0s;">🇩🇴</span>
+            <span class="flag-item animate-float" style="animation-delay: 0.5s;">✈️</span>
+            <span class="flag-item animate-float" style="animation-delay: 1s;">🇺🇸</span>
+        </div>
+        
+        <h1>Haz realidad tu viaje y transforma tu futuro con <span>asistencia profesional</span></h1>
+        <p>Tu entrevista consular es una oportunidad única. Te guiamos paso a paso con rigor, claridad y respaldo humano garantizado.</p>
+        
+        <a href="#planes" class="btn animate-pulse-btn" style="font-size: 1.05rem; padding: 1rem 2rem;">
+            🚀 Elegir Mi Plan de Asistencia
+        </a>
+    </section>
+
+    <!-- PVU -->
+    <section class="pvu-section">
+        <div class="pvu-grid">
+            <div class="pvu-card">
+                <div class="pvu-icon">🎯</div>
+                <h3>Estrategia Personalizada</h3>
+                <p>Analizamos cada detalle de tu perfil para resaltar tus fortalezas y preparar una solicitud impecable.</p>
+            </div>
+            <div class="pvu-card">
+                <div class="pvu-icon">🛡️</div>
+                <h3>Tranquilidad Absoluta</h3>
+                <p>Evita errores críticos en formularios consulares que puedan comprometer o retrasar tu proceso.</p>
+            </div>
+            <div class="pvu-card">
+                <div class="pvu-icon">🤝</div>
+                <h3>Acompañamiento Humano</h3>
+                <p>Nunca estarás solo: un experto te asistirá directamente por WhatsApp durante toda tu gestión.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Planes -->
+    <div id="planes" class="container">
+        <div class="section-header">
+            <h2>Selecciona tu nivel de acompañamiento</h2>
+            <p>Inversión inteligente diseñada para darte la máxima seguridad ante el oficial consular.</p>
         </div>
 
-        <div style={{ display: 'flex', gap: '5px', backgroundColor: '#0f172a', padding: '4px', borderRadius: '8px', border: '1px solid #334155', flexWrap: 'wrap' }}>
-          <button onClick={() => setActiveTab('pos')} style={s.navBtn(activeTab === 'pos')}>Shopfront POS</button>
-          <button onClick={() => setActiveTab('cocina')} style={s.navBtn(activeTab === 'cocina')}>Cocina KDS ({kitchenOrders.length})</button>
-          <button onClick={() => setActiveTab('caja')} style={s.navBtn(activeTab === 'caja')}>Caja & Turno</button>
-          {currentUser.role === 'admin' && (
-            <button onClick={() => setActiveTab('admin')} style={s.navBtn(activeTab === 'admin')}>Admin</button>
-          )}
+        <div class="grid">
+            <!-- Plan 1 -->
+            <div class="card">
+                <div>
+                    <div class="badge">PREPARACIÓN + GUÍA</div>
+                    <div class="price-box">
+                        <span class="price">US$20</span>
+                        <span class="price-period">pago único</span>
+                    </div>
+                    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 1.5rem;">Tú haces el proceso. Nosotros te guiamos paso a paso.</p>
+                    <ul class="features">
+                        <li>Orientación experta paso a paso</li>
+                        <li>Guía para crear tu perfil de solicitud</li>
+                        <li>Guía detallada para completar el DS-160</li>
+                        <li>Evaluación profesional de tu información</li>
+                        <li>Seguimiento directo por WhatsApp</li>
+                    </ul>
+                </div>
+                <button type="button" onclick="openFormModal('Preparación + Guía', 'US$20')" class="btn" style="background: var(--slate-dark); width: 100%;">ADQUIRIR PLAN - US$20</button>
+            </div>
+
+            <!-- Plan 2 (Popular) -->
+            <div class="card popular">
+                <div class="badge popular-badge">⭐ MÁS ELEGIDO POR NUESTROS CLIENTES</div>
+                <div>
+                    <div class="badge" style="background: #e0e7ff; color: #1e40af;">PROCESO COMPLETO</div>
+                    <div class="price-box">
+                        <span class="price">US$60</span>
+                        <span class="price-period">pago único</span>
+                    </div>
+                    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 1.5rem;">Nosotros hacemos todo el proceso pesado por ti.</p>
+                    <ul class="features">
+                        <li>Evaluación inicial de perfil completa</li>
+                        <li>Creación profesional del perfil consular</li>
+                        <li>Llenado experto y exacto del formulario DS-160</li>
+                        <li>Asesoría y preparación intensiva para entrevista</li>
+                        <li>Acompañamiento hasta la cita consular</li>
+                    </ul>
+                </div>
+                <button type="button" onclick="openFormModal('Proceso Completo', 'US$60')" class="btn animate-pulse-btn" style="width: 100%;">ADQUIRIR PLAN - US$60</button>
+            </div>
+
+            <!-- Plan 3 -->
+            <div class="card">
+                <div>
+                    <div class="badge" style="background: #fae8ff; color: #86198f;">PROCESO + VALIDACIÓN</div>
+                    <div class="price-box">
+                        <span class="price">US$80</span>
+                        <span class="price-period">pago único</span>
+                    </div>
+                    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 1.5rem;">Para casos especiales con revisión documental profunda.</p>
+                    <ul class="features">
+                        <li>Todo lo incluido en el plan de US$60</li>
+                        <li>Revisión documental detallada (divorcios, nombres)</li>
+                        <li>Identificación minuciosa de inconsistencias</li>
+                        <li>Orientación sobre documentos de soporte clave</li>
+                        <li>Estrategia de presentación optimizada</li>
+                    </ul>
+                </div>
+                <button type="button" onclick="openFormModal('Proceso Completo + Validación', 'US$80')" class="btn" style="background: var(--slate-dark); width: 100%;">ADQUIRIR PLAN - US$80</button>
+            </div>
         </div>
 
-        <div>
-          <button onClick={() => {
-            if (confirm('¿Desea cerrar sesión y finalizar el turno actual?')) {
-              setIsLoggedIn(false);
-              localStorage.clear();
-            }
-          }} style={{ backgroundColor: '#334155', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>
-            Cerrar Sesión
-          </button>
+        <!-- Mensaje Inspirador -->
+        <div class="inspire-box">
+            <h3>🌟 Tu meta está más cerca de lo que imaginas</h3>
+            <p>Miles de personas han logrado organizar sus solicitudes de manera exitosa con nuestra asesoría experta. Da el primer paso hoy con total confianza y permítenos acompañarte hacia tu próximo destino.</p>
         </div>
-      </header>
-
-      <main style={{ ...s.main, flexDirection: 'column' }}>
-        {activeTab === 'pos' && (
-          <div style={{ display: 'flex', flex: 1, flexDirection: 'column', overflow: 'hidden' }} className="md:flex-row">
-            <div style={{ flex: 1, padding: '15px', overflowY: 'auto' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '15px' }} className="md:flex-row md:justify-between">
-                <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '5px' }}>
-                  {[{ id: 'all', label: 'Todos' }, { id: 'platos', label: 'Platos' }, { id: 'entradas', label: 'Entradas' }, { id: 'bebidas', label: 'Bebidas' }].map(cat => (
-                    <button key={cat.id} onClick={() => setSelectedCategory(cat.id)} style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: selectedCategory === cat.id ? '#ffffff' : '#1e293b', color: selectedCategory === cat.id ? '#000' : '#fff', fontWeight: 'bold', fontSize: '12px', whiteSpace: 'nowrap' }}>
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
-                <input type="text" placeholder="Buscar plato..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ ...s.input, width: '100%', maxWidth: '220px' }} />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '10px' }}>
-                {filteredProducts.map(product => (
-                  <div key={product.id} onClick={() => addToCart(product)} style={{ ...s.card, cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '12px' }}>
-                    <div>
-                      <div style={{ fontSize: '24px', marginBottom: '6px' }}>{product.img}</div>
-                      <h4 style={{ margin: '0 0 8px 0', fontSize: '13px' }}>{product.name}</h4>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #334155', paddingTop: '8px' }}>
-                      <span style={{ color: '#f97316', fontWeight: 'bold', fontSize: '13px' }}>RD$ {product.price}</span>
-                      <span style={{ backgroundColor: '#f97316', color: 'white', width: '22px', height: '22px', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>+</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ width: '100%', maxWidth: '350px', backgroundColor: '#1e293b', borderTop: '1px solid #334155', display: 'flex', flexDirection: 'column', padding: '15px', justifyContent: 'space-between' }} className="md:border-t-0 md:border-l">
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #334155', paddingBottom: '8px' }}>
-                  <h3 style={{ margin: 0, fontSize: '15px' }}>🛒 Orden Actual</h3>
-                  {cart.length > 0 && <button onClick={clearCart} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '12px' }}>Limpiar</button>}
-                </div>
-
-                {/* SELECTOR DE TIPO DE ORDEN */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px', margin: '10px 0' }}>
-                  {['Para Comer Aquí', 'Para Llevar', 'Delivery'].map(type => (
-                    <button key={type} onClick={() => setOrderType(type)} style={{ padding: '6px 2px', fontSize: '10px', fontWeight: 'bold', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: orderType === type ? '#f97316' : '#0f172a', color: '#fff' }}>
-                      {type}
-                    </button>
-                  ))}
-                </div>
-
-                {/* CAMPOS DINÁMICOS PARA SHIPDAY (Retirada y Delivery) */}
-                {orderType === 'Para Llevar' && (
-                  <div style={{ marginBottom: '10px', backgroundColor: '#0f172a', padding: '8px', borderRadius: '8px', border: '1px solid #334155' }}>
-                    <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '3px' }}>Nombre del Cliente (Retirada)*</label>
-                    <input type="text" placeholder="Nombre completo" value={customerInfo.name} onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })} style={{ ...s.input, padding: '6px', fontSize: '12px' }} />
-                  </div>
-                )}
-
-                {orderType === 'Delivery' && (
-                  <div style={{ marginBottom: '10px', backgroundColor: '#0f172a', padding: '8px', borderRadius: '8px', border: '1px solid #334155', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <span style={{ fontSize: '11px', color: '#f97316', fontWeight: 'bold' }}> Datos para Delivery (Shipday)</span>
-                    <input type="text" placeholder="Nombre del cliente*" value={customerInfo.name} onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })} style={{ ...s.input, padding: '6px', fontSize: '12px' }} />
-                    <input type="text" placeholder="Teléfono del cliente*" value={customerInfo.phone} onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })} style={{ ...s.input, padding: '6px', fontSize: '12px' }} />
-                    <input type="text" placeholder="Ubicación / Dirección*" value={customerInfo.address} onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })} style={{ ...s.input, padding: '6px', fontSize: '12px' }} />
-                  </div>
-                )}
-
-                <div style={{ maxHeight: '140px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {cart.length === 0 ? (
-                    <p style={{ textAlign: 'center', color: '#64748b', fontSize: '12px', marginTop: '10px' }}>Selecciona productos para armar la orden</p>
-                  ) : (
-                    cart.map(item => (
-                      <div key={item.id} style={{ backgroundColor: '#0f172a', padding: '8px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <div style={{ fontSize: '12px', fontWeight: 'bold' }}>{item.name}</div>
-                          <div style={{ fontSize: '11px', color: '#f97316', fontWeight: 'bold' }}>RD$ {item.price * item.qty}</div>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#1e293b', padding: '2px 6px', borderRadius: '6px' }}>
-                          <button onClick={() => updateQty(item.id, -1)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 'bold' }}>-</button>
-                          <span style={{ fontSize: '12px', fontWeight: 'bold' }}>{item.qty}</span>
-                          <button onClick={() => updateQty(item.id, 1)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 'bold' }}>+</button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 'bold', margin: '10px 0', borderTop: '1px solid #334155', paddingTop: '10px' }}>
-                  <span>TOTAL:</span>
-                  <span style={{ color: '#f97316' }}>RD$ {cartTotal}</span>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  <button disabled={cart.length === 0} onClick={() => sendOrderToKitchen('Efectivo')} style={{ ...s.btnPrimary, padding: '10px', fontSize: '13px', opacity: cart.length === 0 ? 0.5 : 1 }}>Efectivo</button>
-                  <button disabled={cart.length === 0} onClick={() => sendOrderToKitchen('Tarjeta')} style={{ ...s.btnPrimary, padding: '10px', fontSize: '13px', backgroundColor: '#ffffff', color: '#000000', opacity: cart.length === 0 ? 0.5 : 1 }}>Tarjeta</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'cocina' && (
-          <div style={{ flex: 1, padding: '15px', overflowY: 'auto' }}>
-            <h2 style={{ marginTop: 0, fontSize: '18px' }}>Pantalla de Cocina (KDS)</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '15px', marginTop: '15px' }}>
-              {kitchenOrders.length === 0 ? (
-                <p style={{ color: '#64748b', fontSize: '13px' }}>No hay órdenes pendientes en cocina.</p>
-              ) : (
-                kitchenOrders.map(order => (
-                  <div key={order.id} style={{ ...s.card, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #334155', paddingBottom: '8px', marginBottom: '8px' }}>
-                        <span style={{ fontWeight: 'bold', backgroundColor: '#0f172a', padding: '3px 6px', borderRadius: '4px', fontSize: '12px' }}>#ORD-{order.id}</span>
-                        <span style={{ fontSize: '11px', color: '#94a3b8' }}>{order.time}</span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
-                        <span style={{ color: '#f97316', fontWeight: 'bold' }}>{order.orderType}</span>
-                        <span style={{ color: '#cbd5e1' }}>Cajero: {order.cashier}</span>
-                      </div>
-                      
-                      {/* DETALLES DE CLIENTE PARA SHIPDAY */}
-                      {order.orderType !== 'Para Comer Aquí' && (
-                        <div style={{ backgroundColor: '#0f172a', padding: '6px', borderRadius: '6px', margin: '6px 0', fontSize: '11px', border: '1px solid #334155' }}>
-                          <div><b>Cliente:</b> {order.customer.name || 'N/A'}</div>
-                          {order.orderType === 'Delivery' && (
-                            <>
-                              <div><b>Tel:</b> {order.customer.phone || 'N/A'}</div>
-                              <div><b>Ubicación:</b> {order.customer.address || 'N/A'}</div>
-                            </>
-                          )}
-                        </div>
-                      )}
-
-                      <div style={{ margin: '10px 0' }}>
-                        {order.items.map((it, idx) => (
-                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
-                            <span>{it.name}</span>
-                            <span style={{ fontWeight: 'bold', color: '#f97316' }}>x{it.qty}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        onClick={() => {
-                          if (order.status === 'Pendiente') {
-                            setKitchenOrders(kitchenOrders.map(o => o.id === order.id ? { ...o, status: 'En Preparación' } : o));
-                          } else if (order.status === 'En Preparación') {
-                            setKitchenOrders(kitchenOrders.map(o => o.id === order.id ? { ...o, status: 'Listo para Servir' } : o));
-                          } else {
-                            setKitchenOrders(kitchenOrders.filter(o => o.id !== order.id));
-                          }
-                        }}
-                        style={{ ...s.btnPrimary, flex: 1, padding: '8px', fontSize: '12px', backgroundColor: order.status === 'Pendiente' ? '#3b82f6' : order.status === 'En Preparación' ? '#f59e0b' : '#22c55e' }}>
-                        {order.status === 'Pendiente' ? 'Preparar' : order.status === 'En Preparación' ? 'Marcar Listo' : 'Entregado (Quitar)'}
-                      </button>
-
-                      <button
-                        onClick={() => handleDeleteOrder(order.id)}
-                        title="Eliminar ticket (Requiere Admin 1221)"
-                        style={{ backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
-                        🗑️
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'caja' && (
-          <div style={{ flex: 1, padding: '15px', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', justifyContent: 'space-between', alignItems: 'flex-start', ...s.card, marginBottom: '15px' }} className="md:flex-row md:items-center">
-              <div>
-                <h2 style={{ margin: 0, fontSize: '18px' }}>Control de Caja & Cierre de Turno</h2>
-                <p style={{ margin: '3px 0 0 0', color: '#94a3b8', fontSize: '12px' }}>Gestión de efectivo y arqueo en tiempo real</p>
-              </div>
-              <button onClick={handleTriggerShiftClosure} style={{ ...s.btnPrimary, width: 'auto', padding: '10px 15px', fontSize: '13px' }}>Generar Cierre de Turno</button>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', marginBottom: '15px' }}>
-              <div style={s.card}><span style={{ fontSize: '11px', color: '#94a3b8' }}>Fondo Inicial</span><p style={{ fontSize: '18px', fontWeight: 'bold', margin: '4px 0 0 0' }}>RD$ {cashRegister.openingBalance}</p></div>
-              <div style={s.card}><span style={{ fontSize: '11px', color: '#94a3b8' }}>Ventas Efectivo</span><p style={{ fontSize: '18px', fontWeight: 'bold', color: '#f97316', margin: '4px 0 0 0' }}>RD$ {cashRegister.cashSales}</p></div>
-              <div style={s.card}><span style={{ fontSize: '11px', color: '#94a3b8' }}>Ventas Tarjeta</span><p style={{ fontSize: '18px', fontWeight: 'bold', margin: '4px 0 0 0' }}>RD$ {cashRegister.cardSales}</p></div>
-              <div style={{ ...s.card, border: '1px solid #f97316' }}><span style={{ fontSize: '11px', color: '#f97316', fontWeight: 'bold' }}>EFECTIVO EN CAJA</span><p style={{ fontSize: '18px', fontWeight: 'bold', margin: '4px 0 0 0' }}>RD$ {expectedCashInBox}</p></div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '15px' }} className="lg:grid-cols-3">
-              <form onSubmit={handleAddMovement} style={{ ...s.card, height: 'fit-content' }}>
-                <h3 style={{ marginTop: 0, fontSize: '15px' }}>Registrar Movimiento</h3>
-                <div style={{ marginBottom: '10px' }}>
-                  <label style={{ fontSize: '11px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Tipo</label>
-                  <select value={movementForm.type} onChange={(e) => setMovementForm({ ...movementForm, type: e.target.value })} style={s.input}>
-                    <option value="IN">Entrada (+)</option>
-                    <option value="OUT">Salida / Gasto (-)</option>
-                  </select>
-                </div>
-                <div style={{ marginBottom: '10px' }}>
-                  <label style={{ fontSize: '11px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Monto (RD$)</label>
-                  <input type="number" placeholder="0.00" value={movementForm.amount} onChange={(e) => setMovementForm({ ...movementForm, amount: e.target.value })} style={s.input} required />
-                </div>
-                <div style={{ marginBottom: '10px' }}>
-                  <label style={{ fontSize: '11px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Concepto</label>
-                  <input type="text" placeholder="Ej: Compra de hielo" value={movementForm.reason} onChange={(e) => setMovementForm({ ...movementForm, reason: e.target.value })} style={s.input} required />
-                </div>
-                <button type="submit" style={{ ...s.btnPrimary, padding: '10px', fontSize: '13px' }}>Registrar</button>
-              </form>
-
-              <div style={{ ...s.card, gridColumn: 'span 2' }}>
-                <h3 style={{ marginTop: 0, fontSize: '15px' }}>Historial de Órdenes y Movimientos del Turno</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto' }}>
-                  {orderHistory.length === 0 && cashMovements.length === 0 && (
-                    <p style={{ color: '#64748b', fontSize: '12px', textAlign: 'center', margin: '20px 0' }}>No hay registros en este turno todavía.</p>
-                  )}
-                  {orderHistory.map(ord => (
-                    <div key={ord.id} style={{ backgroundColor: '#0f172a', padding: '8px 12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <div style={{ fontSize: '12px', fontWeight: 'bold' }}>Ticket #{ord.id} ({ord.orderType}) - Pago: {ord.paymentMethod}</div>
-                        <span style={{ fontSize: '10px', color: '#64748b' }}>{ord.time} | Cajero: {ord.cashier} {ord.customer.name ? `| Cliente: ${ord.customer.name}` : ''}</span>
-                      </div>
-                      <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#22c55e' }}>+RD$ {ord.total}</span>
-                    </div>
-                  ))}
-                  {cashMovements.map(m => (
-                    <div key={m.id} style={{ backgroundColor: '#0f172a', padding: '8px 12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <div style={{ fontSize: '12px', fontWeight: 'bold' }}>Movimiento: {m.reason}</div>
-                        <span style={{ fontSize: '10px', color: '#64748b' }}>{m.time}</span>
-                      </div>
-                      <span style={{ fontWeight: 'bold', fontSize: '13px', color: m.type === 'IN' ? '#22c55e' : '#ef4444' }}>
-                        {m.type === 'IN' ? `+RD$ ${m.amount}` : `-RD$ ${m.amount}`}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'admin' && currentUser.role === 'admin' && (
-          <div style={{ flex: 1, padding: '15px', overflowY: 'auto' }}>
-            <div style={s.card}>
-              <h2 style={{ marginTop: 0, fontSize: '18px' }}>Panel de Administración</h2>
-              <p style={{ color: '#94a3b8', fontSize: '13px' }}>Contraseña administrativa activa: <b>1221</b></p>
-              <table style={{ width: '100%', marginTop: '15px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #334155', color: '#94a3b8', fontSize: '11px' }}>
-                    <th style={{ padding: '8px' }}>Usuario Actual</th>
-                    <th style={{ padding: '8px' }}>Rol</th>
-                    <th style={{ padding: '8px' }}>Privilegios</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style={{ borderBottom: '1px solid #334155' }}>
-                    <td style={{ padding: '8px', fontWeight: 'bold' }}>{currentUser.name}</td>
-                    <td style={{ padding: '8px' }}><span style={{ backgroundColor: '#f97316', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>Admin</span></td>
-                    <td style={{ padding: '8px', color: '#94a3b8' }}>Acceso total a Cierre de Turno, Historial y Eliminación de Tickets (Clave 1221)</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </main>
-
-      {showShiftModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '15px' }}>
-          <div style={{ ...s.card, width: '100%', maxWidth: '420px', backgroundColor: '#0f172a', border: '1px solid #334155' }}>
-            <h3 style={{ marginTop: 0, borderBottom: '1px solid #334155', paddingBottom: '10px', fontSize: '16px' }}>Reporte de Cierre de Turno & WhatsApp</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', margin: '12px 0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Cajera/Operador:</span> <b>{currentUser.name}</b></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Fondo Inicial:</span> <b>RD$ {cashRegister.openingBalance}</b></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Ventas Efectivo:</span> <b style={{ color: '#f97316' }}>+ RD$ {cashRegister.cashSales}</b></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Ventas Tarjeta:</span> <b>+ RD$ {cashRegister.cardSales}</b></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Entradas / Salidas:</span> <b>+{cashRegister.cashIn} / -{cashRegister.cashOut}</b></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Total Órdenes:</span> <b>{orderHistory.length} tickets</b></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #334155', paddingTop: '8px', fontSize: '15px' }}>
-                <span>EFECTIVO ESPERADO:</span> <b style={{ color: '#f97316' }}>RD$ {expectedCashInBox}</b>
-              </div>
-            </div>
-            <p style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '15px' }}>Se enviará el reporte completo vía WhatsApp al número <b>8298558779</b>.</p>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => setShowShiftModal(false)} style={{ ...s.btnPrimary, backgroundColor: '#334155', padding: '10px', fontSize: '13px' }}>Cancelar</button>
-              <button onClick={() => {
-                sendWhatsAppClosure();
-                setShowShiftModal(false);
-                setIsLoggedIn(false);
-                localStorage.clear();
-                alert('¡Cierre generado, enviado a WhatsApp y turno finalizado correctamente!');
-              }} style={{ ...s.btnPrimary, backgroundColor: '#22c55e', padding: '10px', fontSize: '13px' }}>Enviar a WhatsApp & Finalizar</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
-  );
-}
+
+    <!-- MODAL DE FORMULARIO -->
+    <div id="modal-solicitud" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div>
+                    <span id="modal-plan-tag" style="font-size: 0.7rem; font-weight: 800; color: var(--primary); text-transform: uppercase; background: #e0e7ff; padding: 0.2rem 0.6rem; border-radius: 99px;">Plan Seleccionado</span>
+                    <h3 id="modal-titulo" style="font-size: 1.25rem; color: var(--slate-dark); font-weight: 800; margin-top: 0.3rem;">Completar Solicitud</h3>
+                </div>
+                <button type="button" onclick="closeFormModal()" style="background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: bold;">✕</button>
+            </div>
+
+            <!-- Aviso de Pago Asistido por WhatsApp -->
+            <div class="whatsapp-notice">
+                <div class="whatsapp-notice-icon">💬</div>
+                <div>
+                    <h4 style="font-size: 0.95rem; font-weight: 800; color: #065f46; margin-bottom: 0.2rem;">Pago 100% Asistido por WhatsApp</h4>
+                    <p style="font-size: 0.8rem; color: #047857; line-height: 1.4;">
+                        Para tu seguridad, no solicitamos tarjetas en línea. Al enviar este formulario, tu información llegará a nuestros asesores y <strong>el proceso de pago será coordinado y asistido directamente por un agente experto vía WhatsApp</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <form id="form-datos" onsubmit="submitSolicitudForm(event)">
+                <div class="form-section-title">1. Datos del Solicitante</div>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 0.75rem;">
+                    <div class="form-group">
+                        <label>Nombre completo *</label>
+                        <input type="text" id="input-nombre" required placeholder="Ej. Juan Pérez">
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono / WhatsApp *</label>
+                        <input type="tel" id="input-whatsapp" required placeholder="Ej. +1 809 000 0000">
+                    </div>
+                    <div class="form-group">
+                        <label>Correo electrónico *</label>
+                        <input type="email" id="input-email" required placeholder="correo@ejemplo.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Ciudad y país de residencia *</label>
+                        <input type="text" id="input-residencia" required placeholder="Ej. Santo Domingo, Rep. Dom.">
+                    </div>
+                    <div class="form-group">
+                        <label>Motivo principal del viaje *</label>
+                        <input type="text" id="input-motivo" required placeholder="Ej. Turismo, Vacaciones">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn animate-pulse-btn" style="width: 100%; margin-top: 1rem; padding: 1rem; font-size: 1rem; background: #059669; justify-content: center;">
+                    📲 ENVIAR Y COORDINAR PAGO POR WHATSAPP
+                </button>
+                <button type="button" onclick="closeFormModal()" class="close-btn">Cancelar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script de Control -->
+    <script>
+        let paqueteSeleccionadoNombre = '';
+        let paqueteSeleccionadoPrecio = '';
+
+        function openFormModal(nombre, precio) {
+            paqueteSeleccionadoNombre = nombre;
+            paqueteSeleccionadoPrecio = precio;
+            
+            document.getElementById('modal-plan-tag').innerText = `Plan: ${nombre} (${precio})`;
+            document.getElementById('modal-titulo').innerText = `Adquirir ${nombre}`;
+            
+            // Mostrar modal forzando la clase active
+            const modal = document.getElementById('modal-solicitud');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFormModal() {
+            const modal = document.getElementById('modal-solicitud');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function submitSolicitudForm(e) {
+            e.preventDefault();
+            
+            const nombre = document.getElementById('input-nombre').value;
+            const whatsapp = document.getElementById('input-whatsapp').value;
+            const email = document.getElementById('input-email').value;
+            const residencia = document.getElementById('input-residencia').value;
+            const motivo = document.getElementById('input-motivo').value;
+
+            // Mensaje estructurado para WhatsApp
+            const textoMensaje = `Hola, mi nombre es *${nombre}*. Acabo de completar mi solicitud para el plan *${paqueteSeleccionadoNombre} (${paqueteSeleccionadoPrecio})* en migraRD.\n\n*Datos de contacto:*\n- WhatsApp: ${whatsapp}\n- Correo: ${email}\n- Residencia: ${residencia}\n- Motivo de viaje: ${motivo}\n\nQuiero coordinar el pago con un agente y continuar con mi proceso.`;
+
+            // Número administrativo configurado
+            const numeroDestino = "18090000000"; 
+            const urlWhatsApp = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(textoMensaje)}`;
+
+            // Cerrar modal y abrir WhatsApp de inmediato
+            closeFormModal();
+            window.open(urlWhatsApp, '_blank');
+        }
+    </script>
+</body>
+</html>
