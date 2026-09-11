@@ -1,339 +1,371 @@
+```html
 <!DOCTYPE html>
-<html lang="es" class="scroll-smooth">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>migraRD | Preparación Profesional</title>
-    
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#1e3a8a">
-    <meta name="description" content="Servicio privado de asistencia y preparación de solicitudes de visa americana.">
-    <link rel="manifest" href="manifest.json">
-
-    <!-- Estilos y Animaciones Optimizadas -->
-    <style>
-        :root {
-            --primary: #1e3a8a;
-            --primary-light: #2563eb;
-            --emerald: #059669;
-            --slate-dark: #0f172a;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-        body { background-color: #f8fafc; color: #1e293b; line-height: 1.6; overflow-x: hidden; }
-
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
-            100% { transform: translateY(0px); }
-        }
-        @keyframes pulseGlow {
-            0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(37, 99, 235, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .animate-float { animation: float 4s ease-in-out infinite; }
-        .animate-pulse-btn { animation: pulseGlow 2s infinite; }
-        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
-
-        header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #e2e8f0; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 40; }
-        .logo { font-weight: 800; font-size: 1.25rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; }
-        .logo-icon { background: var(--primary); color: white; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 1.1rem; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3); }
-        
-        .btn { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; border: none; padding: 0.85rem 1.75rem; font-weight: 700; border-radius: 14px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; text-align: center; transition: all 0.3s ease; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5); background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); }
-
-        /* Hero */
-        .hero { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: white; padding: 5rem 1.5rem; text-align: center; position: relative; overflow: hidden; }
-        .flags-banner { display: flex; justify-content: center; gap: 1rem; font-size: 2.5rem; margin-bottom: 1.5rem; }
-        .hero h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 800; margin-bottom: 1.2rem; letter-spacing: -0.025em; line-height: 1.2; }
-        .hero h1 span { background: linear-gradient(to right, #60a5fa, #93c5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero p { color: #cbd5e1; max-width: 680px; margin: 0 auto 2.5rem; font-size: 1.15rem; font-weight: 300; }
-
-        /* PVU Cards */
-        .pvu-section { max-width: 1200px; margin: -3rem auto 0; padding: 0 1.5rem; position: relative; z-index: 20; }
-        .pvu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-        .pvu-card { background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; transition: transform 0.3s ease; }
-        .pvu-card:hover { transform: translateY(-5px); }
-        .pvu-icon { width: 50px; height: 50px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.2rem; font-weight: bold; }
-        .pvu-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--slate-dark); }
-        .pvu-card p { font-size: 0.9rem; color: #64748b; }
-
-        /* Planes */
-        .container { max-width: 1200px; margin: 0 auto; padding: 5rem 1.5rem; }
-        .section-header { text-align: center; max-width: 700px; margin: 0 auto 3.5rem; }
-        .section-header h2 { font-size: clamp(2rem, 3vw, 2.75rem); font-weight: 800; color: var(--slate-dark); margin-bottom: 1rem; }
-        .section-header p { color: #64748b; font-size: 1.1rem; }
-
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; align-items: stretch; }
-        .card { background: white; border: 1px solid #e2e8f0; border-radius: 28px; padding: 2.5rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); transition: all 0.3s ease; position: relative; }
-        .card:hover { box-shadow: 0 20px 35px -10px rgba(0,0,0,0.08); border-color: #cbd5e1; }
-        .card.popular { border: 2px solid #2563eb; box-shadow: 0 15px 30px -5px rgba(37,99,235,0.15); }
-        
-        .badge { background: #f1f5f9; color: #475569; font-size: 0.75rem; font-weight: 800; padding: 0.35rem 1rem; border-radius: 9999px; width: fit-content; margin-bottom: 1.25rem; text-transform: uppercase; }
-        .popular-badge { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; position: absolute; top: -16px; left: 50%; transform: translateX(-50%); box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
-        
-        .price-box { margin: 1.5rem 0; display: flex; align-items: baseline; gap: 0.5rem; }
-        .price { font-size: 3rem; font-weight: 800; color: var(--slate-dark); }
-        .price-period { color: #64748b; font-size: 0.875rem; font-weight: 500; }
-        
-        .features { list-style: none; margin: 2rem 0; font-size: 0.95rem; color: #475569; }
-        .features li { margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.75rem; }
-        .features li::before { content: "✓"; color: var(--emerald); font-weight: 900; background: #ecfdf5; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.75rem; }
-
-        /* Mensaje Inspirador */
-        .inspire-box { background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%); border: 1px solid #bfdbfe; border-radius: 20px; padding: 2.5rem; text-align: center; margin-top: 5rem; }
-        .inspire-box h3 { font-size: 1.5rem; font-weight: 800; color: var(--primary); margin-bottom: 0.75rem; }
-        .inspire-box p { color: #1e40af; max-width: 700px; margin: 0 auto; font-size: 1.05rem; }
-
-        /* MODAL (Forzar visualización con display flex cuando esté activo) */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px); z-index: 1000; align-items: center; justify-content: center; padding: 1rem; }
-        .modal.active { display: flex !important; }
-        .modal-content { background: white; border-radius: 32px; width: 100%; max-width: 580px; padding: 2.5rem; max-height: 95vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); animation: fadeIn 0.3s ease-out; }
-        
-        .form-section-title { font-size: 0.85rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 1rem; border-bottom: 2px solid #eff6ff; padding-bottom: 0.3rem; letter-spacing: 0.05em; }
-        .form-group { margin-bottom: 1.25rem; text-align: left; }
-        .form-group label { display: block; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.4rem; color: #475569; letter-spacing: 0.05em; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.8rem 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; background: #f8fafc; }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary-light); background: white; }
-        
-        .close-btn { background: #f1f5f9; border: none; padding: 0.75rem; border-radius: 12px; cursor: pointer; font-weight: 700; color: #475569; width: 100%; margin-top: 0.75rem; transition: background 0.2s; }
-        .close-btn:hover { background: #e2e8f0; }
-
-        /* Tarjeta de Asistencia WhatsApp en Formulario */
-        .whatsapp-notice { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 2px solid #34d399; border-radius: 18px; padding: 1.5rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: flex-start; text-align: left; }
-        .whatsapp-notice-icon { font-size: 2rem; background: #059669; color: white; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 10px rgba(5,150,105,0.3); }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xiiao Kitchen - Sabor que se siente</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #050505; color: #f3f4f6; }
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    /* Hide scrollbar for IE, Edge and Firefox */
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col items-center pb-32">
 
+  <div class="w-full max-w-md bg-[#0a0a0a] min-h-screen relative flex flex-col shadow-2xl">
+    
     <!-- Header -->
-    <header>
-        <div class="logo">
-            <div class="logo-icon animate-float">🇺🇸</div>
-            <span>migraRD</span>
+    <header class="pt-8 pb-4 px-4 sticky top-0 z-40 bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-white/5">
+      <div class="text-center">
+        <h1 class="text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">
+          Xiiao Kitchen
+        </h1>
+        <p class="text-gray-400 text-xs font-semibold mt-1 tracking-widest uppercase">
+          Sabor que se siente
+        </p>
+        <div class="mt-3 inline-block bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs px-4 py-1.5 rounded-full font-bold shadow-[0_0_15px_rgba(249,115,22,0.1)]">
+          🛵 ¡Envío Gratis en Cotuí!
         </div>
-        <a href="#planes" class="btn" style="padding: 0.6rem 1.25rem; font-size: 0.875rem;">Ver Planes</a>
+      </div>
+      
+      <!-- Category Tabs -->
+      <div id="category-tabs" class="mt-5 flex overflow-x-auto gap-2 pb-2 scrollbar-hide px-1">
+        <!-- Injected via JS -->
+      </div>
     </header>
 
-    <!-- Hero -->
-    <section class="hero">
-        <div class="flags-banner">
-            <span class="flag-item animate-float" style="animation-delay: 0s;">🇩🇴</span>
-            <span class="flag-item animate-float" style="animation-delay: 0.5s;">✈️</span>
-            <span class="flag-item animate-float" style="animation-delay: 1s;">🇺🇸</span>
-        </div>
-        
-        <h1>Haz realidad tu viaje y transforma tu futuro con <span>asistencia profesional</span></h1>
-        <p>Tu entrevista consular es una oportunidad única. Te guiamos paso a paso con rigor, claridad y respaldo humano garantizado.</p>
-        
-        <a href="#planes" class="btn animate-pulse-btn" style="font-size: 1.05rem; padding: 1rem 2rem;">
-            🚀 Elegir Mi Plan de Asistencia
-        </a>
-    </section>
-
-    <!-- PVU -->
-    <section class="pvu-section">
-        <div class="pvu-grid">
-            <div class="pvu-card">
-                <div class="pvu-icon">🎯</div>
-                <h3>Estrategia Personalizada</h3>
-                <p>Analizamos cada detalle de tu perfil para resaltar tus fortalezas y preparar una solicitud impecable.</p>
-            </div>
-            <div class="pvu-card">
-                <div class="pvu-icon">🛡️</div>
-                <h3>Tranquilidad Absoluta</h3>
-                <p>Evita errores críticos en formularios consulares que puedan comprometer o retrasar tu proceso.</p>
-            </div>
-            <div class="pvu-card">
-                <div class="pvu-icon">🤝</div>
-                <h3>Acompañamiento Humano</h3>
-                <p>Nunca estarás solo: un experto te asistirá directamente por WhatsApp durante toda tu gestión.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Planes -->
-    <div id="planes" class="container">
-        <div class="section-header">
-            <h2>Selecciona tu nivel de acompañamiento</h2>
-            <p>Inversión inteligente diseñada para darte la máxima seguridad ante el oficial consular.</p>
-        </div>
-
-        <div class="grid">
-            <!-- Plan 1 -->
-            <div class="card">
-                <div>
-                    <div class="badge">PREPARACIÓN + GUÍA</div>
-                    <div class="price-box">
-                        <span class="price">US$20</span>
-                        <span class="price-period">pago único</span>
-                    </div>
-                    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 1.5rem;">Tú haces el proceso. Nosotros te guiamos paso a paso.</p>
-                    <ul class="features">
-                        <li>Orientación experta paso a paso</li>
-                        <li>Guía para crear tu perfil de solicitud</li>
-                        <li>Guía detallada para completar el DS-160</li>
-                        <li>Evaluación profesional de tu información</li>
-                        <li>Seguimiento directo por WhatsApp</li>
-                    </ul>
-                </div>
-                <button type="button" onclick="openFormModal('Preparación + Guía', 'US$20')" class="btn" style="background: var(--slate-dark); width: 100%;">ADQUIRIR PLAN - US$20</button>
-            </div>
-
-            <!-- Plan 2 (Popular) -->
-            <div class="card popular">
-                <div class="badge popular-badge">⭐ MÁS ELEGIDO POR NUESTROS CLIENTES</div>
-                <div>
-                    <div class="badge" style="background: #e0e7ff; color: #1e40af;">PROCESO COMPLETO</div>
-                    <div class="price-box">
-                        <span class="price">US$60</span>
-                        <span class="price-period">pago único</span>
-                    </div>
-                    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 1.5rem;">Nosotros hacemos todo el proceso pesado por ti.</p>
-                    <ul class="features">
-                        <li>Evaluación inicial de perfil completa</li>
-                        <li>Creación profesional del perfil consular</li>
-                        <li>Llenado experto y exacto del formulario DS-160</li>
-                        <li>Asesoría y preparación intensiva para entrevista</li>
-                        <li>Acompañamiento hasta la cita consular</li>
-                    </ul>
-                </div>
-                <button type="button" onclick="openFormModal('Proceso Completo', 'US$60')" class="btn animate-pulse-btn" style="width: 100%;">ADQUIRIR PLAN - US$60</button>
-            </div>
-
-            <!-- Plan 3 -->
-            <div class="card">
-                <div>
-                    <div class="badge" style="background: #fae8ff; color: #86198f;">PROCESO + VALIDACIÓN</div>
-                    <div class="price-box">
-                        <span class="price">US$80</span>
-                        <span class="price-period">pago único</span>
-                    </div>
-                    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 1.5rem;">Para casos especiales con revisión documental profunda.</p>
-                    <ul class="features">
-                        <li>Todo lo incluido en el plan de US$60</li>
-                        <li>Revisión documental detallada (divorcios, nombres)</li>
-                        <li>Identificación minuciosa de inconsistencias</li>
-                        <li>Orientación sobre documentos de soporte clave</li>
-                        <li>Estrategia de presentación optimizada</li>
-                    </ul>
-                </div>
-                <button type="button" onclick="openFormModal('Proceso Completo + Validación', 'US$80')" class="btn" style="background: var(--slate-dark); width: 100%;">ADQUIRIR PLAN - US$80</button>
-            </div>
-        </div>
-
-        <!-- Mensaje Inspirador -->
-        <div class="inspire-box">
-            <h3>🌟 Tu meta está más cerca de lo que imaginas</h3>
-            <p>Miles de personas han logrado organizar sus solicitudes de manera exitosa con nuestra asesoría experta. Da el primer paso hoy con total confianza y permítenos acompañarte hacia tu próximo destino.</p>
-        </div>
+    <!-- Track Order Banner -->
+    <div id="tracker-banner" class="mx-4 mt-4 hidden">
+      <!-- Injected via JS -->
     </div>
 
-    <!-- MODAL DE FORMULARIO -->
-    <div id="modal-solicitud" class="modal">
-        <div class="modal-content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-                <div>
-                    <span id="modal-plan-tag" style="font-size: 0.7rem; font-weight: 800; color: var(--primary); text-transform: uppercase; background: #e0e7ff; padding: 0.2rem 0.6rem; border-radius: 99px;">Plan Seleccionado</span>
-                    <h3 id="modal-titulo" style="font-size: 1.25rem; color: var(--slate-dark); font-weight: 800; margin-top: 0.3rem;">Completar Solicitud</h3>
-                </div>
-                <button type="button" onclick="closeFormModal()" style="background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: bold;">✕</button>
-            </div>
+    <!-- Menu Items Container -->
+    <main class="p-4 space-y-4 flex-1" id="menu-container">
+      <!-- Injected via JS -->
+    </main>
 
-            <!-- Aviso de Pago Asistido por WhatsApp -->
-            <div class="whatsapp-notice">
-                <div class="whatsapp-notice-icon">💬</div>
-                <div>
-                    <h4 style="font-size: 0.95rem; font-weight: 800; color: #065f46; margin-bottom: 0.2rem;">Pago 100% Asistido por WhatsApp</h4>
-                    <p style="font-size: 0.8rem; color: #047857; line-height: 1.4;">
-                        Para tu seguridad, no solicitamos tarjetas en línea. Al enviar este formulario, tu información llegará a nuestros asesores y <strong>el proceso de pago será coordinado y asistido directamente por un agente experto vía WhatsApp</strong>.
-                    </p>
-                </div>
-            </div>
-
-            <form id="form-datos" onsubmit="submitSolicitudForm(event)">
-                <div class="form-section-title">1. Datos del Solicitante</div>
-                <div style="display: grid; grid-template-columns: 1fr; gap: 0.75rem;">
-                    <div class="form-group">
-                        <label>Nombre completo *</label>
-                        <input type="text" id="input-nombre" required placeholder="Ej. Juan Pérez">
-                    </div>
-                    <div class="form-group">
-                        <label>Teléfono / WhatsApp *</label>
-                        <input type="tel" id="input-whatsapp" required placeholder="Ej. +1 809 000 0000">
-                    </div>
-                    <div class="form-group">
-                        <label>Correo electrónico *</label>
-                        <input type="email" id="input-email" required placeholder="correo@ejemplo.com">
-                    </div>
-                    <div class="form-group">
-                        <label>Ciudad y país de residencia *</label>
-                        <input type="text" id="input-residencia" required placeholder="Ej. Santo Domingo, Rep. Dom.">
-                    </div>
-                    <div class="form-group">
-                        <label>Motivo principal del viaje *</label>
-                        <input type="text" id="input-motivo" required placeholder="Ej. Turismo, Vacaciones">
-                    </div>
-                </div>
-
-                <button type="submit" class="btn animate-pulse-btn" style="width: 100%; margin-top: 1rem; padding: 1rem; font-size: 1rem; background: #059669; justify-content: center;">
-                    📲 ENVIAR Y COORDINAR PAGO POR WHATSAPP
-                </button>
-                <button type="button" onclick="closeFormModal()" class="close-btn">Cancelar</button>
-            </form>
-        </div>
+    <!-- Admin toggle button footer -->
+    <div class="py-6 flex justify-center pb-20 gap-4">
+      <button onclick="openPinModal()" class="text-gray-700 hover:text-orange-500 transition-colors text-xl" title="Panel de Administración">
+        🔒
+      </button>
+      <button onclick="openKitchen()" class="text-xs bg-[#1a1a1a] text-gray-400 hover:text-orange-400 px-3 py-1.5 rounded-xl border border-white/5 transition-colors font-bold">
+        👨‍🍳 Cocina (KDS)
+      </button>
     </div>
 
-    <!-- Script de Control -->
-    <script>
-        let paqueteSeleccionadoNombre = '';
-        let paqueteSeleccionadoPrecio = '';
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[110] hidden items-center justify-center p-4">
+      <div class="bg-[#111111] p-6 rounded-3xl w-full max-w-sm border border-white/10 shadow-2xl">
+        <h3 class="text-xl font-black text-white mb-1">Completa tu orden</h3>
+        <p class="text-gray-400 text-xs mb-5">Ingresa tus datos para procesar el pedido.</p>
+        
+        <form onsubmit="confirmarCrearOrden(event)" class="space-y-4">
+          <div>
+            <label class="text-xs font-bold text-gray-400 block mb-1">Tu Nombre</label>
+            <input type="text" id="nombre-cliente" required placeholder="Ej. Juan Pérez" class="w-full bg-[#050505] border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-orange-500" />
+          </div>
+          <div>
+            <label class="text-xs font-bold text-gray-400 block mb-1">Tu Teléfono / WhatsApp</label>
+            <input type="tel" id="telefono-cliente" required placeholder="Ej. 829-000-0000" class="w-full bg-[#050505] border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-orange-500" />
+          </div>
+          <div id="direccion-container">
+            <label class="text-xs font-bold text-gray-400 block mb-1">Dirección de Entrega en Cotuí</label>
+            <textarea id="direccion-cliente" rows="2" placeholder="Calle, número de casa, referencias..." class="w-full bg-[#050505] border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-orange-500 resize-none"></textarea>
+          </div>
 
-        function openFormModal(nombre, precio) {
-            paqueteSeleccionadoNombre = nombre;
-            paqueteSeleccionadoPrecio = precio;
-            
-            document.getElementById('modal-plan-tag').innerText = `Plan: ${nombre} (${precio})`;
-            document.getElementById('modal-titulo').innerText = `Adquirir ${nombre}`;
-            
-            // Mostrar modal forzando la clase active
-            const modal = document.getElementById('modal-solicitud');
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
+          <div class="flex gap-2 pt-2">
+            <button type="button" onclick="closeCheckoutModal()" class="flex-1 py-3 bg-[#1a1a1a] rounded-xl font-bold text-gray-400 text-sm">Volver</button>
+            <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-black rounded-xl font-black text-sm shadow-lg">Crear orden</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
-        function closeFormModal() {
-            const modal = document.getElementById('modal-solicitud');
-            modal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
+    <!-- Admin PIN Modal -->
+    <div id="pin-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+      <div class="bg-[#111111] p-6 rounded-3xl w-full max-w-sm border border-white/10 shadow-2xl">
+        <h3 class="text-xl font-bold text-white mb-2 text-center">Acceso Administrador</h3>
+        <p class="text-gray-400 text-sm mb-5 text-center">Ingresa tu PIN (8779) para activar/desactivar platos.</p>
+        
+        <form onsubmit="handlePinSubmit(event)" class="space-y-4">
+          <input type="password" id="pin-input" placeholder="****" maxlength="4" class="w-full bg-[#050505] border border-white/10 rounded-xl p-4 text-center text-2xl text-white tracking-[0.5em] focus:outline-none focus:border-orange-500" autofocus />
+          <p id="pin-error" class="text-red-500 text-xs text-center hidden">PIN Incorrecto</p>
+          
+          <div class="flex gap-2">
+            <button type="button" onclick="closePinModal()" class="flex-1 py-3 bg-[#1a1a1a] rounded-xl font-bold text-gray-400">Cancelar</button>
+            <button type="submit" class="flex-1 py-3 bg-orange-500 text-black rounded-xl font-bold">Entrar</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
-        function submitSolicitudForm(e) {
-            e.preventDefault();
-            
-            const nombre = document.getElementById('input-nombre').value;
-            const whatsapp = document.getElementById('input-whatsapp').value;
-            const email = document.getElementById('input-email').value;
-            const residencia = document.getElementById('input-residencia').value;
-            const motivo = document.getElementById('input-motivo').value;
+    <!-- Admin Management Panel Modal -->
+    <div id="admin-panel" class="fixed inset-0 bg-[#050505] z-[120] hidden flex flex-col p-4 overflow-y-auto">
+      <div class="w-full max-w-md mx-auto">
+        <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+          <div>
+            <h2 class="text-2xl font-black text-orange-500">Gestor Rápido</h2>
+            <p class="text-gray-400 text-xs">Activa o desactiva productos al instante</p>
+          </div>
+          <button onclick="closeAdminPanel()" class="bg-[#1a1a1a] text-white px-4 py-2 rounded-xl text-sm font-bold border border-white/10">Cerrar</button>
+        </div>
+        <div class="mb-4">
+          <button onclick="openKitchenFromAdmin()" class="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-black font-black rounded-xl text-sm shadow-md">
+            👨‍🍳 Abrir Pantalla de Cocina (KDS)
+          </button>
+        </div>
+        <div id="admin-items-list" class="space-y-4 pb-20">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+    </div>
 
-            // Mensaje estructurado para WhatsApp
-            const textoMensaje = `Hola, mi nombre es *${nombre}*. Acabo de completar mi solicitud para el plan *${paqueteSeleccionadoNombre} (${paqueteSeleccionadoPrecio})* en migraRD.\n\n*Datos de contacto:*\n- WhatsApp: ${whatsapp}\n- Correo: ${email}\n- Residencia: ${residencia}\n- Motivo de viaje: ${motivo}\n\nQuiero coordinar el pago con un agente y continuar con mi proceso.`;
+    <!-- Kitchen Display System (KDS) Modal -->
+    <div id="kitchen-modal" class="fixed inset-0 bg-[#050505] z-[130] hidden flex flex-col p-4 overflow-y-auto">
+      <div class="w-full max-w-lg mx-auto">
+        <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+          <div>
+            <h2 class="text-2xl font-black text-orange-500">Cocina / KDS</h2>
+            <p class="text-gray-400 text-xs">Gestiona órdenes en tiempo real</p>
+          </div>
+          <button onclick="closeKitchen()" class="bg-[#1a1a1a] text-white px-4 py-2 rounded-xl text-sm font-bold border border-white/10">Cerrar</button>
+        </div>
+        <div id="kitchen-orders-list" class="space-y-4 pb-20">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+    </div>
 
-            // Número administrativo configurado
-            const numeroDestino = "18090000000"; 
-            const urlWhatsApp = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(textoMensaje)}`;
+    <!-- Floating Cart Bar -->
+    <div id="cart-bar" class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#111111] border-t border-white/10 p-5 shadow-[0_-20px_40px_rgba(0,0,0,0.9)] z-50 rounded-t-[2.5rem] backdrop-blur-xl hidden">
+      <div class="flex justify-between items-end mb-4 px-1">
+        <div class="flex flex-col">
+          <span class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Tu Orden</span>
+          <span id="cart-count-badge" class="font-bold text-orange-400 bg-orange-500/10 px-3 py-1 rounded-full text-sm inline-block w-max border border-orange-500/25">0 artículos</span>
+        </div>
+        <div class="text-right">
+          <span class="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-1">Total</span>
+          <span id="cart-total" class="font-black text-3xl text-white tracking-tighter">RD$ 0</span>
+        </div>
+      </div>
 
-            // Cerrar modal y abrir WhatsApp de inmediato
-            closeFormModal();
-            window.open(urlWhatsApp, '_blank');
-        }
-    </script>
-</body>
-</html>
+      <div id="cart-items-list" class="max-h-28 overflow-y-auto mb-4 space-y-1 bg-[#050505] p-2 rounded-xl border border-white/5 scrollbar-hide">
+        <!-- Injected via JS -->
+      </div>
+      
+      <div class="flex gap-2 mb-4 bg-[#050505] p-1.5 rounded-2xl border border-white/5">
+        <button onclick="setTipoPedido('delivery')" id="btn-delivery" class="flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-[#1c1c1c] text-orange-500 border border-white/5">🛵 Delivery</button>
+        <button onclick="setTipoPedido('local')" id="btn-local" class="flex-1 py-3 text-sm font-bold rounded-xl transition-all text-gray-500 hover:text-gray-300">🍽️ En Local</button>
+      </div>
+
+      <button onclick="abrirCheckout()" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-black py-4 rounded-2xl font-black text-lg shadow-[0_8px_25px_rgba(249,115,22,0.3)] active:scale-[0.98]">
+        Crear orden
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    // Initial Menu Data extracted from Xiiao Kitchen flyer
+    const initialMenu = [
+      { id: 1, category: 'Carnes', name: 'Alitas', price: 250, desc: '', disponible: true },
+      { id: 2, category: 'Carnes', name: 'Carne Salada', price: 260, desc: '', disponible: true },
+      { id: 3, category: 'Especiales', name: 'Toy en Salchi (Pequeña)', price: 160, desc: 'Salchipapa con queso mozarella', disponible: true },
+      { id: 4, category: 'Especiales', name: 'Toy en Salchi (Grande)', price: 250, desc: 'Salchipapa con queso mozarella', disponible: true },
+      { id: 5, category: 'Especiales', name: 'La Yaya (¡La Estrella!)', price: 350, desc: 'Papa + Pollo extra queso + tocineta (Para 2 personas)', disponible: true },
+      { id: 6, category: 'Sándwiches', name: 'Club Sandwich', price: 230, desc: 'Con pechuga de pollo y tocineta. Incluye papa.', disponible: true },
+      { id: 7, category: 'Sándwiches', name: 'Sandwich Jamón y Queso', price: 75, desc: '', disponible: true },
+      { id: 8, category: 'Sándwiches', name: 'Sandwich de Pollo y Tocineta', price: 120, desc: '', disponible: true },
+      { id: 9, category: 'Sándwiches', name: 'Sandwich de Pollo, Queso, Jamoneta', price: 120, desc: '', disponible: true },
+      { id: 10, category: 'Sándwiches', name: 'Sandwich de Pollo, Queso y Tocineta', price: 170, desc: '', disponible: true },
+      { id: 11, category: 'Burritos', name: 'Burrito de Pollo (Normal)', price: 185, desc: '', disponible: true },
+      { id: 12, category: 'Burritos', name: 'Burrito de Pollo (Con Papa)', price: 230, desc: '', disponible: true },
+      { id: 13, category: 'Burritos', name: 'Burrito Pollo y Tocineta (Normal)', price: 220, desc: '', disponible: true },
+      { id: 14, category: 'Burritos', name: 'Burrito Pollo y Tocineta (Con Papa)', price: 270, desc: '', disponible: true },
+      { id: 15, category: 'Burritos', name: 'Burrito de Res (Normal)', price: 220, desc: '', disponible: true },
+      { id: 16, category: 'Burritos', name: 'Burrito de Res (Con Papa)', price: 270, desc: '', disponible: true },
+      { id: 17, category: 'Burritos', name: 'Burrito Mixto (Normal)', price: 250, desc: '', disponible: true },
+      { id: 18, category: 'Burritos', name: 'Burrito Mixto (Con Papa)', price: 290, desc: '', disponible: true },
+      { id: 19, category: 'Burritos', name: 'Burrito XXL Extra Pollo (Normal)', price: 300, desc: '', disponible: true },
+      { id: 20, category: 'Burritos', name: 'Burrito XXL Extra Pollo (Con Papa)', price: 350, desc: '', disponible: true },
+      { id: 21, category: 'Yaroa', name: 'Yaroa de Pollo (Mediana)', price: 250, desc: 'Elegir base: Plátano maduro o papa', disponible: true },
+      { id: 22, category: 'Yaroa', name: 'Yaroa de Res (Mediana)', price: 300, desc: 'Elegir base: Plátano maduro o papa', disponible: true },
+      { id: 23, category: 'Yaroa', name: 'Yaroa de Pollo (Grande)', price: 350, desc: 'Elegir base: Plátano maduro o papa', disponible: true },
+      { id: 24, category: 'Yaroa', name: 'Yaroa de Res (Grande)', price: 400, desc: 'Elegir base: Plátano maduro o papa', disponible: true },
+      { id: 25, category: 'Hot Dog', name: 'Hot Dog Dominicano', price: 150, desc: 'Salchicha jugosa, pan suave y tostado, repollo fresco y salsa especial', disponible: true }
+    ];
+
+    // Load state from localStorage or defaults
+    let menuItems = JSON.parse(localStorage.getItem('xiiao_menu')) || initialMenu;
+    let orders = JSON.parse(localStorage.getItem('xiiao_orders')) || [];
+    let carrito = [];
+    let tipoPedido = 'delivery';
+    let activeCategory = [...new Set(menuItems.map(i => i.category))][0];
+    let trackedOrderId = localStorage.getItem('xiiao_tracked') || null;
+
+    const categories = [...new Set(menuItems.map(i => i.category))];
+
+    function saveMenu() {
+      localStorage.setItem('xiiao_menu', JSON.stringify(menuItems));
+      renderMenu();
+      renderAdminPanel();
+    }
+
+    function saveOrders() {
+      localStorage.setItem('xiiao_orders', JSON.stringify(orders));
+      renderKitchen();
+      renderTracker();
+    }
+
+    function renderTabs() {
+      const container = document.getElementById('category-tabs');
+      container.innerHTML = categories.map(cat => `
+        <button onclick="setActiveCategory('${cat}')" class="whitespace-nowrap px-5 py-2.5 rounded-2xl text-sm font-bold transition-all duration-300 ${activeCategory === cat ? 'bg-orange-500 text-black shadow-[0_4px_15px_rgba(249,115,22,0.4)] scale-105' : 'bg-[#141414] text-gray-400 hover:text-white border border-white/5'}">
+          ${cat}
+        </button>
+      `).join('');
+    }
+
+    function setActiveCategory(cat) {
+      activeCategory = cat;
+      renderTabs();
+      renderMenu();
+    }
+
+    function renderMenu() {
+      renderTabs();
+      const container = document.getElementById('menu-container');
+      const filtered = menuItems.filter(i => i.category === activeCategory && i.disponible !== false);
+
+      let html = `
+        <div class="flex items-center gap-2 mb-2">
+          <h2 class="text-xl font-black text-white">${activeCategory}</h2>
+          <div class="flex-1 h-px bg-gradient-to-r from-orange-500/50 to-transparent ml-2"></div>
+        </div>
+        <div class="space-y-4 pb-8">
+      `;
+
+      if (filtered.length === 0) {
+        html += `<div class="text-center py-10 text-gray-500 text-sm">No hay productos disponibles en esta categoría.</div>`;
+      } else {
+        filtered.forEach(item => {
+          html += `
+            <div class="bg-[#111111] p-5 rounded-3xl border border-white/5 flex justify-between items-center transition-all hover:border-orange-500/30">
+              <div class="pr-4 flex-1">
+                <h3 class="font-bold text-gray-100 text-lg leading-tight">${item.name}</h3>
+                ${item.desc ? `<p class="text-xs text-gray-500 mt-1.5 leading-relaxed">${item.desc}</p>` : ''}
+                <p class="font-black mt-3 text-orange-500 text-lg tracking-tight">RD$ ${item.price}</p>
+              </div>
+              <button onclick="agregarAlCarrito(${item.id})" class="bg-[#1a1a1a] border border-white/5 text-orange-500 h-12 w-12 flex items-center justify-center rounded-2xl text-2xl font-light hover:bg-orange-500 hover:text-black transition-all shrink-0">+</button>
+            </div>
+          `;
+        });
+      }
+      html += `</div>`;
+      container.innerHTML = html;
+      renderTracker();
+    }
+
+    function agregarAlCarrito(id) {
+      const item = menuItems.find(i => i.id === id);
+      if (item) {
+        carrito.push(item);
+        renderCart();
+      }
+    }
+
+    function eliminarDelCarrito(index) {
+      carrito.splice(index, 1);
+      renderCart();
+    }
+
+    function renderCart() {
+      const cartBar = document.getElementById('cart-bar');
+      if (carrito.length === 0) {
+        cartBar.classList.add('hidden');
+        return;
+      }
+      cartBar.classList.remove('hidden');
+
+      const total = carrito.reduce((acc, item) => acc + item.price, 0);
+      document.getElementById('cart-count-badge').innerText = `${carrito.length} ${carrito.length === 1 ? 'artículo' : 'artículos'}`;
+      document.getElementById('cart-total').innerText = `RD$ ${total}`;
+
+      const itemsList = document.getElementById('cart-items-list');
+      itemsList.innerHTML = carrito.map((item, idx) => `
+        <div class="flex justify-between items-center text-xs text-gray-300 py-1 border-b border-white/5 last:border-0">
+          <span class="truncate pr-2">${item.name}</span>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="font-bold text-orange-400">RD$ ${item.price}</span>
+            <button onclick="eliminarDelCarrito(${idx})" class="text-red-400 hover:text-red-300 px-1 font-bold">×</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function setTipoPedido(tipo) {
+      tipoPedido = tipo;
+      const btnDel = document.getElementById('btn-delivery');
+      const btnLoc = document.getElementById('btn-local');
+      const dirContainer = document.getElementById('direccion-container');
+
+      if (tipo === 'delivery') {
+        btnDel.className = "flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-[#1c1c1c] text-orange-500 border border-white/5";
+        btnLoc.className = "flex-1 py-3 text-sm font-bold rounded-xl transition-all text-gray-500 hover:text-gray-300";
+        dirContainer.style.display = 'block';
+        document.getElementById('direccion-cliente').required = true;
+      } else {
+        btnLoc.className = "flex-1 py-3 text-sm font-bold rounded-xl transition-all bg-[#1c1c1c] text-orange-500 border border-white/5";
+        btnDel.className = "flex-1 py-3 text-sm font-bold rounded-xl transition-all text-gray-500 hover:text-gray-300";
+        dirContainer.style.display = 'none';
+        document.getElementById('direccion-cliente').required = false;
+      }
+    }
+
+    function abrirCheckout() {
+      document.getElementById('checkout-modal').classList.remove('hidden');
+      document.getElementById('checkout-modal').classList.add('flex');
+    }
+
+    function closeCheckoutModal() {
+      document.getElementById('checkout-modal').classList.add('hidden');
+      document.getElementById('checkout-modal').classList.remove('flex');
+    }
+
+    function confirmarCrearOrden(e) {
+      e.preventDefault();
+      const nombre = document.getElementById('nombre-cliente').value;
+      const telefono = document.getElementById('telefono-cliente').value;
+      const direccion = tipoPedido === 'delivery' ? document.getElementById('direccion-cliente').value : 'Consumo / Retiro en Local';
+      const total = carrito.reduce((acc, item) => acc + item.price, 0);
+
+      const conteoItems = carrito.reduce((acc, item) => {
+        acc[item.name] = (acc[item.name] || 0) + 1;
+        return acc;
+      }, {});
+
+      const newOrder = {
+        id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
+        cliente: nombre,
+        telefono: telefono,
+        direccion: direccion,
+        tipo: tipoPedido,
+        items: conteoItems,
+        total: total,
+        estado: 'Pendiente',
+        fecha: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      orders.unshift(newOrder);
+      trackedOrderId = newOrder.id;
+      localStorage.setItem('xiiao_tracked', trackedOrderId);
+      saveOrders();
+
+      const listaProductos = Object.ent
